@@ -2,7 +2,7 @@
 
 Local-first browser extension concept for HH.ru job search: vacancy analysis, explainable scoring, cover letter preparation, and personal application tracking.
 
-Current status: Phase 0 — WXT scaffold complete (ITER-001).
+Current status: Phase 0 — local storage schema in progress (ITER-004).
 
 ## Source Of Truth
 

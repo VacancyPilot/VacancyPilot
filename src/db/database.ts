@@ -1,0 +1,37 @@
+import Dexie, { type EntityTable } from 'dexie';
+import type { Job } from '@/models/job';
+import type { Company } from '@/models/company';
+import type { Profile } from '@/models/profile';
+import type { Resume } from '@/models/resume';
+import type { CoverLetter } from '@/models/cover-letter';
+import type { Application } from '@/models/application';
+import type { EventLog } from '@/models/event-log';
+import type { AIRequestCache } from '@/models/ai';
+import { SCHEMA_V1 } from './schema';
+
+/**
+ * Dexie database wrapper for VacancyPilot.
+ *
+ * All domain data goes here. Settings and API keys are NOT stored in IndexedDB;
+ * they live in chrome.storage.local (see settings-bridge.ts).
+ */
+
+export class VacancyDatabase extends Dexie {
+  jobs!: EntityTable<Job, 'id'>;
+  companies!: EntityTable<Company, 'id'>;
+  profiles!: EntityTable<Profile, 'id'>;
+  resumes!: EntityTable<Resume, 'id'>;
+  coverLetters!: EntityTable<CoverLetter, 'id'>;
+  applications!: EntityTable<Application, 'id'>;
+  events!: EntityTable<EventLog, 'id'>;
+  aiCache!: EntityTable<AIRequestCache, 'id'>;
+  meta!: EntityTable<{ key: string; value: unknown }, 'key'>;
+
+  constructor() {
+    super('VacancyPilotDB');
+    this.version(1).stores(SCHEMA_V1);
+  }
+}
+
+/** Singleton database instance. Created lazily by Dexie — no DB open until first operation. */
+export const db = new VacancyDatabase();
