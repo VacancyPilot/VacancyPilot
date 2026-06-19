@@ -8,9 +8,12 @@ For Zed with DeepSeek, paste `ZED-SESSION-START.md` once at the beginning of the
 
 Zed should not commit or push by default. Review, commit, and push after validation.
 
+If Zed reports residual risks, paste `RISK-CLOSURE.md` in the same chat before returning to Codex for review.
+
 Available prompts:
 
 - `ZED-SESSION-START.md`
+- `RISK-CLOSURE.md`
 - `ITER-001.md`
 - `ITER-002.md`
 - `ITER-003.md`

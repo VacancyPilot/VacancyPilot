@@ -12,10 +12,11 @@ Use this loop:
 2. Paste `docs/development/prompts/ZED-SESSION-START.md` once at the beginning of the Zed AI chat.
 3. Paste one iteration prompt, starting with `docs/development/prompts/ITER-001.md`.
 4. Let Zed implement only that iteration.
-5. Run the validation commands from the prompt.
-6. Review the diff.
-7. Commit only after review.
-8. Move to the next iteration.
+5. If Zed reports residual risks, paste `docs/development/prompts/RISK-CLOSURE.md` in the same Zed chat.
+6. Run the validation commands from the prompt.
+7. Review the diff.
+8. Commit only after review.
+9. Move to the next iteration.
 
 ## Recommended Human/Codex Handoff
 
@@ -49,6 +50,19 @@ Zed should not:
 - silently switch package manager;
 - hide failed validation.
 
+## Residual Risks
+
+Residual risks are useful, but they should not automatically become more work.
+
+Use `docs/development/prompts/RISK-CLOSURE.md` only when the risks are concrete enough to classify. It should either:
+
+- fix a small in-scope issue;
+- defer the risk to a future iteration;
+- mark it as a manual check;
+- explicitly accept it for now.
+
+Do not use residual-risk closure to expand the current iteration into the next epic.
+
 ## Branching
 
 For private early development, committing directly to `main` after review is acceptable.
@@ -71,4 +85,3 @@ Stop the run and ask Codex to inspect if:
 - TypeScript/build setup is unclear;
 - generated manifest contains unexpected permissions;
 - Zed starts implementing features outside the iteration.
-

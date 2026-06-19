@@ -24,6 +24,14 @@ Prompt: docs/development/prompts/ITER-001.md
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
 
+If Zed reports residual risks after an iteration, use:
+
+```text
+docs/development/prompts/RISK-CLOSURE.md
+```
+
+Run it in the same Zed chat before asking Codex to review.
+
 ## Status
 
 The decomposition pack is ready for Phase 0 development. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
