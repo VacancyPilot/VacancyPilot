@@ -2,13 +2,18 @@ import { defineConfig } from "wxt";
 
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
+  // src/ is the source root; entrypoints/ and public/ live outside it at project root.
+  // WXT automatically sets @ -> srcDir, so @/components resolves to src/components.
+  srcDir: "src",
+  entrypointsDir: "../entrypoints",
+  publicDir: "../public",
   manifest: {
     manifest_version: 3,
     name: "VacancyPilot",
     short_name: "VacancyPilot",
     version: "0.1.0",
     description: "Local-first HH.ru job search copilot",
-    permissions: ["storage", "sidePanel"],
+    permissions: ["storage", "sidePanel", "activeTab"],
     host_permissions: [],
     optional_permissions: [],
     icons: {
