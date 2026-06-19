@@ -11,6 +11,15 @@ Read first:
 
 Task: scaffold the initial WXT + React + TypeScript extension foundation.
 
+Execution mode:
+
+- Make the code changes directly in the repository.
+- Run validation commands if the environment allows.
+- Do not commit or push.
+- Do not continue to ITER-002.
+- If WXT generator prompts are interactive, choose React + TypeScript + Manifest V3-compatible defaults, or scaffold equivalent files manually.
+- If `pnpm` is unavailable, try enabling it through Corepack if available; otherwise report the exact blocker.
+
 Allowed scope:
 
 - package files;
@@ -38,3 +47,11 @@ pnpm build
 
 Expected commit message: `chore: scaffold extension foundation`
 
+Final response must include:
+
+- files changed;
+- commands run;
+- validation result;
+- generated manifest permissions;
+- any blockers;
+- suggested commit message.

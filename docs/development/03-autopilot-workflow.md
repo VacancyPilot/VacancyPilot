@@ -1,6 +1,6 @@
-# Cursor / Codex Autopilot Workflow
+# Cursor / Codex / Zed Autopilot Workflow
 
-Use one prompt per iteration. The prompt files in `docs/development/prompts/` are designed to be pasted into Cursor or Codex with the repository open.
+Use one prompt per iteration. The prompt files in `docs/development/prompts/` are designed to be pasted into Cursor, Codex, or Zed with the repository open.
 
 ## Standard Autopilot Run
 
@@ -15,6 +15,18 @@ Use one prompt per iteration. The prompt files in `docs/development/prompts/` ar
 9. Run validation commands.
 10. Commit with the suggested commit message.
 11. Update `docs/development/02-iteration-map.md` status if appropriate.
+
+## Zed Session Setup
+
+When using Zed, paste this once at the beginning of the AI chat:
+
+```text
+docs/development/prompts/ZED-SESSION-START.md
+```
+
+Then paste only the target iteration prompt.
+
+Zed should implement and validate, but should not commit or push unless explicitly instructed. Prefer returning to Codex for review, commit, and push after each iteration.
 
 ## Prompt Contract
 
@@ -52,4 +64,3 @@ Stop and split the task if it:
 - broadens host permissions;
 - rewrites the whole architecture;
 - removes safety checks to make tests pass.
-

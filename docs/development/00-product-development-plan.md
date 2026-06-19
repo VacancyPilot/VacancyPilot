@@ -107,6 +107,6 @@ Required:
 ## Immediate Next Actions
 
 1. Commit this decomposition pack.
-2. Start `ITER-001` from `docs/development/prompts/ITER-001.md`.
-3. After each iteration, update `docs/development/02-iteration-map.md` status.
-
+2. If using Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once.
+3. Start `ITER-001` from `docs/development/prompts/ITER-001.md`.
+4. After each iteration, review, commit, push, and update `docs/development/02-iteration-map.md` status.
