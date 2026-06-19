@@ -5,6 +5,7 @@ node_modules/
 
 # WXT / extension builds
 .output/
+.wxt/
 dist/
 build/
 web-ext-artifacts/
@@ -52,4 +53,3 @@ desktop.ini
 tmp/
 temp/
 *.tmp
-

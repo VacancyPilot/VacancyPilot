@@ -12,7 +12,7 @@ Status values:
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-001 | EPIC-00 | Scaffold WXT + React + TypeScript extension | planned | `chore: scaffold extension foundation` |
+| ITER-001 | EPIC-00 | Scaffold WXT + React + TypeScript extension | done | `chore: scaffold extension foundation` |
 | ITER-002 | EPIC-00 | Add lint/test/typecheck/build scripts and CI smoke shape | planned | `chore: add project quality scripts` |
 | ITER-003 | EPIC-01 | Add domain models and shared type contracts | planned | `feat: add domain model contracts` |
 | ITER-004 | EPIC-01 | Add Dexie schema v1, migrations, settings storage | planned | `feat: add local storage schema` |
@@ -37,4 +37,3 @@ Status values:
 ## Cursor/Codex Rule
 
 Do not ask autopilot to implement more than one row at a time. If it touches unrelated epics, reject or split the change.
-

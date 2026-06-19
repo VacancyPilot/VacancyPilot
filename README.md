@@ -2,7 +2,7 @@
 
 Local-first browser extension concept for HH.ru job search: vacancy analysis, explainable scoring, cover letter preparation, and personal application tracking.
 
-Current status: specification-first repository. Implementation has not started yet.
+Current status: Phase 0 — WXT scaffold complete (ITER-001).
 
 ## Source Of Truth
 
@@ -35,6 +35,16 @@ Before coding, read `AGENTS.md` and the final specification. The main safety con
 - no broad permissions such as `<all_urls>`, `cookies`, or `webRequest`;
 - AI and n8n are opt-in only.
 
+## Development
+
+```bash
+pnpm install          # Install dependencies
+pnpm dev              # Dev mode with hot reload (Chrome)
+pnpm build            # Production build
+pnpm typecheck        # TypeScript check
+pnpm test             # Run tests
+```
+
 ## Repository Layout
 
 ```text
@@ -42,9 +52,9 @@ docs/
   Техническое заданиеV.1.md
   search/
     *.md
+entrypoints/          # Extension entrypoints (popup, sidepanel, options, background, content)
+public/               # Static assets (icons)
+src/                  # Shared source code
 AGENTS.md
 README.md
 ```
-
-Implementation folders will be added when Phase 0 starts.
-
