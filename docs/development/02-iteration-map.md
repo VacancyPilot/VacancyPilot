@@ -24,7 +24,7 @@ Status values:
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
 | ITER-007 | EPIC-03 | Save current vacancy locally and manage statuses | done | `feat: add local vacancy tracker` |
-| ITER-008 | EPIC-04 | Implement explainable rule-based scoring | planned | `feat: add rule based scoring` |
+| ITER-008 | EPIC-04 | Implement explainable rule-based scoring | done | `feat: add rule based scoring` |
 | ITER-009 | EPIC-05 | Build side panel, popup, and dashboard shell | planned | `feat: add extension ui shell` |
 | ITER-010 | EPIC-06 | Implement redaction, payload preview, Strict Privacy | planned | `feat: add ai privacy layer` |
 | ITER-011 | EPIC-06 | Add AI provider interface, mock provider, cache | planned | `feat: add ai analysis workflow` |

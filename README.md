@@ -2,7 +2,7 @@
 
 Local-first browser extension concept for HH.ru job search: vacancy analysis, explainable scoring, cover letter preparation, and personal application tracking.
 
-Current status: Phase 1 — local vacancy tracker complete (ITER-007).
+Current status: Phase 1 — rule-based scoring complete (ITER-008).
 
 ## Source Of Truth
 

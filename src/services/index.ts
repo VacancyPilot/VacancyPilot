@@ -1,5 +1,6 @@
-// Tracker services — barrel export
+// Services — barrel export
 
-export { STATUS_ORDER, createStatusChange } from './status-transitions';
-export { createEventLogEntry } from './event-log-helper';
-export { tracker } from './tracker';
+export { STATUS_ORDER, createStatusChange } from "./status-transitions";
+export { createEventLogEntry } from "./event-log-helper";
+export { tracker } from "./tracker";
+export { scoreJob, DEFAULT_WEIGHTS } from "./scoring";
