@@ -2,7 +2,7 @@
 
 Local-first browser extension concept for HH.ru job search: vacancy analysis, explainable scoring, cover letter preparation, and personal application tracking.
 
-Current status: Phase 0 — HH adapter skeleton in progress (ITER-005).
+Current status: Phase 0 — HH adapter fixture harness complete (ITER-006).
 
 ## Source Of Truth
 
