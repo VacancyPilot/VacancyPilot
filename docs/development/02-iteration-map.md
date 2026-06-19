@@ -16,7 +16,7 @@ Status values:
 | ITER-002 | EPIC-00 | Add lint/test/typecheck/build scripts and CI smoke shape | planned | `chore: add project quality scripts` |
 | ITER-003 | EPIC-01 | Add domain models and shared type contracts | done | `feat: add domain model contracts` |
 | ITER-004 | EPIC-01 | Add Dexie schema v1, migrations, settings storage | done | `feat: add local storage schema` |
-| ITER-005 | EPIC-02 | Add HHAdapter interface and vacancy parser skeleton | planned | `feat: add hh vacancy parser skeleton` |
+| ITER-005 | EPIC-02 | Add HHAdapter interface and vacancy parser skeleton | done | `feat: add hh vacancy parser skeleton` |
 | ITER-006 | EPIC-02 | Add parser fixture harness and first sanitized fixtures | planned | `test: add vacancy parser fixtures` |
 
 ## Phase 1: Read & Assist MVP
