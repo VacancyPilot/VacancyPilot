@@ -20,6 +20,6 @@ When recommendations conflict, use the priority order from the final specificati
 
 - [development/](development/) - implementation epics, iteration map, and autopilot prompts.
 
-Start implementation from:
+Recommended next implementation prompt:
 
-- [development/prompts/ITER-001.md](development/prompts/ITER-001.md)
+- [development/prompts/ITER-015.md](development/prompts/ITER-015.md)

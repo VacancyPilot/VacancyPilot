@@ -10,7 +10,7 @@ Use this loop:
 
 1. Start from a clean working tree.
 2. Paste `docs/development/prompts/ZED-SESSION-START.md` once at the beginning of the Zed AI chat.
-3. Paste one iteration prompt, starting with `docs/development/prompts/ITER-001.md`.
+3. Paste one committed iteration prompt file from `docs/development/prompts/`.
 4. Let Zed implement only that iteration.
 5. If Zed reports residual risks, paste `docs/development/prompts/RISK-CLOSURE.md` in the same Zed chat.
 6. Run the validation commands from the prompt.
@@ -23,7 +23,7 @@ Use this loop:
 After Zed finishes an iteration, come back to Codex with:
 
 ```text
-Review ITER-001 result, run checks, commit and push if good.
+Review ITER-0XX result, run checks, commit and push if good.
 ```
 
 This keeps Zed focused on implementation and lets Codex act as reviewer/release operator.

@@ -1,6 +1,20 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EmptyState } from "@/components/EmptyState";
-import { useState, useCallback, type ReactNode } from "react";
+import { ErrorState } from "@/components/ErrorState";
+import { useState, useCallback, useEffect, type ReactNode } from "react";
+import {
+  exportAllJson,
+  downloadJson,
+  generateJobsCsv,
+  downloadCsv,
+} from "@/services/export-data";
+import {
+  deleteAllData,
+  deleteJobData,
+  deleteAiCacheAndEventLog,
+  getDataCounts,
+} from "@/services/delete-all";
+import { db } from "@/db";
 
 type SectionId =
   | "vacancies"
@@ -190,13 +204,7 @@ function SectionContent({ section }: { section: SectionId }): ReactNode {
         />
       );
     case "export":
-      return (
-        <EmptyState
-          icon="📦"
-          message="Export your data"
-          description="Export vacancies and history as CSV or JSON."
-        />
-      );
+      return <ExportSection />;
     case "settings":
       return (
         <EmptyState
@@ -206,13 +214,7 @@ function SectionContent({ section }: { section: SectionId }): ReactNode {
         />
       );
     case "privacy":
-      return (
-        <EmptyState
-          icon="🔒"
-          message="Privacy controls"
-          description="Manage AI data sharing, data retention, and delete all data."
-        />
-      );
+      return <PrivacySection />;
     case "debug":
       return (
         <EmptyState
@@ -223,6 +225,679 @@ function SectionContent({ section }: { section: SectionId }): ReactNode {
       );
   }
 }
+
+// ── Export Section ───────────────────────────────────────────────────────
+
+type ExportStatus = "idle" | "loading" | "error" | "done";
+
+function ExportSection(): ReactNode {
+  const [jsonStatus, setJsonStatus] = useState<ExportStatus>("idle");
+  const [csvStatus, setCsvStatus] = useState<ExportStatus>("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleExportJson = useCallback(async () => {
+    setJsonStatus("loading");
+    setErrorMsg("");
+    try {
+      const envelope = await exportAllJson();
+      downloadJson(envelope);
+      setJsonStatus("done");
+    } catch (err) {
+      setJsonStatus("error");
+      setErrorMsg(err instanceof Error ? err.message : "Export failed");
+    }
+  }, []);
+
+  const handleExportCsv = useCallback(async () => {
+    setCsvStatus("loading");
+    setErrorMsg("");
+    try {
+      const jobs = await db.jobs.toArray();
+      const csv = generateJobsCsv(jobs);
+      downloadCsv(
+        csv,
+        `vacancy-pilot-jobs-${new Date().toISOString().slice(0, 10)}.csv`,
+      );
+      setCsvStatus("done");
+    } catch (err) {
+      setCsvStatus("error");
+      setErrorMsg(err instanceof Error ? err.message : "CSV export failed");
+    }
+  }, []);
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 6px" }}>
+        Export Your Data
+      </h2>
+      <p style={{ margin: "0 0 16px", fontSize: 12, color: "#666" }}>
+        Download your vacancies, cover letters, settings, and event history. API
+        keys and secrets are never included in exports.
+      </p>
+
+      {errorMsg && (
+        <ErrorState
+          message="Export failed"
+          details={errorMsg}
+          onRetry={() => setErrorMsg("")}
+        />
+      )}
+
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        {/* JSON Export */}
+        <div
+          style={{
+            flex: "1 1 240px",
+            padding: 16,
+            border: "1px solid #e0e0e0",
+            borderRadius: 8,
+            background: "#fafafa",
+          }}
+        >
+          <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 4px" }}>
+            JSON Export
+          </h3>
+          <p style={{ fontSize: 11, color: "#888", margin: "0 0 12px" }}>
+            Full data archive with version envelope — suitable for backup,
+            migration, or import into another VacancyPilot instance.
+          </p>
+          <button
+            type="button"
+            onClick={handleExportJson}
+            disabled={jsonStatus === "loading"}
+            style={{
+              padding: "6px 14px",
+              fontSize: 12,
+              cursor: jsonStatus === "loading" ? "not-allowed" : "pointer",
+              border: "1px solid #4a90d9",
+              borderRadius: 4,
+              background: "#4a90d9",
+              color: "#fff",
+              fontWeight: 600,
+              opacity: jsonStatus === "loading" ? 0.6 : 1,
+            }}
+          >
+            {jsonStatus === "loading"
+              ? "Exporting…"
+              : jsonStatus === "done"
+                ? "✓ Exported"
+                : "Export JSON"}
+          </button>
+        </div>
+
+        {/* CSV Export */}
+        <div
+          style={{
+            flex: "1 1 240px",
+            padding: 16,
+            border: "1px solid #e0e0e0",
+            borderRadius: 8,
+            background: "#fafafa",
+          }}
+        >
+          <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 4px" }}>
+            CSV Export — Jobs
+          </h3>
+          <p style={{ fontSize: 11, color: "#888", margin: "0 0 12px" }}>
+            Spreadsheet-friendly job history with scores, statuses, and
+            timestamps. Opens in Excel, Google Sheets, or any CSV viewer.
+          </p>
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            disabled={csvStatus === "loading"}
+            style={{
+              padding: "6px 14px",
+              fontSize: 12,
+              cursor: csvStatus === "loading" ? "not-allowed" : "pointer",
+              border: "1px solid #2a8",
+              borderRadius: 4,
+              background: "#2a8",
+              color: "#fff",
+              fontWeight: 600,
+              opacity: csvStatus === "loading" ? 0.6 : 1,
+            }}
+          >
+            {csvStatus === "loading"
+              ? "Exporting…"
+              : csvStatus === "done"
+                ? "✓ Exported"
+                : "Export CSV"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Privacy / Delete Section ──────────────────────────────────────────────
+
+type DeleteStep =
+  | "idle"
+  | "warn-export"
+  | "confirm"
+  | "deleting"
+  | "done"
+  | "error";
+
+type InlineActionStatus = "idle" | "confirm" | "working" | "done" | "error";
+
+function PrivacySection(): ReactNode {
+  const [step, setStep] = useState<DeleteStep>("idle");
+  const [dataCounts, setDataCounts] = useState<Record<string, number>>({});
+  const [errorMsg, setErrorMsg] = useState("");
+  const [jobIdInput, setJobIdInput] = useState("");
+  const [jobDeleteStatus, setJobDeleteStatus] =
+    useState<InlineActionStatus>("idle");
+  const [jobDeleteMessage, setJobDeleteMessage] = useState("");
+  const [cacheDeleteStatus, setCacheDeleteStatus] =
+    useState<InlineActionStatus>("idle");
+  const [cacheDeleteMessage, setCacheDeleteMessage] = useState("");
+
+  const refreshCounts = useCallback(async () => {
+    try {
+      setDataCounts(await getDataCounts());
+    } catch {
+      setDataCounts({});
+    }
+  }, []);
+
+  // Load counts when the section mounts or when step returns to idle
+  useEffect(() => {
+    if (step === "idle") {
+      void refreshCounts();
+    }
+  }, [refreshCounts, step]);
+
+  const totalRows = Object.values(dataCounts).reduce((a, b) => a + b, 0);
+  const hasAnyData = totalRows > 0;
+
+  const handleStartDelete = useCallback(() => {
+    setStep("warn-export");
+    setErrorMsg("");
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    setStep("confirm");
+  }, []);
+
+  const handleExecuteDelete = useCallback(async () => {
+    setStep("deleting");
+    setErrorMsg("");
+    try {
+      await deleteAllData();
+      setDataCounts({});
+      setStep("done");
+    } catch (err) {
+      setStep("error");
+      setErrorMsg(err instanceof Error ? err.message : "Deletion failed");
+    }
+  }, []);
+
+  const handleDeleteJob = useCallback(async () => {
+    const jobId = jobIdInput.trim();
+    if (!jobId) return;
+
+    setJobDeleteStatus("working");
+    setJobDeleteMessage("");
+    try {
+      const result = await deleteJobData(jobId);
+      setJobDeleteStatus("done");
+      setJobDeleteMessage(
+        `Deleted ${jobId} and related records (${result.coverLettersDeleted} letter(s), ${result.applicationsDeleted} application(s), ${result.eventsDeleted} event(s)).`,
+      );
+      setJobIdInput("");
+      await refreshCounts();
+    } catch (err) {
+      setJobDeleteStatus("error");
+      setJobDeleteMessage(
+        err instanceof Error ? err.message : "Single-job deletion failed",
+      );
+    }
+  }, [jobIdInput, refreshCounts]);
+
+  const handleDeleteAiCacheAndLog = useCallback(async () => {
+    setCacheDeleteStatus("working");
+    setCacheDeleteMessage("");
+    try {
+      const result = await deleteAiCacheAndEventLog();
+      setCacheDeleteStatus("done");
+      setCacheDeleteMessage(
+        `Deleted ${result.cacheEntriesDeleted} AI cache entr${
+          result.cacheEntriesDeleted === 1 ? "y" : "ies"
+        } and ${result.eventLogEntriesDeleted} event log entr${
+          result.eventLogEntriesDeleted === 1 ? "y" : "ies"
+        }.`,
+      );
+      await refreshCounts();
+    } catch (err) {
+      setCacheDeleteStatus("error");
+      setCacheDeleteMessage(
+        err instanceof Error ? err.message : "AI cache deletion failed",
+      );
+    }
+  }, [refreshCounts]);
+
+  const handleCancel = useCallback(() => {
+    setStep("idle");
+    setErrorMsg("");
+  }, []);
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 6px" }}>
+        Privacy &amp; Data Controls
+      </h2>
+      <p style={{ margin: "0 0 16px", fontSize: 12, color: "#666" }}>
+        Manage your local data. All information is stored only in this browser.
+      </p>
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          maxWidth: 520,
+          marginBottom: 16,
+        }}
+      >
+        <div
+          style={{
+            padding: 16,
+            border: "1px solid #e0e0e0",
+            borderRadius: 8,
+            background: "#fafafa",
+          }}
+        >
+          <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 4px" }}>
+            Delete One Job
+          </h3>
+          <p style={{ fontSize: 12, color: "#666", margin: "0 0 12px" }}>
+            Remove one saved vacancy by local job ID. Related cover letters,
+            application records, and event log entries for that job will also be
+            deleted.
+          </p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input
+              type="text"
+              value={jobIdInput}
+              onChange={(event) => {
+                setJobIdInput(event.target.value);
+                if (jobDeleteStatus !== "idle") {
+                  setJobDeleteStatus("idle");
+                  setJobDeleteMessage("");
+                }
+              }}
+              placeholder="hh_123456"
+              style={{
+                flex: "1 1 220px",
+                minWidth: 180,
+                padding: "6px 8px",
+                fontSize: 12,
+                border: "1px solid #ccc",
+                borderRadius: 4,
+              }}
+            />
+            {jobDeleteStatus !== "confirm" ? (
+              <button
+                type="button"
+                onClick={() => setJobDeleteStatus("confirm")}
+                disabled={!jobIdInput.trim() || jobDeleteStatus === "working"}
+                style={dangerSecondaryButtonStyle(
+                  !jobIdInput.trim() || jobDeleteStatus === "working",
+                )}
+              >
+                Delete Job...
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setJobDeleteStatus("idle")}
+                  style={secondaryButtonStyle}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteJob}
+                  style={dangerPrimaryButtonStyle}
+                >
+                  Confirm Delete
+                </button>
+              </>
+            )}
+          </div>
+          {jobDeleteMessage && (
+            <p
+              style={{
+                fontSize: 11,
+                margin: "10px 0 0",
+                color: jobDeleteStatus === "error" ? "#c44" : "#666",
+              }}
+            >
+              {jobDeleteMessage}
+            </p>
+          )}
+        </div>
+
+        <div
+          style={{
+            padding: 16,
+            border: "1px solid #e0e0e0",
+            borderRadius: 8,
+            background: "#fafafa",
+          }}
+        >
+          <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 4px" }}>
+            Delete AI Cache And Event Log
+          </h3>
+          <p style={{ fontSize: 12, color: "#666", margin: "0 0 12px" }}>
+            Clear cached AI outputs and the local event log without touching
+            saved vacancies, profiles, or settings.
+          </p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {cacheDeleteStatus !== "confirm" ? (
+              <button
+                type="button"
+                onClick={() => setCacheDeleteStatus("confirm")}
+                disabled={cacheDeleteStatus === "working"}
+                style={dangerSecondaryButtonStyle(
+                  cacheDeleteStatus === "working",
+                )}
+              >
+                Clear Cache And Log...
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setCacheDeleteStatus("idle")}
+                  style={secondaryButtonStyle}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteAiCacheAndLog}
+                  style={dangerPrimaryButtonStyle}
+                >
+                  Confirm Clear
+                </button>
+              </>
+            )}
+          </div>
+          {cacheDeleteMessage && (
+            <p
+              style={{
+                fontSize: 11,
+                margin: "10px 0 0",
+                color: cacheDeleteStatus === "error" ? "#c44" : "#666",
+              }}
+            >
+              {cacheDeleteMessage}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Delete all data card */}
+      <div
+        style={{
+          padding: 16,
+          border: step === "done" ? "1px solid #b0d0b0" : "1px solid #e0e0e0",
+          borderRadius: 8,
+          background: step === "done" ? "#f5fff5" : "#fafafa",
+          maxWidth: 520,
+        }}
+      >
+        <h3
+          style={{
+            fontSize: 14,
+            fontWeight: 600,
+            margin: "0 0 4px",
+            color: step === "done" ? "#2a8" : "#c33",
+          }}
+        >
+          {step === "done" ? "✓ Data Deleted" : "Delete All Data"}
+        </h3>
+
+        {step === "idle" && (
+          <>
+            <p style={{ fontSize: 12, color: "#666", margin: "0 0 8px" }}>
+              {hasAnyData
+                ? `You have ${totalRows} record(s) across ${Object.values(dataCounts).filter((c) => c > 0).length} table(s). This action is irreversible.`
+                : "No data to delete."}
+            </p>
+            {hasAnyData && (
+              <>
+                <table
+                  style={{
+                    width: "100%",
+                    fontSize: 11,
+                    color: "#555",
+                    borderCollapse: "collapse",
+                    marginBottom: 12,
+                  }}
+                >
+                  <tbody>
+                    {Object.entries(dataCounts)
+                      .filter(([, c]) => c > 0)
+                      .map(([table, count]) => (
+                        <tr key={table}>
+                          <td style={{ padding: "2px 8px 2px 0" }}>{table}</td>
+                          <td style={{ padding: "2px 0", color: "#999" }}>
+                            {count} row(s)
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+                <button
+                  type="button"
+                  onClick={handleStartDelete}
+                  style={{
+                    padding: "6px 14px",
+                    fontSize: 12,
+                    cursor: "pointer",
+                    border: "1px solid #c44",
+                    borderRadius: 4,
+                    background: "#fff",
+                    color: "#c44",
+                    fontWeight: 600,
+                  }}
+                >
+                  Delete All Data…
+                </button>
+              </>
+            )}
+          </>
+        )}
+
+        {step === "warn-export" && (
+          <>
+            <p style={{ fontSize: 12, color: "#666", margin: "0 0 12px" }}>
+              ⚠️ You are about to permanently delete all your VacancyPilot data.
+              This includes vacancies, cover letters, profiles, settings, and
+              event history.
+            </p>
+            <p style={{ fontSize: 12, color: "#666", margin: "0 0 12px" }}>
+              We strongly recommend exporting your data first from the
+              <span style={{ fontWeight: 600 }}> Export</span> section.
+            </p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                onClick={handleCancel}
+                style={{
+                  padding: "6px 14px",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  border: "1px solid #ccc",
+                  borderRadius: 4,
+                  background: "#fff",
+                  color: "#555",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                style={{
+                  padding: "6px 14px",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  border: "1px solid #c44",
+                  borderRadius: 4,
+                  background: "#c44",
+                  color: "#fff",
+                  fontWeight: 600,
+                }}
+              >
+                I understand, continue
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === "confirm" && (
+          <>
+            <p style={{ fontSize: 12, color: "#666", margin: "0 0 12px" }}>
+              🔴 Final confirmation: this action{" "}
+              <strong>cannot be undone</strong>. All local data will be wiped
+              immediately.
+            </p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                onClick={handleCancel}
+                style={{
+                  padding: "6px 14px",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  border: "1px solid #ccc",
+                  borderRadius: 4,
+                  background: "#fff",
+                  color: "#555",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteDelete}
+                style={{
+                  padding: "6px 14px",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  border: "1px solid #900",
+                  borderRadius: 4,
+                  background: "#900",
+                  color: "#fff",
+                  fontWeight: 700,
+                }}
+              >
+                Delete Everything
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === "deleting" && (
+          <p style={{ fontSize: 12, color: "#888", margin: 0 }}>
+            Deleting all data…
+          </p>
+        )}
+
+        {step === "done" && (
+          <>
+            <p style={{ fontSize: 12, color: "#2a8", margin: "0 0 8px" }}>
+              All VacancyPilot data has been deleted from this browser.
+            </p>
+            <button
+              type="button"
+              onClick={handleCancel}
+              style={{
+                padding: "6px 14px",
+                fontSize: 12,
+                cursor: "pointer",
+                border: "1px solid #ccc",
+                borderRadius: 4,
+                background: "#fff",
+                color: "#555",
+              }}
+            >
+              Done
+            </button>
+          </>
+        )}
+
+        {step === "error" && (
+          <>
+            <ErrorState
+              message="Deletion failed"
+              details={errorMsg}
+              onRetry={handleExecuteDelete}
+            />
+            <div style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={handleCancel}
+                style={{
+                  padding: "6px 14px",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  border: "1px solid #ccc",
+                  borderRadius: 4,
+                  background: "#fff",
+                  color: "#555",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const secondaryButtonStyle = {
+  padding: "6px 14px",
+  fontSize: 12,
+  cursor: "pointer",
+  border: "1px solid #ccc",
+  borderRadius: 4,
+  background: "#fff",
+  color: "#555",
+} as const;
+
+function dangerSecondaryButtonStyle(disabled: boolean) {
+  return {
+    padding: "6px 14px",
+    fontSize: 12,
+    cursor: disabled ? "not-allowed" : "pointer",
+    border: "1px solid #c44",
+    borderRadius: 4,
+    background: "#fff",
+    color: "#c44",
+    fontWeight: 600,
+    opacity: disabled ? 0.6 : 1,
+  } as const;
+}
+
+const dangerPrimaryButtonStyle = {
+  padding: "6px 14px",
+  fontSize: 12,
+  cursor: "pointer",
+  border: "1px solid #900",
+  borderRadius: 4,
+  background: "#900",
+  color: "#fff",
+  fontWeight: 700,
+} as const;
 
 export default function App(): ReactNode {
   return (

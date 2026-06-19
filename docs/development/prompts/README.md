@@ -26,5 +26,13 @@ Available prompts:
 - `ITER-010.md`
 - `ITER-011.md`
 - `ITER-012.md`
+- `ITER-013.md`
+- `ITER-014.md`
+- `ITER-015.md`
+- `ITER-016.md`
 
-Prompts for `ITER-013` to `ITER-016` should be generated after the actual implementation shape exists, because export, n8n, and release safety checks depend on concrete service/module paths.
+Recommended next run after `ITER-013`:
+
+1. `ITER-015.md`
+2. `ITER-016.md`
+3. `ITER-014.md` only if Phase 1 still needs opt-in webhook automation before release.

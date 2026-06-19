@@ -1,6 +1,6 @@
 # VacancyPilot Product Development Plan
 
-Status: active development planning  
+Status: active Phase 1 implementation  
 Source of truth: `docs/Техническое заданиеV.1.md` v1.1 FINAL
 
 ## Decision
@@ -106,7 +106,9 @@ Required:
 
 ## Immediate Next Actions
 
-1. Commit this decomposition pack.
+1. Use the committed prompt files in `docs/development/prompts/` as the source of iteration instructions.
 2. If using Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once.
-3. Start `ITER-001` from `docs/development/prompts/ITER-001.md`.
-4. After each iteration, review, commit, push, and update `docs/development/02-iteration-map.md` status.
+3. Recommended next run after `ITER-013` is `docs/development/prompts/ITER-015.md`.
+4. Run `ITER-016` after release-safety checks land.
+5. Treat `ITER-014` as deferred until there is a deliberate go/no-go decision on Phase 1 n8n integration.
+6. After each iteration, review, commit, push, and update `docs/development/02-iteration-map.md` status.

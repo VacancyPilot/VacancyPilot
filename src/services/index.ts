@@ -28,6 +28,26 @@ export {
   generateVacancyAnalysisPreview,
   generateCoverLetterPreview,
 } from "./payload-preview";
+
+export {
+  exportAllJson,
+  downloadJson,
+  generateJobsCsv,
+  downloadCsv,
+} from "./export-data";
+export type { ExportEnvelope } from "./export-data";
+
+export {
+  deleteAllData,
+  deleteJobData,
+  deleteAiCacheAndEventLog,
+  hasData,
+  getDataCounts,
+} from "./delete-all";
+export type {
+  DeleteJobDataResult,
+  DeleteAiCacheAndEventLogResult,
+} from "./delete-all";
 export type { PayloadPreview, IncludedField } from "./payload-preview";
 
 // AI provider

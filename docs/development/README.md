@@ -15,11 +15,17 @@ Read in order:
 
 ## Start Here
 
-The first implementation task is:
+Current implementation status:
 
 ```text
-ITER-001: WXT Scaffold
-Prompt: docs/development/prompts/ITER-001.md
+ITER-013 complete
+```
+
+Recommended next implementation task is:
+
+```text
+ITER-015: Release Safety Tests
+Prompt: docs/development/prompts/ITER-015.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
@@ -34,4 +40,4 @@ Run it in the same Zed chat before asking Codex to review.
 
 ## Status
 
-The decomposition pack is ready for Phase 0 development. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
+The decomposition pack is active for late Phase 1 development. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.

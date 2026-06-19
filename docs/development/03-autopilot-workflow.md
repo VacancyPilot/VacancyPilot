@@ -1,6 +1,6 @@
 # Cursor / Codex / Zed Autopilot Workflow
 
-Use one prompt per iteration. The prompt files in `docs/development/prompts/` are designed to be pasted into Cursor, Codex, or Zed with the repository open.
+Use one prompt per iteration. The prompt files in `docs/development/prompts/` are the canonical source for autopilot instructions and should be used instead of ad hoc chat prompts.
 
 ## Standard Autopilot Run
 
