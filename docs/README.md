@@ -16,3 +16,10 @@ When recommendations conflict, use the priority order from the final specificati
 4. local-first storage;
 5. explicit consent before external requests.
 
+## Development Pack
+
+- [development/](development/) - implementation epics, iteration map, and autopilot prompts.
+
+Start implementation from:
+
+- [development/prompts/ITER-001.md](development/prompts/ITER-001.md)
