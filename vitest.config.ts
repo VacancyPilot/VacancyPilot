@@ -1,7 +1,15 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
+import { resolve } from "path";
+
+const srcDir = resolve(__dirname, "src");
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@": srcDir,
+    },
+  },
   test: {
-    include: ['**/*.test.ts', '**/*.test.tsx'],
+    include: ["**/*.test.ts", "**/*.test.tsx"],
   },
 });

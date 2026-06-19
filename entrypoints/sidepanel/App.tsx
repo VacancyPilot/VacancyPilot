@@ -1,6 +1,8 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EmptyState } from "@/components/EmptyState";
-import { useState, useCallback, type ReactNode } from "react";
+import { CoverLetterStudio } from "@/components/CoverLetterStudio";
+import { jobRepo } from "@/db/repositories";
+import { useState, useCallback, useEffect, type ReactNode } from "react";
 
 type TabId = "overview" | "score" | "letter" | "profile" | "history";
 
@@ -123,13 +125,7 @@ function TabContent({ tab }: { tab: TabId }): ReactNode {
         />
       );
     case "letter":
-      return (
-        <EmptyState
-          icon="✉️"
-          message="Cover Letter Studio"
-          description="Generate, edit, and save cover letters."
-        />
-      );
+      return <LetterTab />;
     case "profile":
       return (
         <EmptyState
@@ -147,6 +143,84 @@ function TabContent({ tab }: { tab: TabId }): ReactNode {
         />
       );
   }
+}
+
+// ── Letter tab wrapper ───────────────────────────────────────────────────
+
+interface VacancyContext {
+  jobId?: string;
+  profileId?: string;
+  resumeId?: string;
+}
+
+/**
+ * Detect current vacancy from the active browser tab.
+ * Side panel uses lastFocusedWindow to find the HH.ru tab.
+ */
+function useVacancyContext(): VacancyContext {
+  const [ctx, setCtx] = useState<VacancyContext>({});
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function detect(): Promise<void> {
+      try {
+        const [tab] = await chrome.tabs.query({
+          active: true,
+          lastFocusedWindow: true,
+        });
+        if (cancelled || !tab?.url) return;
+
+        const match = tab.url.match(/\/vacancy\/(\d+)/);
+        if (!match) return;
+
+        const vacancyId = match[1];
+        const jobId = `hh_${vacancyId}`;
+
+        // Try to load job from DB to get linked profile/resume
+        const job = await jobRepo.getById(jobId);
+
+        if (!cancelled) {
+          setCtx({
+            jobId,
+            profileId: job?.selectedProfileId,
+            resumeId: job?.selectedResumeId,
+          });
+        }
+      } catch {
+        // Ignore detection errors — user can still type manually
+      }
+    }
+
+    void detect();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return ctx;
+}
+
+function LetterTab(): ReactNode {
+  const ctx = useVacancyContext();
+
+  if (!ctx.jobId || !ctx.profileId) {
+    return (
+      <EmptyState
+        icon="✉️"
+        message="Cover Letter Studio"
+        description="Open a vacancy page and select a profile to start writing."
+      />
+    );
+  }
+
+  return (
+    <CoverLetterStudio
+      jobId={ctx.jobId}
+      profileId={ctx.profileId}
+      resumeId={ctx.resumeId}
+    />
+  );
 }
 
 export default function App(): ReactNode {

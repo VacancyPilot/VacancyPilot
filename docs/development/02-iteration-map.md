@@ -28,7 +28,7 @@ Status values:
 | ITER-009 | EPIC-05 | Build side panel, popup, and dashboard shell | done | `feat: add extension ui shell` |
 | ITER-010 | EPIC-06 | Implement redaction, payload preview, Strict Privacy | done | `feat: add ai privacy layer` |
 | ITER-011 | EPIC-06 | Add AI provider interface, mock provider, cache | done | `feat: add ai analysis workflow` |
-| ITER-012 | EPIC-07 | Add Cover Letter Studio editor and copy workflow | planned | `feat: add cover letter studio` |
+| ITER-012 | EPIC-07 | Add Cover Letter Studio editor and copy workflow | done | `feat: add cover letter studio` |
 | ITER-013 | EPIC-08 | Add CSV/JSON export and delete all data | planned | `feat: add export and data deletion` |
 | ITER-014 | EPIC-09 | Add n8n webhook client with HMAC and retry queue | planned | `feat: add opt in n8n events` |
 | ITER-015 | EPIC-10 | Add privacy/safety tests and release checklist | planned | `test: add release safety checks` |

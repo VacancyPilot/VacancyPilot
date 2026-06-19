@@ -1,6 +1,7 @@
 import { db } from "./database";
 import type { Job } from "@/models/job";
 import type { Profile } from "@/models/profile";
+import type { CoverLetter } from "@/models/cover-letter";
 
 /**
  * Thin CRUD helpers for key domain entities.
@@ -51,4 +52,21 @@ export const profileRepo = {
   save: (profile: Profile) => db.profiles.put(profile),
 
   delete: (id: string) => db.profiles.delete(id as Profile["id"]),
+};
+
+// ---- Cover Letter repository ----
+
+export const coverLetterRepo = {
+  /** List all letters for a given job. */
+  listByJob: (jobId: string) =>
+    db.coverLetters.where("jobId").equals(jobId).toArray(),
+
+  /** Get a single letter by id. */
+  getById: (id: string) => db.coverLetters.get(id as CoverLetter["id"]),
+
+  /** Insert or update a cover letter (upsert by id). */
+  save: (letter: CoverLetter) => db.coverLetters.put(letter),
+
+  /** Delete a letter by id. */
+  delete: (id: string) => db.coverLetters.delete(id as CoverLetter["id"]),
 };
