@@ -29,3 +29,44 @@ export {
   generateCoverLetterPreview,
 } from "./payload-preview";
 export type { PayloadPreview, IncludedField } from "./payload-preview";
+
+// AI provider
+export { MockLLMProvider } from "./ai-provider";
+
+// AI validation
+export {
+  parseAndValidateAnalysis,
+  createFallbackAnalysis,
+  validateCoverLetter,
+} from "./ai-validation";
+export type {
+  ValidationError,
+  AnalysisValidationResult,
+  LetterValidationResult,
+} from "./ai-validation";
+
+// AI hash
+export {
+  computeAnalysisInputHash,
+  computeCoverLetterInputHash,
+} from "./ai-hash";
+
+// AI cache
+export {
+  checkAnalysisCache,
+  checkCoverLetterCache,
+  storeAnalysisCache,
+  storeCoverLetterCache,
+  invalidateCache,
+  listCacheEntries,
+  getCachedAnalysis,
+  getCachedCoverLetter,
+} from "./ai-cache";
+export type {
+  CacheKind,
+  CacheCheckResult,
+  AnalysisCacheCheckResult,
+  CoverLetterCacheCheckResult,
+  CacheStoreParams,
+  CoverLetterCacheStoreParams,
+} from "./ai-cache";

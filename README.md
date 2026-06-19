@@ -2,7 +2,7 @@
 
 Local-first browser extension concept for HH.ru job search: vacancy analysis, explainable scoring, cover letter preparation, and personal application tracking.
 
-Current status: Phase 1 — AI privacy layer complete (ITER-010).
+Current status: Phase 1 — AI analysis workflow complete (ITER-011).
 
 ## Source Of Truth
 

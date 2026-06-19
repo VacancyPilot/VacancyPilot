@@ -27,7 +27,7 @@ Status values:
 | ITER-008 | EPIC-04 | Implement explainable rule-based scoring | done | `feat: add rule based scoring` |
 | ITER-009 | EPIC-05 | Build side panel, popup, and dashboard shell | done | `feat: add extension ui shell` |
 | ITER-010 | EPIC-06 | Implement redaction, payload preview, Strict Privacy | done | `feat: add ai privacy layer` |
-| ITER-011 | EPIC-06 | Add AI provider interface, mock provider, cache | planned | `feat: add ai analysis workflow` |
+| ITER-011 | EPIC-06 | Add AI provider interface, mock provider, cache | done | `feat: add ai analysis workflow` |
 | ITER-012 | EPIC-07 | Add Cover Letter Studio editor and copy workflow | planned | `feat: add cover letter studio` |
 | ITER-013 | EPIC-08 | Add CSV/JSON export and delete all data | planned | `feat: add export and data deletion` |
 | ITER-014 | EPIC-09 | Add n8n webhook client with HMAC and retry queue | planned | `feat: add opt in n8n events` |

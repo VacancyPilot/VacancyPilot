@@ -22,7 +22,7 @@ export interface AppSettings {
   };
 
   ai: {
-    provider?: 'openai' | 'deepseek' | 'openrouter';
+    provider?: 'openai' | 'deepseek' | 'openrouter' | 'mock';
     model?: string;
     dailyRequestLimit: number;
     maxInputChars: number;

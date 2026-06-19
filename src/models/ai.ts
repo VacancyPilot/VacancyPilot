@@ -7,7 +7,7 @@ export interface AIAnalysis {
   profileId: string;
   resumeId?: string;
 
-  provider: 'openai' | 'deepseek' | 'openrouter';
+  provider: 'openai' | 'deepseek' | 'openrouter' | 'mock';
   model: string;
   promptVersion: string;
   inputHash: string;
@@ -84,7 +84,7 @@ export interface CoverLetterInput {
 }
 
 export interface LLMProvider {
-  id: 'openai' | 'deepseek' | 'openrouter';
+  id: 'openai' | 'deepseek' | 'openrouter' | 'mock';
   analyzeVacancy(input: VacancyAnalysisInput): Promise<AIAnalysis>;
   generateCoverLetter(input: CoverLetterInput): Promise<string>;
 }
