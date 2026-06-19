@@ -42,6 +42,7 @@ pnpm install          # Install dependencies
 pnpm dev              # Dev mode with hot reload (Chrome)
 pnpm build            # Production build
 pnpm typecheck        # TypeScript check
+pnpm lint             # Lint code
 pnpm test             # Run tests
 ```
 
