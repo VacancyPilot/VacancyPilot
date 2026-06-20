@@ -58,9 +58,7 @@ If your plan supports rulesets (newer GitHub feature):
     - Restrict deletions
     - Block force pushes
     - Require a pull request before merging
-    - Require status checks to pass: `ci`
-    - Add `dependency-review` only after the repository-side support issue is resolved
-    - Do not require the GitHub Actions `sonarqube` workflow while Sonar remains advisory
+    - Require status checks to pass: `ci`, `dependency-review`
   - This is the modern replacement for branch protection rules.
 
 ## 6. pre-commit.ci
@@ -70,8 +68,6 @@ This repo includes a minimal `.pre-commit-config.yaml` only for safe file hygien
 trailing whitespace, end-of-file fixer, YAML/JSON validation and merge-conflict detection.
 
 If pre-commit.ci is not needed, it can be disabled in the GitHub App settings for this repository.
-If it shows `private repos require a paid plan` after the repository transfer to `VacancyPilot/VacancyPilot`,
-either reconnect the app to the new public repository or disable it entirely.
 
 ## 7. Verification
 
