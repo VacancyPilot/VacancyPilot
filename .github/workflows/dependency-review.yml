@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # TODO: consider blocking critical vulnerabilities once the project
       # has a stable dependency baseline and a track record of clean audits.
       # TODO: add deny-licenses list after reviewing current dependency
