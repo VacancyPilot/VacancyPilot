@@ -36,7 +36,7 @@ jobs:
           fi
 
       # ── Checkout (full history for accurate blame) ─────────────────────
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.check-token.outputs.has_token == 'true'
         with:
           fetch-depth: 0
