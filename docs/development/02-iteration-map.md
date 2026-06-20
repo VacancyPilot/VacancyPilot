@@ -63,6 +63,16 @@ Status values:
 | ITER-025 | EPIC-13 | Close cover-letter privacy gap and profile lifecycle leaks | done | `fix: close privacy gap and clean profile lifecycle refs` |
 | ITER-026 | EPIC-13 | Harden HH parser, dashboard refresh, and generated-manifest safety | done | `fix: harden parser and release safety` |
 
+## Post-Phase-1: Second Audit Cycle
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-027 | EPIC-14 | Confirm or refute the second audit and produce a narrow follow-up hardening plan | done | `docs: triage second audit findings` |
+| ITER-028 | EPIC-14 | Fix dashboard storage listener and harden release-audit execution | done | `fix: correct dashboard storage listener and add release audit scripts` |
+| ITER-029 | EPIC-14 | Deduplicate badge-state helpers and improve parsing quality | planned | `fix: dedup badge helpers, add experience parser, tighten passive status regex` |
+| ITER-030 | EPIC-14 | Integrate passive HH status and replace side panel context guessing | planned | `feat: integrate passive HH status parser and fix side panel context` |
+| ITER-031 | EPIC-14 | Clean up profile lifecycle nullability and strengthen company identity | planned | `fix: make coverLetter profileId nullable, parse employer ID, verify recompute UX` |
+
 ## Cursor/Codex Rule
 
 Do not ask autopilot to implement more than one row at a time. If it touches unrelated epics, reject or split the change.

@@ -19,6 +19,10 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
+// ── Release audit mode ───────────────────────────────────────────────────
+
+const isReleaseAudit = process.env.RELEASE_AUDIT === "true";
+
 // ── Helpers ─────────────────────────────────────────────────────────────
 
 const BASE_DIR = join(__dirname, "..", "..");
@@ -203,12 +207,22 @@ describe("generated bundle safety — no HH patterns in build output", () => {
 
   it("has generated content script bundles if build was run", () => {
     if (bundleScripts.length === 0) {
+      if (isReleaseAudit) {
+        throw new Error(
+          "[content-script-safety] RELEASE_AUDIT=true but no generated bundle files found. " +
+            "Run `pnpm build` first.",
+        );
+      }
       console.warn(
         "[content-script-safety] No generated bundle files found. " +
           "Run pnpm build before tests to enable bundle-level checks.",
       );
     }
-    expect(bundleScripts.length).toBeGreaterThanOrEqual(0);
+    if (isReleaseAudit) {
+      expect(bundleScripts.length).toBeGreaterThan(0);
+    } else {
+      expect(bundleScripts.length).toBeGreaterThanOrEqual(0);
+    }
   });
 
   it.each(bundleScripts.map((s) => [s.replace(BASE_DIR, ""), s] as const))(

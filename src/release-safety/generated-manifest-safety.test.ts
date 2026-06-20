@@ -14,6 +14,10 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
+// ── Release audit mode ───────────────────────────────────────────────────
+
+const isReleaseAudit = process.env.RELEASE_AUDIT === "true";
+
 // ── Paths ───────────────────────────────────────────────────────────────
 
 const OUTPUT_MANIFEST = join(
@@ -41,6 +45,12 @@ function readManifest(): Record<string, unknown> {
 describe("generated manifest audit", () => {
   it("generated manifest.json exists in build output", () => {
     if (!manifestExists()) {
+      if (isReleaseAudit) {
+        throw new Error(
+          "[generated-manifest-audit] RELEASE_AUDIT=true but .output/chrome-mv3/manifest.json not found. " +
+            "Run `pnpm build` first.",
+        );
+      }
       console.warn(
         "[generated-manifest-audit] .output/chrome-mv3/manifest.json not found. " +
           "Run `pnpm build` first to generate it.",

@@ -22,5 +22,5 @@ When recommendations conflict, use the priority order from the final specificati
 
 Recommended next action:
 
-- formulate the next product stage before Phase 2 feature work starts
+- implement [development/prompts/ITER-029.md](development/prompts/ITER-029.md) to continue the second post-hardening fix pack
 - keep [development/prompts/ITER-014.md](development/prompts/ITER-014.md) deferred until webhook automation returns to active scope

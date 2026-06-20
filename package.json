@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "test:release": "pnpm build && vitest run --config vitest.release.config.ts src/release-safety"
   },
   "dependencies": {
     "dexie": "^4.4.4",

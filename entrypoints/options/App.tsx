@@ -255,7 +255,9 @@ function VacancySection(): ReactNode {
   useEffect(() => {
     const handleStorageChange = (
       changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string,
     ) => {
+      if (areaName !== "local") return;
       // Reload when badge keys or job-related storage changes
       const relevantChange = Object.keys(changes).some(
         (key) => key.startsWith("badge_v1_hh_") || key === "app_settings_v1",
@@ -265,9 +267,9 @@ function VacancySection(): ReactNode {
       }
     };
 
-    chrome.storage.local.onChanged.addListener(handleStorageChange);
+    chrome.storage.onChanged.addListener(handleStorageChange);
     return () => {
-      chrome.storage.local.onChanged.removeListener(handleStorageChange);
+      chrome.storage.onChanged.removeListener(handleStorageChange);
     };
   }, [loadJobs]);
 

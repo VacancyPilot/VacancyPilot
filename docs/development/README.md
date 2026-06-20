@@ -18,15 +18,15 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-024 complete
-save semantics and score recompute aligned on 2026-06-20
+ITER-028 complete
+dashboard storage listener and release audit path hardened on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-No active post-signoff hardening prompt.
-Next: formulate the next product stage before Phase 2 feature work.
+ITER-029: Badge State, Experience, And Passive Status Hardening
+Prompt: docs/development/prompts/ITER-029.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
@@ -51,8 +51,9 @@ Manual QA and audit inputs driving the next pack:
 ```text
 docs/development/manual-qa-run-2026-06-20.md
 docs/development/ITER-022-triage-report.md
+docs/development/ITER-027-triage-report.md
 ```
 
 ## Status
 
-The post-signoff hardening pack is complete. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
+The first post-signoff hardening pack is complete. The second audit has been triaged into a narrow follow-up fix pack (`ITER-028`..`ITER-031`) before any Phase 2 start decision. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
