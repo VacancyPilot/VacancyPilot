@@ -30,6 +30,12 @@ This file is the working map from the master specification to implementation epi
 | EPIC-20 | Search Triage Core | 2 | done |
 | EPIC-21 | Queue And Dashboard Follow-Up | 2 | done |
 
+## Phase 2.5 Maintenance Epics
+
+| Epic | Name | Phase | Status |
+| --- | --- | --- | --- |
+| EPIC-27 | Dependency And Toolchain Maintenance | 2.5 | ready |
+
 ## Phase 3 Epics
 
 | Epic | Name | Phase | Status |

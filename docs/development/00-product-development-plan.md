@@ -1,12 +1,12 @@
 # VacancyPilot Product Development Plan
 
-Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; Phase 3 pack open  
+Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; dependency maintenance pack open; Phase 3 pack prepared  
 Source of truth: `docs/Техническое заданиеV.1.md` v1.1 FINAL
 
 Implementation note:
 
 - spec-level `Phase 3 — Workflow Queue` was partially absorbed into the enlarged implementation Phase 2 pack (`ITER-037` / `ITER-038`);
-- the next development pack therefore starts from the remaining workflow-assist and Labs items rather than reopening a tiny queue-only phase.
+- the workflow-assist and Labs pack is prepared, but a short dependency/toolchain maintenance pass now comes first so product work resumes on a cleaner baseline.
 
 ## Decision
 
@@ -111,7 +111,8 @@ Required:
 
 ## Immediate Next Actions
 
-1. Start the enlarged Phase 3 pack with `ITER-039`.
-2. Continue `ITER-040` through `ITER-042`, one row at a time.
-3. Keep `ITER-014` deferred until the n8n permission model decision is explicitly reopened.
-4. Leave HR hub, external notifications, and multi-site work out of the next 4-iteration pack.
+1. Start the maintenance pack with `ITER-048`.
+2. Continue `ITER-049` and `ITER-050`, one row at a time.
+3. Resume the prepared Phase 3 pack with `ITER-039` through `ITER-042`.
+4. Keep `ITER-014` deferred until the n8n permission model decision is explicitly reopened.
+5. Leave HR hub, external notifications, and multi-site work out of the next active pack.

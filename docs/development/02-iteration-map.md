@@ -96,6 +96,14 @@ Status values:
 | ITER-037 | EPIC-21 | Add local queue task list and duplicate detection | done | `feat: add queue task list` |
 | ITER-038 | EPIC-21 | Add company greylist workflow and stronger Phase 2 dashboard | done | `feat: add company greylist workflow` |
 
+## Phase 2.5: Dependency And Toolchain Maintenance
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-048 | EPIC-27 | Refresh the pinned WXT stack and re-establish a clean dependency baseline | planned | `chore: refresh wxt dependency baseline` |
+| ITER-049 | EPIC-27 | Migrate the repository cleanly to TypeScript 6 | planned | `chore: migrate to typescript 6` |
+| ITER-050 | EPIC-27 | Align the React runtime/type stack deliberately after dependency triage | planned | `chore: align react stack` |
+
 ## Phase 3: Guided Apply Labs
 
 | Iteration | Epic | Goal | Status | Commit |

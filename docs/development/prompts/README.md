@@ -56,6 +56,9 @@ Available prompts:
 - `ITER-040.md`
 - `ITER-041.md`
 - `ITER-042.md`
+- `ITER-048.md`
+- `ITER-049.md`
+- `ITER-050.md`
 - `PHASE-1-SIGNOFF.md`
 
 Recommended use after `ITER-016`:
@@ -69,6 +72,7 @@ Recommended use after `ITER-016`:
 7. Run `ITER-027.md` if a new external audit is produced after `ITER-026`
 8. Run `ITER-028.md` through `ITER-031.md` one row at a time for the second-audit fix pack
 9. `ITER-032.md` is complete; the Phase 2 gate was opened and completed through `ITER-038`
-10. Start the enlarged Phase 3 pack with `ITER-039.md`
-11. Continue `ITER-040.md` through `ITER-042.md` one row at a time
-12. Keep `ITER-014.md` deferred until the n8n permission model is explicitly reopened
+10. Run the maintenance pack first: `ITER-048.md` through `ITER-050.md`
+11. Resume the enlarged Phase 3 pack with `ITER-039.md`
+12. Continue `ITER-040.md` through `ITER-042.md` one row at a time
+13. Keep `ITER-014.md` deferred until the n8n permission model is explicitly reopened
