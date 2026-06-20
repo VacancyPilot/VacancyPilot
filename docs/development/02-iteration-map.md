@@ -44,9 +44,15 @@ Status values:
 | ITER-020 | EPIC-11 | Sync popup, side panel, and dashboard state | done | `feat: sync runtime surfaces` |
 | ITER-021 | EPIC-11 | Fix runtime QA findings and prep rerun | done | `fix: address runtime qa findings` |
 
-> **ITER-021 note**: Code-complete and risk-closed. Live browser rerun in Chrome + Edge pending to confirm core save/status/badge/dashboard flow. See `docs/development/manual-qa-run-2026-06-20.md` for rerun steps.
+> **ITER-021 note**: Closed after live browser rerun confirmation for the current Phase 1 core flow. Keep `docs/development/manual-qa-run-2026-06-20.md` as the regression reference for future hardening passes.
 >
 > **ITER-014 decision**: n8n deferred from current Phase 1 completion path (PHASE-1-SIGNOFF). n8n is opt-in Labs, not Core; the spec lists n8n permission model as an open decision (spec 26.5). Will be re-evaluated post live-rerun confirmation.
+
+## Post-Phase-1: Audit Hardening
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-022 | EPIC-12 | Confirm or refute external audit findings and produce a triaged hardening report | planned | `docs: triage external audit findings` |
 
 ## Cursor/Codex Rule
 

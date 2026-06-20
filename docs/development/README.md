@@ -19,14 +19,14 @@ Current implementation status:
 
 ```text
 ITER-021 complete
-manual QA rerun confirmed by user on 2026-06-20
+Phase 1 core runtime closed on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-Phase 1 signoff and scope decision
-Prompt: docs/development/prompts/PHASE-1-SIGNOFF.md
+ITER-022: Audit Confirmation And Triage
+Prompt: docs/development/prompts/ITER-022.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
@@ -39,7 +39,7 @@ docs/development/prompts/RISK-CLOSURE.md
 
 Run it in the same Zed chat before asking Codex to review.
 
-Remaining implementation prompt, if Phase 1 still needs webhook automation:
+Remaining implementation prompt, if webhook automation returns to scope later:
 
 ```text
 ITER-014: n8n Events

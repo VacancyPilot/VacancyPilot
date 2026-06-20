@@ -2,7 +2,7 @@
 
 Local-first browser extension concept for HH.ru job search: vacancy analysis, explainable scoring, cover letter preparation, and personal application tracking.
 
-Current status: Phase 1 core runtime complete — ITER-021 passed, n8n deferred.
+Current status: Phase 1 core runtime complete — post-signoff audit hardening is next.
 
 ## Source Of Truth
 

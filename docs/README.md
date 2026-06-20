@@ -22,5 +22,5 @@ When recommendations conflict, use the priority order from the final specificati
 
 Recommended next action:
 
-- if Phase 1 still requires webhook automation, implement [development/prompts/ITER-014.md](development/prompts/ITER-014.md)
-- otherwise run [development/prompts/PHASE-1-SIGNOFF.md](development/prompts/PHASE-1-SIGNOFF.md)
+- run [development/prompts/ITER-022.md](development/prompts/ITER-022.md) to confirm or refute the external deep audit before any hardening fixes
+- keep [development/prompts/ITER-014.md](development/prompts/ITER-014.md) deferred until webhook automation returns to active scope
