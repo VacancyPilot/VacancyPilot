@@ -1,0 +1,35 @@
+[
+  {
+    "sourceId": "11111111",
+    "title": "Backend Developer (Go)",
+    "companyName": "CloudServices Ltd",
+    "url": "https://hh.ru/vacancy/11111111?hhtmFrom=vacancy_search_list",
+    "salaryRaw": "300 000 – 400 000 ₽",
+    "city": "Москва",
+    "experienceRaw": "1–3 года",
+    "workMode": "remote",
+    "publicationDate": "3 дня назад"
+  },
+  {
+    "sourceId": "22222222",
+    "title": "DevOps Engineer",
+    "companyName": "InfraTeam",
+    "url": "https://hh.ru/vacancy/22222222?hhtmFrom=vacancy_search_list",
+    "salaryRaw": "от 200 000 ₽",
+    "city": "Санкт-Петербург",
+    "experienceRaw": null,
+    "workMode": "office",
+    "publicationDate": "неделю назад"
+  },
+  {
+    "sourceId": "33333333",
+    "title": "Стажёр-разработчик",
+    "companyName": "InternHub",
+    "url": "https://hh.ru/vacancy/33333333",
+    "salaryRaw": null,
+    "city": "Новосибирск",
+    "experienceRaw": "Без опыта",
+    "workMode": null,
+    "publicationDate": "месяц назад"
+  }
+]

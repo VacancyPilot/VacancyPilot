@@ -1,5 +1,6 @@
-// --- HHAdapter — safe, read-only vacancy parser skeleton ---
-// Phase 0–1: extracts structured data from HH.ru vacancy pages.
+// --- HHAdapter — safe, read-only parser ---
+// Phase 0–1: vacancy page extraction.
+// Phase 2: search card extraction (extractSearchList).
 // Uses versioned selectors with graceful degradation.
 // Never makes network requests, never modifies the page.
 
@@ -11,6 +12,7 @@ import type {
 } from "../types";
 import type { RawVacancyDTO, ParserWarning } from "./types";
 import { SELECTORS_V1, SELECTOR_VERSION } from "./selectors-v1";
+import { SEARCH_SELECTORS_V1 } from "./search-selectors-v1";
 
 export class HHAdapter implements SiteAdapter {
   readonly siteId = "hh" as const;
@@ -37,7 +39,7 @@ export class HHAdapter implements SiteAdapter {
     }
   }
 
-  // ── Vacancy extraction (skeleton) ─────────────────────────────
+  // ── Vacancy extraction ────────────────────────────────────────
 
   extractVacancy(doc: Document): RawVacancyDTO | null {
     const warnings: ParserWarning[] = [];
@@ -131,17 +133,29 @@ export class HHAdapter implements SiteAdapter {
     return dto;
   }
 
-  // ── Search list (not implemented in Phase 0) ──────────────────
+  // ── Search list — Phase 2 card extraction ────────────────────
 
-  extractSearchList(_doc: Document): RawSearchItemDTO[] {
-    void _doc;
-    // Search parser comes in Phase 2.
-    // Returning empty array satisfies the interface without the risk
-    // of half-implemented extraction.
-    return [];
+  extractSearchList(doc: Document): RawSearchItemDTO[] {
+    const cardElements = this.findSearchCards(doc);
+    if (cardElements.length === 0) return [];
+
+    const results: RawSearchItemDTO[] = [];
+    const pageUrl = doc.URL;
+
+    for (const card of cardElements) {
+      try {
+        const dto = this.extractSingleSearchCard(card, pageUrl);
+        if (dto) results.push(dto);
+      } catch {
+        // Skip cards that cause unexpected errors — never crash on bad DOM.
+        continue;
+      }
+    }
+
+    return results;
   }
 
-  // ── Application status sync (not implemented in Phase 0) ──────
+  // ── Application status sync ──────────────────────────────────
 
   extractVisibleApplicationStatus?(
     doc: Document,
@@ -209,7 +223,134 @@ export class HHAdapter implements SiteAdapter {
     return found ? result : null;
   }
 
-  // ── Private helpers ────────────────────────────────────────────
+  // ── Search card extraction helpers ───────────────────────────
+
+  /**
+   * Find all search result card containers in the document.
+   * Returns the matching elements from the first successful selector group.
+   */
+  private findSearchCards(doc: Document): Element[] {
+    const selectors = SEARCH_SELECTORS_V1.card;
+    for (const selector of selectors) {
+      try {
+        const elements = Array.from(doc.querySelectorAll(selector));
+        if (elements.length > 0) return elements;
+      } catch {
+        continue;
+      }
+    }
+    return [];
+  }
+
+  /**
+   * Extract a single search card DTO from a card container element.
+   * All queries are scoped to the card element — only visible card DOM.
+   * Returns null if sourceId cannot be determined.
+   */
+  private extractSingleSearchCard(
+    card: Element,
+    pageUrl: string,
+  ): RawSearchItemDTO | null {
+    // Title link — required for source ID and URL
+    const titleLink = this.tryExtractCardElement(card, "title");
+    if (!titleLink) return null;
+
+    const titleText = titleLink?.textContent?.trim() ?? null;
+    const href = titleLink?.getAttribute("href") ?? null;
+
+    // Resolve relative URL to absolute
+    let fullUrl: string | null = null;
+    if (href) {
+      try {
+        fullUrl = new URL(href, pageUrl).href;
+      } catch {
+        fullUrl = null;
+      }
+    }
+
+    // Extract vacancy ID from href (e.g. /vacancy/12345678?query=...)
+    const sourceId = this.extractVacancyIdFromHref(href);
+    if (!sourceId) return null;
+
+    // Company name
+    const companyName = this.tryExtractCardText(card, "companyName");
+
+    // Salary
+    const salaryRaw = this.tryExtractCardText(card, "salary");
+
+    // City
+    const city = this.tryExtractCardText(card, "city");
+
+    // Experience
+    const experienceRaw = this.tryExtractCardText(card, "experience");
+
+    // Work mode badge
+    const workModeRaw = this.tryExtractCardText(card, "workMode");
+    const workMode = this.normalizeWorkMode(workModeRaw, null);
+
+    // Publication date
+    const publicationDate = this.tryExtractCardText(card, "publicationDate");
+
+    return {
+      sourceId,
+      title: titleText,
+      companyName,
+      url: fullUrl,
+      salaryRaw,
+      city,
+      experienceRaw,
+      workMode,
+      publicationDate,
+    };
+  }
+
+  /**
+   * Try each selector within the card element scope.
+   * Returns the first matching Element, or null.
+   */
+  private tryExtractCardElement(
+    card: Element,
+    field: keyof typeof SEARCH_SELECTORS_V1,
+  ): Element | null {
+    const selectors = SEARCH_SELECTORS_V1[field];
+    // Skip the "card" field — it's used to find containers, not to extract within.
+    if (field === "card") return null;
+
+    for (const selector of selectors) {
+      try {
+        const el = card.querySelector(selector);
+        if (el?.textContent?.trim()) {
+          return el;
+        }
+      } catch {
+        continue;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Try each selector within the card element scope.
+   * Returns the text content of the first matching element, or null.
+   */
+  private tryExtractCardText(
+    card: Element,
+    field: keyof typeof SEARCH_SELECTORS_V1,
+  ): string | null {
+    const el = this.tryExtractCardElement(card, field);
+    return el?.textContent?.trim() ?? null;
+  }
+
+  /**
+   * Extract a numeric vacancy ID from an href like "/vacancy/12345678".
+   */
+  private extractVacancyIdFromHref(href: string | null): string | null {
+    if (!href) return null;
+    const match = href.match(/\/vacancy\/(\d+)/i);
+    return match ? match[1] : null;
+  }
+
+  // ── Vacancy page helpers ─────────────────────────────────────
 
   private looksLikeVacancyPage(doc: Document): boolean {
     // Require BOTH a vacancy URL AND at least one known HH vacancy DOM marker.
@@ -260,10 +401,6 @@ export class HHAdapter implements SiteAdapter {
     return null;
   }
 
-  /**
-   * Try each selector in the ordered fallback list.
-   * Returns the text content of the first matching element, or null.
-   */
   /**
    * Try each selector in the ordered fallback list.
    * Returns the first matching Element, or null.
@@ -323,7 +460,7 @@ export class HHAdapter implements SiteAdapter {
     descriptionText: string | null,
   ): RawVacancyDTO["workMode"] {
     // Combine the explicit workMode badge with description text hints.
-    // The badge (data-qa="vacancy-work-mode") takes priority.
+    // The badge takes priority.
     // If the badge is missing, scan the description for mode keywords.
     const primary = raw?.toLowerCase() ?? "";
     const secondary = descriptionText?.toLowerCase() ?? "";
@@ -383,7 +520,6 @@ export class HHAdapter implements SiteAdapter {
 
   private stripHtml(html: string): string {
     // Simple tag stripping — no DOMParser to keep this pure-function safe.
-    // A more robust version will use the built-in parser in ITER-006.
     return html
       .replace(/<br\s*\/?>/gi, "\n")
       .replace(/<\/p>/gi, "\n")
@@ -400,7 +536,6 @@ export class HHAdapter implements SiteAdapter {
 
   private tryParseSalaryMin(raw: string | null): number | null {
     if (!raw) return null;
-    // Simple patterns: "100 000 – 150 000 ₽", "от 100 000 ₽", "до 150 000 ₽"
     const cleaned = raw.replace(/\u00A0/g, " ").replace(/\s/g, " ");
     const fromMatch = cleaned.match(/(?:от|с)\s*([\d\s]+)/i);
     if (fromMatch) return this.parseNumber(fromMatch[1]);
