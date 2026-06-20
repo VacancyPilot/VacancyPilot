@@ -186,7 +186,7 @@ function makeTestJob(overrides?: Partial<Job>): Job {
       "We are looking for a React developer with TypeScript skills.",
     descriptionHash: "abc123",
     skills: ["React", "TypeScript"],
-    status: "viewed",
+    status: "saved",
     statusHistory: [],
     workMode: "remote",
     salaryMin: 150000,
@@ -293,11 +293,11 @@ describe("scoreJob integration (popup save path)", () => {
   });
 });
 
-describe("computeAndStoreScore logic (no profile)", () => {
+describe("recomputeScoreForJob scenario (no profile)", () => {
   it("returns job unchanged when no profile exists", () => {
     const job = makeTestJob();
     // Simulating the case where profileRepo.list() returns []
-    // In the actual code, computeAndStoreScore returns job unchanged if no profile.
+    // In the actual code, recomputeScoreForJob returns job unchanged if no profile.
     const profiles: Profile[] = [];
     const profile = profiles[0]; // undefined
 

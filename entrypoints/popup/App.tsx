@@ -3,7 +3,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { usePageStatus, PageStatus } from "@/components/PageStatus";
 import { EmptyState } from "@/components/EmptyState";
 import { tracker } from "@/services/tracker";
-import { scoreJob } from "@/services/scoring";
+import { recomputeScoreForJob } from "@/services/score-recompute";
 import { jobRepo, profileRepo } from "@/db/repositories";
 import { loadSettings } from "@/db/settings-bridge";
 import type { Job, JobStatus } from "@/models/job";
@@ -49,47 +49,6 @@ async function updateBadge(tabId: number, job: Job): Promise<void> {
   } catch {
     // Content script may not be loaded — non-critical.
   }
-}
-
-async function computeAndStoreScore(
-  job: Job,
-  profileId?: string,
-): Promise<Job> {
-  // Try to find a relevant profile.
-  // Priority: explicit profileId > job.selectedProfileId > settings default > first available profile.
-  let profile: Profile | undefined;
-
-  const lookupId = profileId ?? job.selectedProfileId;
-  if (lookupId) {
-    profile = await profileRepo.getById(lookupId);
-  }
-
-  if (!profile) {
-    // Try the default profile from settings
-    const settings = await loadSettings();
-    if (settings.general.defaultProfileId) {
-      profile = await profileRepo.getById(settings.general.defaultProfileId);
-    }
-  }
-
-  if (!profile) {
-    const profiles = await profileRepo.list();
-    profile = profiles[0];
-  }
-
-  if (!profile) {
-    // No profile available — score stays undefined.
-    return job;
-  }
-
-  const scoreResult = scoreJob(job, profile);
-  const updated: Job = {
-    ...job,
-    ruleScore: scoreResult,
-    selectedProfileId: profile.id,
-  };
-  await jobRepo.save(updated);
-  return updated;
 }
 
 // ── Popup Content ──
@@ -196,14 +155,14 @@ function PopupContent(): ReactNode {
 
       const job = await tracker.saveFromDTO(response.dto);
 
-      // Compute score if a profile is available.
-      const jobWithScore = await computeAndStoreScore(job, selectedProfileId);
+      // Compute score if a profile is available (uses shared recompute path).
+      const jobWithScore =
+        (await recomputeScoreForJob(job.id, selectedProfileId)) ?? job;
 
       setSavedJob(jobWithScore);
 
-      // Update the page badge and persist for content script.
+      // Update the page badge live (recomputeScoreForJob already persisted badge state).
       await updateBadge(pageInfo.tabId, jobWithScore);
-      await persistBadgeState(pageInfo.vacancyId, jobWithScore);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (

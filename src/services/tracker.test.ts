@@ -162,9 +162,9 @@ describe("tracker.saveFromDTO", () => {
     expect(job.sourceVacancyId).toBe("12345");
     expect(job.title).toBe("Frontend Developer");
     expect(job.companyName).toBe("Acme Corp");
-    expect(job.status).toBe("viewed");
+    expect(job.status).toBe("saved");
     expect(job.statusHistory).toHaveLength(1);
-    expect(job.statusHistory[0].to).toBe("viewed");
+    expect(job.statusHistory[0].to).toBe("saved");
     expect(job.statusHistory[0].source).toBe("system");
   });
 
@@ -198,19 +198,22 @@ describe("tracker.saveFromDTO", () => {
     expect(updated.title).toBe("New Title");
     expect(updated.salaryMin).toBe(200000);
     // Status should be preserved
-    expect(updated.status).toBe("viewed");
+    expect(updated.status).toBe("saved");
   });
 
-  it("preserves existing status on update", async () => {
+  it("preserves stronger status on update (applied not downgraded)", async () => {
     const dto = makeDTO();
     const created = await tracker.saveFromDTO(dto);
 
-    // Manually change status
-    mockJobStore.set(created.id, { ...created, status: "saved" as JobStatus });
+    // Manually change status to a post-save status
+    mockJobStore.set(created.id, {
+      ...created,
+      status: "applied" as JobStatus,
+    });
 
     const dto2 = makeDTO();
     const updated = await tracker.saveFromDTO(dto2);
-    expect(updated.status).toBe("saved");
+    expect(updated.status).toBe("applied");
   });
 
   it("preserves existing description when an update omits descriptionText", async () => {

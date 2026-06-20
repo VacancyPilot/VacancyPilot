@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import { jobRepo, profileRepo, resumeRepo } from "@/db/repositories";
 import { loadSettings, saveSettings } from "@/db/settings-bridge";
+import { recomputeScoreForJob } from "@/services/score-recompute";
 import type { Job } from "@/models/job";
 import type { Profile } from "@/models/profile";
 import type { Resume } from "@/models/resume";
@@ -86,6 +87,7 @@ export function ProfileTab({
           setError("Job not found in local database. Save the vacancy first.");
           return;
         }
+        // Save the profile selection first.
         const updated: Job = {
           ...job,
           selectedProfileId: profileId,
@@ -93,6 +95,11 @@ export function ProfileTab({
           updatedAt: new Date().toISOString(),
         };
         await jobRepo.save(updated);
+
+        // Recompute score with the newly selected profile.
+        // This also persists badge state so the content script picks up the new score.
+        await recomputeScoreForJob(jobId, profileId);
+
         setSelectedResumeId(undefined);
         onProfileChange?.(profileId);
       } catch (e) {

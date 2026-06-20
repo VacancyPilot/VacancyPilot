@@ -18,15 +18,15 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-022 triage complete
-confirmed hardening backlog prepared on 2026-06-20
+ITER-024 complete
+save semantics and score recompute aligned on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-ITER-023: Storage And Data Integrity Hardening
-Prompt: docs/development/prompts/ITER-023.md
+ITER-025: Privacy And Profile Lifecycle Hardening
+Prompt: docs/development/prompts/ITER-025.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.

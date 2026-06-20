@@ -86,8 +86,8 @@ function dtoToNewJob(dto: RawVacancyDTO, sourceVacancyId: string): Job {
     descriptionHash: hashString(descriptionClean),
     skills: dto.skills ?? [],
 
-    status: "viewed",
-    statusHistory: [createStatusChange(undefined, "viewed", "system")],
+    status: "saved",
+    statusHistory: [createStatusChange(undefined, "saved", "system")],
 
     firstSeenAt: now,
     lastSeenAt: now,
@@ -115,7 +115,7 @@ export const tracker = {
    *
    * - If the job already exists (matched by source + sourceVacancyId),
    *   preserves the existing status and updates other fields.
-   * - If new, creates a job with status 'viewed'.
+   * - If new, creates a job with status 'saved'.
    * - Logs a job_saved event in both cases.
    * - Throws if sourceVacancyId is missing or empty.
    *

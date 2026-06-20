@@ -2,7 +2,7 @@
 
 Local-first browser extension concept for HH.ru job search: vacancy analysis, explainable scoring, cover letter preparation, and personal application tracking.
 
-Current status: Phase 1 core runtime complete — confirmed audit hardening is next.
+Current status: Phase 1 hardening in progress — save semantics and score recompute complete (ITER-024).
 
 ## Source Of Truth
 
