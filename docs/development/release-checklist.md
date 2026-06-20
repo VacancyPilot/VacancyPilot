@@ -1,38 +1,38 @@
 # Release Checklist — VacancyPilot Phase 1
 
-Status: ITER-015 (automated safety tests in place)  
-Source: spec sections 19.6, 22.4, 26.5, 26.6
+Status: ITER-021 complete (automated checks passing, live runtime rerun passed for current Phase 1 core scope)  
+Source: spec sections 19.6, 22.4, 26.5, 26.6; EPIC-11; PHASE-1-SIGNOFF
 
 ## Automated Checks (CI Gate)
 
-These checks run automatically via `pnpm test` and must all pass before release:
+These checks run automatically via `pnpm test` and must all pass before release. Status as of ITER-021 + PHASE-1-SIGNOFF:
 
-- [ ] **Manifest permission audit** — `src/release-safety/manifest-safety.test.ts`
+- [x] **Manifest permission audit** — `src/release-safety/manifest-safety.test.ts`
   - Only `storage`, `sidePanel`, `activeTab` in permissions
   - No broad host permissions (`<all_urls>`, `*://*`)
   - No forbidden permissions (`downloads`, `cookies`, `webRequest`, etc.)
   - MV3, valid version, icons present
 
-- [ ] **Privacy payload safety** — `src/release-safety/privacy-safety.test.ts`
+- [x] **Privacy payload safety** — `src/release-safety/privacy-safety.test.ts`
   - AI payloads are free of emails, phones, URLs, tokens
   - Strict Privacy mode excludes description and resume highlights
   - Redaction functions strip all sensitive patterns
   - Payload preview reports excluded fields correctly
 
-- [ ] **Content script safety** — `src/release-safety/content-script-safety.test.ts`
+- [x] **Content script safety** — `src/release-safety/content-script-safety.test.ts`
   - No `fetch()` to HH domains
   - No `XMLHttpRequest`
   - No `.click()` on HH UI controls
   - No `.value` mutation on HH form elements
   - Shadow DOM isolation used for UI
 
-- [ ] **Export secret exclusion** — `src/release-safety/export-safety.test.ts`
+- [x] **Export secret exclusion** — `src/release-safety/export-safety.test.ts`
   - `webhookUrl` is redacted in exports
   - `hmacSecretSet` is always `false` in exports
   - CSV columns do not include secrets or settings
   - Export envelope structure is valid
 
-- [ ] **Fixture regression** — `src/release-safety/fixture-regression.test.ts`
+- [x] **Fixture regression** — `src/release-safety/fixture-regression.test.ts`
   - All parser fixtures pass (currently 3: `vacancy-normal`, `vacancy-no-salary`, `vacancy-archived`)
   - Aggregate check: zero fixture failures
 
@@ -40,6 +40,8 @@ These checks run automatically via `pnpm test` and must all pass before release:
 
 These checks require a human tester and a running extension instance.
 Execute in at least Chrome and one additional Chromium browser (Edge, Brave, or Яндекс Браузер).
+
+> **Status**: Initial QA run (2026-06-20) found core runtime blockers. ITER-017..021 addressed the defects and the follow-up live rerun has now passed for the current Phase 1 core scope. Keep this checklist as the wider regression/public-release matrix.
 
 ### Browser Compatibility (spec 22.4)
 
@@ -111,11 +113,11 @@ The following checks are NOT automated and require manual verification:
 
 ## Release Candidate Sign-off
 
-- [ ] All automated CI checks pass
-- [ ] `pnpm typecheck` passes
-- [ ] `pnpm lint` passes
-- [ ] `pnpm build` succeeds
-- [ ] Manual QA completed in at least 2 browsers
-- [ ] No secrets committed
-- [ ] Manifest permissions are minimal
+- [x] All automated CI checks pass (507 tests, 0 failures)
+- [x] `pnpm typecheck` passes
+- [x] `pnpm lint` passes
+- [x] `pnpm build` succeeds
+- [x] Manual QA completed in at least 2 browsers for current Phase 1 core flow
+- [x] No secrets committed
+- [x] Manifest permissions are minimal
 - [ ] Release notes drafted

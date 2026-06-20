@@ -1,7 +1,7 @@
 # Known Risks — VacancyPilot Phase 1
 
-Status: ITER-016  
-Source: EPIC-10, release-checklist.md, spec sections 22, 26
+Status: ITER-021 (post risk-closure, PHASE-1-SIGNOFF)  
+Source: EPIC-10, EPIC-11, release-checklist.md, spec sections 22, 26
 
 This document lists all known risks, open decisions, and unresolved gaps at Phase 1 release-candidate. Risks are classified and must be addressed or explicitly accepted before public release.
 
@@ -87,13 +87,15 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 
 ### R6 — n8n Integration Deferred (P2)
 
-**Risk**: n8n webhook client (ITER-014) is planned but not implemented. The spec references n8n as Phase 1 scope, but the decision to defer was made pending a go/no-go decision (spec 26.5).
+**Risk**: n8n webhook client (ITER-014) is deferred from current Phase 1 completion path. The spec references n8n as Phase 1 scope, but the permission model remains an open decision (spec 26.5).
 
-**Mitigation**: n8n toggle exists in Labs settings, off by default. UI fields for webhook URL and HMAC secret are placeholders.
+**Mitigation**: n8n toggle exists in Labs settings, off by default. UI fields for webhook URL and HMAC secret are placeholders. Event logging (EventLog table) exists for future integration.
 
-**Residual**: n8n feature is unavailable. Event logging (EventLog table) exists but no external delivery.
+**Residual**: n8n feature is unavailable. No external event delivery.
 
-**Action**: Make explicit go/no-go decision on n8n for Phase 1. If deferred, update roadmap and acceptance criteria.
+**Decision (PHASE-1-SIGNOFF)**: Deferred. n8n is opt-in Labs, not Core. Will be re-evaluated after live browser rerun confirms core runtime stability.
+
+**Action**: Revisit n8n in a future iteration. Update roadmap and acceptance criteria accordingly.
 
 ---
 
@@ -138,15 +140,15 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 
 ## Process Risks
 
-### R10 — Manual QA Not Yet Performed (P1)
+### R10 — Manual QA Partially Executed, Live Rerun Pending (P1)
 
-**Risk**: No manual QA has been executed. All test coverage is automated (unit, fixture, safety). The QA checklist exists but is unchecked (ITER-016 deliverable).
+**Risk**: Initial manual QA (2026-06-20) found core runtime blockers (badge, save, status). ITER-017..021 addressed all identified defects at code level. Automated validation passes (507 tests). Live browser rerun has not yet confirmed the fixes.
 
-**Mitigation**: QA checklist is comprehensive and maps to spec acceptance criteria.
+**Mitigation**: QA checklist is comprehensive. All automated safety, privacy, and fixture tests pass. RISK-CLOSURE for ITER-021 confirmed no remaining code-level defects.
 
-**Residual**: Real-world bugs in browser integration, HH page interaction, or user workflow may exist.
+**Residual**: Core runtime flow (save/status/badge/dashboard) not yet verified in real Chrome/Edge with the latest build.
 
-**Action**: Execute manual QA in Chrome + one additional browser before release sign-off.
+**Action**: Completed for current Phase 1 core sign-off. Keep the rerun checklist for future regression passes before broader release steps.
 
 ---
 
@@ -175,7 +177,7 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 | R7 — AI provider missing | P2 | Mock only | Implement 1 provider |
 | R8 — API key storage | P1 | Accepted for personal MVP | Evaluate for public release |
 | R9 — Name/trademark | P3 | Not checked | Before public submission |
-| R10 — Manual QA pending | P1 | QA checklist ready | Execute before release |
+| R10 — Manual QA pending | P1 | Initial runtime rerun completed for Phase 1 core | Expand before public release |
 | R11 — Contributor docs gap | P2 | Accepted for private use | Before broader sharing |
 
 ---
@@ -185,9 +187,10 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 For **private/personal use Phase 1 release**, the following risks are explicitly accepted:
 
 - R2 (3 fixtures instead of 50+)
-- R6 (n8n deferred)
+- R6 (n8n deferred — PHASE-1-SIGNOFF)
 - R7 (mock provider only)
 - R8 (plaintext key storage)
+- R10 (live browser rerun pending — accepted for code-complete milestone, rerun required before any release)
 - R11 (contributor onboarding still thin)
 
 For **public release**, all P1 risks must be resolved. P2 risks must be at minimum documented with mitigation plans.

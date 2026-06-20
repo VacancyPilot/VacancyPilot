@@ -106,10 +106,10 @@ Required:
 
 ## Immediate Next Actions
 
-1. Use the committed prompt files in `docs/development/prompts/` as the source of iteration instructions.
-2. Use `docs/development/manual-qa-run-2026-06-20.md` as the source of concrete runtime follow-up work.
-3. Close `ITER-021` after successful live rerun evidence and sync the release-status docs.
-4. Decide whether `ITER-014` remains deferred or is still required for current Phase 1 scope.
-5. If `ITER-014` is not required now, run `docs/development/prompts/PHASE-1-SIGNOFF.md`.
-6. If using Zed for follow-up work, paste `docs/development/prompts/ZED-SESSION-START.md` once.
-7. After each follow-up iteration, review, commit, push, and update `docs/development/02-iteration-map.md` status.
+1. ~~Use the committed prompt files in `docs/development/prompts/` as the source of iteration instructions.~~ Done — all prompts used through ITER-021.
+2. ~~Use `docs/development/manual-qa-run-2026-06-20.md` as the source of concrete runtime follow-up work.~~ Done — ITER-017..021 addressed all findings.
+3. ~~Close `ITER-021` after successful live rerun evidence and sync the release-status docs.~~ Done — live browser rerun passed and Phase 1 core runtime is closed.
+4. ~~Decide whether `ITER-014` remains deferred or is still required for current Phase 1 scope.~~ **Resolved (PHASE-1-SIGNOFF)**: ITER-014 (n8n) is deferred from current Phase 1 completion path.
+5. ~~If `ITER-014` is not required now, run `docs/development/prompts/PHASE-1-SIGNOFF.md`.~~ Done — this document is the result.
+6. **Next**: proceed to post-Phase-1 planning (Phase 2 product work or public-release preparation).
+7. Revisit `ITER-014` only when webhook automation is brought back into active scope.

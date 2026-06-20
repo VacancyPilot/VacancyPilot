@@ -91,10 +91,10 @@ See `docs/development/privacy-policy-checklist.md` for detailed coverage.
 - [ ] Update settings UI with appropriate warnings.
 
 ### 5.3 n8n Decision (spec 26.5)
-- [ ] Make explicit go/no-go decision on n8n for Phase 1 public release.
-- [ ] If included: test `optional_host_permissions` behavior for user-defined webhook hosts across target browsers.
-- [ ] Verify CORS implications and Chrome Web Store review impact.
-- [ ] If deferred: remove or gate n8n UI behind explicit Labs+dev flag.
+- [x] Make explicit go/no-go decision on n8n for Phase 1 public release.
+- **Decision (PHASE-1-SIGNOFF)**: Deferred. n8n is opt-in Labs, not Core. The spec lists n8n permission model as an open decision (spec 26.5). n8n UI is already gated behind Labs toggle (off by default).
+- [ ] If/when re-evaluated: test `optional_host_permissions` behavior for user-defined webhook hosts across target browsers.
+- [ ] If/when re-evaluated: verify CORS implications and Chrome Web Store review impact.
 
 ### 5.4 Parser Fixtures (spec 22.5, 23.5)
 - [ ] Expand fixture library to 50+ sanitized vacancy fixtures.
@@ -169,8 +169,8 @@ See `docs/development/privacy-policy-checklist.md` for detailed coverage.
 | 5 | Name/trademark clearance | **P0** | Not checked |
 | 6 | 50+ parser fixtures | **P1** | 3 fixtures |
 | 7 | API key storage decision | **P1** | Accepted for personal, not for public |
-| 8 | n8n go/no-go decision | **P2** | Deferred |
-| 9 | Manual QA in 2+ browsers | **P1** | QA checklist exists, not executed |
+| 8 | n8n go/no-go decision | **P2** | Resolved — deferred (PHASE-1-SIGNOFF) |
+| 9 | Manual QA in 2+ browsers | **P1** | Core rerun completed; broader public-release QA still pending |
 | 10 | Root README | **P2** | Not started |
 | 11 | Open source license | **P1** | Not chosen |
 

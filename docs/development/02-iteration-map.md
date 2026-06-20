@@ -30,7 +30,7 @@ Status values:
 | ITER-011 | EPIC-06 | Add AI provider interface, mock provider, cache | done | `feat: add ai analysis workflow` |
 | ITER-012 | EPIC-07 | Add Cover Letter Studio editor and copy workflow | done | `feat: add cover letter studio` |
 | ITER-013 | EPIC-08 | Add CSV/JSON export and delete all data | done | `feat: add export and data deletion` |
-| ITER-014 | EPIC-09 | Add n8n webhook client with HMAC and retry queue | planned | `feat: add opt in n8n events` |
+| ITER-014 | EPIC-09 | Add n8n webhook client with HMAC and retry queue | deferred | `feat: add opt in n8n events` |
 | ITER-015 | EPIC-10 | Add privacy/safety tests and release checklist | done | `test: add release safety checks` |
 | ITER-016 | EPIC-10 | Manual QA pass and Phase 1 release candidate docs | done | `docs: prepare phase 1 release candidate` |
 
@@ -43,6 +43,10 @@ Status values:
 | ITER-019 | EPIC-11 | Add profile and resume management flow | done | `feat: add profile resume management` |
 | ITER-020 | EPIC-11 | Sync popup, side panel, and dashboard state | done | `feat: sync runtime surfaces` |
 | ITER-021 | EPIC-11 | Fix runtime QA findings and prep rerun | done | `fix: address runtime qa findings` |
+
+> **ITER-021 note**: Code-complete and risk-closed. Live browser rerun in Chrome + Edge pending to confirm core save/status/badge/dashboard flow. See `docs/development/manual-qa-run-2026-06-20.md` for rerun steps.
+>
+> **ITER-014 decision**: n8n deferred from current Phase 1 completion path (PHASE-1-SIGNOFF). n8n is opt-in Labs, not Core; the spec lists n8n permission model as an open decision (spec 26.5). Will be re-evaluated post live-rerun confirmation.
 
 ## Cursor/Codex Rule
 
