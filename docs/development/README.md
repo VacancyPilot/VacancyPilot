@@ -18,15 +18,15 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-029 complete
-badge-state dedup and parsing hardening completed on 2026-06-20
+ITER-030 complete
+passive status integration and explicit side panel context completed on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-ITER-030: Passive Status And Side Panel Context
-Prompt: docs/development/prompts/ITER-030.md
+ITER-031: Profile Lifecycle And Company Identity Hardening
+Prompt: docs/development/prompts/ITER-031.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.

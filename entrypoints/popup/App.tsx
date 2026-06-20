@@ -9,6 +9,8 @@ import { jobRepo, profileRepo } from "@/db/repositories";
 import { loadSettings } from "@/db/settings-bridge";
 import type { Job, JobStatus } from "@/models/job";
 import type { Profile } from "@/models/profile";
+import type { ApplicationStatusSync } from "@/adapters/types";
+import type { PageStatusInfo } from "@/components/PageStatus";
 
 // ── Helpers ──
 
@@ -42,6 +44,9 @@ function PopupContent(): ReactNode {
   const [selectedProfileId, setSelectedProfileId] = useState<
     string | undefined
   >();
+  const [passiveStatus, setPassiveStatus] = useState<
+    Partial<ApplicationStatusSync> | null | undefined
+  >(undefined);
 
   // Load profiles on mount
   useEffect(() => {
@@ -74,6 +79,7 @@ function PopupContent(): ReactNode {
         if (!cancelled) {
           setSavedJob(null);
           setJobLoaded(true);
+          setPassiveStatus(undefined);
         }
         return;
       }
@@ -100,10 +106,27 @@ function PopupContent(): ReactNode {
           setJobLoaded(true);
         }
       }
+
+      // Fetch passive HH status from the content script (independent of save state).
+      try {
+        const response: {
+          success: boolean;
+          passiveStatus?: Partial<ApplicationStatusSync> | null;
+        } = await chrome.tabs.sendMessage(pageInfo.tabId, {
+          type: "EXTRACT_VACANCY",
+        });
+        if (!cancelled) {
+          setPassiveStatus(response?.passiveStatus ?? undefined);
+        }
+      } catch {
+        // Content script may not be reachable — non-critical.
+        if (!cancelled) setPassiveStatus(undefined);
+      }
     }
 
     setJobLoaded(false);
     setActionError(null);
+    setPassiveStatus(undefined);
     void load();
 
     return () => {
@@ -125,9 +148,13 @@ function PopupContent(): ReactNode {
         success: boolean;
         dto?: import("@/adapters/hh/types").RawVacancyDTO;
         error?: string;
+        passiveStatus?: Partial<ApplicationStatusSync> | null;
       } = await chrome.tabs.sendMessage(pageInfo.tabId, {
         type: "EXTRACT_VACANCY",
       });
+
+      // Update passive status from the response.
+      setPassiveStatus(response?.passiveStatus ?? undefined);
 
       if (!response?.success || !response.dto) {
         setActionError(response?.error ?? "Could not extract vacancy data");
@@ -181,9 +208,13 @@ function PopupContent(): ReactNode {
           success: boolean;
           dto?: import("@/adapters/hh/types").RawVacancyDTO;
           error?: string;
+          passiveStatus?: Partial<ApplicationStatusSync> | null;
         } = await chrome.tabs.sendMessage(pageInfo.tabId, {
           type: "EXTRACT_VACANCY",
         });
+
+        // Update passive status from the response.
+        setPassiveStatus(response?.passiveStatus ?? undefined);
 
         if (!response?.success || !response.dto) {
           setActionError(response?.error ?? "Could not extract vacancy data");
@@ -295,6 +326,23 @@ function PopupContent(): ReactNode {
       >
         <PageStatus info={pageInfo} />
       </div>
+
+      {/* Passive HH status hint (informational, read-only) */}
+      {passiveStatus && passiveStatusLabel(passiveStatus) && (
+        <div
+          style={{
+            padding: "6px 8px",
+            background: "#fff8e6",
+            border: "1px solid #e6d58c",
+            borderRadius: 4,
+            marginBottom: 10,
+            fontSize: 12,
+            color: "#8a7010",
+          }}
+        >
+          {passiveStatusLabel(passiveStatus)}
+        </div>
+      )}
 
       {/* Score & Status */}
       {isVacancy && jobLoaded ? (
@@ -442,19 +490,57 @@ function PopupContent(): ReactNode {
             />
           </>
         )}
-        <ActionButton label="Side Panel" onClick={openSidePanel} primary wide />
+        <ActionButton
+          label="Side Panel"
+          onClick={() => openSidePanel(pageInfo)}
+          primary
+          wide
+        />
         <ActionButton label="Dashboard" onClick={openDashboard} wide />
       </div>
     </div>
   );
 }
 
-function openSidePanel(): void {
-  chrome.runtime.sendMessage({ type: "OPEN_SIDE_PANEL" });
+function buildOpenSidePanelMessage(
+  pageInfo: PageStatusInfo,
+): {
+  type: "OPEN_SIDE_PANEL";
+  tabId?: number;
+  vacancyId?: string;
+} {
+  if (pageInfo.kind === "vacancy") {
+    return {
+      type: "OPEN_SIDE_PANEL",
+      tabId: pageInfo.tabId,
+      vacancyId: pageInfo.vacancyId,
+    };
+  }
+
+  return { type: "OPEN_SIDE_PANEL" };
+}
+
+function openSidePanel(pageInfo: PageStatusInfo): void {
+  chrome.runtime.sendMessage(buildOpenSidePanelMessage(pageInfo));
 }
 
 function openDashboard(): void {
   chrome.runtime.openOptionsPage();
+}
+
+/**
+ * Format a passive HH status into a user-facing informational label.
+ * Only returns a label for detected statuses; returns null if no status.
+ */
+function passiveStatusLabel(
+  status: Partial<ApplicationStatusSync>,
+): string | null {
+  if (status.detectedApplied) return "HH shows: Вы откликнулись";
+  if (status.detectedRejected) return "HH shows: Отказ";
+  if (status.detectedInvitation) return "HH shows: Приглашение";
+  if (status.detectedViewedByEmployer)
+    return "HH shows: Работодатель просмотрел резюме";
+  return null;
 }
 
 // ── Score Breakdown ──────────────────────────────────────────────────────

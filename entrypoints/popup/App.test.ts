@@ -61,6 +61,8 @@ describe("buildBadgePayload", () => {
 // ── Content script EXTRACT_VACANCY handler (logic test) ──
 
 import type { RawVacancyDTO } from "@/adapters/hh/types";
+import type { ApplicationStatusSync } from "@/adapters/types";
+import type { PageStatusInfo } from "@/components/PageStatus";
 
 // Minimal mock: the content script handler uses HHAdapter.extractVacancy.
 // We test that the handler responds with the correct shape.
@@ -69,6 +71,7 @@ interface ExtractResponse {
   success: boolean;
   dto?: RawVacancyDTO;
   error?: string;
+  passiveStatus?: Partial<ApplicationStatusSync> | null;
 }
 
 /**
@@ -78,15 +81,18 @@ interface ExtractResponse {
  */
 function handleExtractVacancy(
   extractFn: () => RawVacancyDTO | null,
+  passiveStatusFn?: () => Partial<ApplicationStatusSync> | null,
 ): ExtractResponse {
+  const passiveStatus = passiveStatusFn?.() ?? undefined;
   try {
     const dto = extractFn();
     if (dto) {
-      return { success: true, dto };
+      return { success: true, dto, passiveStatus };
     }
     return {
       success: false,
       error: "Could not extract vacancy data from this page",
+      passiveStatus,
     };
   } catch (e) {
     return {
@@ -164,6 +170,130 @@ describe("handleExtractVacancy (content script handler logic)", () => {
     expect(response.dto!.salaryMax).toBe(150000);
     expect(response.dto!.employmentType).toBe("Полная занятость");
     expect(response.dto!.skills).toHaveLength(3);
+  });
+
+  it("returns passiveStatus alongside DTO when provided", () => {
+    const dto = makeMinimalDTO();
+    const mockPassive = (): Partial<ApplicationStatusSync> => ({
+      detectedApplied: true,
+      rawLabel: "Вы откликнулись",
+      detectedAt: new Date().toISOString(),
+    });
+    const response = handleExtractVacancy(() => dto, mockPassive);
+    expect(response.success).toBe(true);
+    expect(response.passiveStatus).toBeDefined();
+    expect(response.passiveStatus!.detectedApplied).toBe(true);
+    expect(response.passiveStatus!.rawLabel).toBe("Вы откликнулись");
+  });
+
+  it("returns passiveStatus alongside error when extraction fails", () => {
+    const mockPassive = (): Partial<ApplicationStatusSync> => ({
+      detectedRejected: true,
+      rawLabel: "Отказ",
+      detectedAt: new Date().toISOString(),
+    });
+    const response = handleExtractVacancy(() => null, mockPassive);
+    expect(response.success).toBe(false);
+    expect(response.passiveStatus).toBeDefined();
+    expect(response.passiveStatus!.detectedRejected).toBe(true);
+  });
+
+  it("returns undefined passiveStatus when not provided", () => {
+    const dto = makeMinimalDTO();
+    const response = handleExtractVacancy(() => dto);
+    expect(response.success).toBe(true);
+    expect(response.passiveStatus).toBeUndefined();
+  });
+});
+
+// ── passiveStatusLabel helper ──
+
+function passiveStatusLabel(
+  status: Partial<ApplicationStatusSync>,
+): string | null {
+  if (status.detectedApplied) return "HH shows: Вы откликнулись";
+  if (status.detectedRejected) return "HH shows: Отказ";
+  if (status.detectedInvitation) return "HH shows: Приглашение";
+  if (status.detectedViewedByEmployer)
+    return "HH shows: Работодатель просмотрел резюме";
+  return null;
+}
+
+describe("passiveStatusLabel", () => {
+  it("returns label for detectedApplied", () => {
+    const result = passiveStatusLabel({ detectedApplied: true, detectedAt: "" });
+    expect(result).toBe("HH shows: Вы откликнулись");
+  });
+
+  it("returns label for detectedRejected", () => {
+    const result = passiveStatusLabel({ detectedRejected: true, detectedAt: "" });
+    expect(result).toBe("HH shows: Отказ");
+  });
+
+  it("returns label for detectedInvitation", () => {
+    const result = passiveStatusLabel({ detectedInvitation: true, detectedAt: "" });
+    expect(result).toBe("HH shows: Приглашение");
+  });
+
+  it("returns label for detectedViewedByEmployer", () => {
+    const result = passiveStatusLabel({ detectedViewedByEmployer: true, detectedAt: "" });
+    expect(result).toContain("Работодатель");
+  });
+
+  it("returns null when no status is detected", () => {
+    const result = passiveStatusLabel({ detectedAt: "" });
+    expect(result).toBeNull();
+  });
+
+  it("returns null for empty object", () => {
+    expect(passiveStatusLabel({} as Partial<ApplicationStatusSync>)).toBeNull();
+  });
+});
+
+// ── OPEN_SIDE_PANEL explicit context payload ──
+
+function buildOpenSidePanelMessage(
+  pageInfo: PageStatusInfo,
+): {
+  type: "OPEN_SIDE_PANEL";
+  tabId?: number;
+  vacancyId?: string;
+} {
+  if (pageInfo.kind === "vacancy") {
+    return {
+      type: "OPEN_SIDE_PANEL",
+      tabId: pageInfo.tabId,
+      vacancyId: pageInfo.vacancyId,
+    };
+  }
+
+  return { type: "OPEN_SIDE_PANEL" };
+}
+
+describe("buildOpenSidePanelMessage", () => {
+  it("includes tabId and vacancyId for vacancy pages", () => {
+    const pageInfo: PageStatusInfo = {
+      kind: "vacancy",
+      url: "https://hh.ru/vacancy/12345",
+      tabId: 42,
+      vacancyId: "12345",
+    };
+
+    expect(buildOpenSidePanelMessage(pageInfo)).toEqual({
+      type: "OPEN_SIDE_PANEL",
+      tabId: 42,
+      vacancyId: "12345",
+    });
+  });
+
+  it("does not include explicit context outside vacancy pages", () => {
+    const pageInfo: PageStatusInfo = {
+      kind: "not-detected",
+    };
+
+    expect(buildOpenSidePanelMessage(pageInfo)).toEqual({
+      type: "OPEN_SIDE_PANEL",
+    });
   });
 });
 

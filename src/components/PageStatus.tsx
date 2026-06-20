@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 
-type PageInfo =
+export type PageStatusInfo =
   | { kind: "loading" }
   | { kind: "vacancy"; url: string; tabId: number; vacancyId: string }
   | { kind: "not-detected" };
@@ -24,8 +24,8 @@ function isVacancyUrl(url: string): boolean {
  * Show whether the active browser tab is on a recognized vacancy page.
  * Used in the popup to display "page detected / not detected" status.
  */
-export function usePageStatus(): PageInfo {
-  const [info, setInfo] = useState<PageInfo>({ kind: "loading" });
+export function usePageStatus(): PageStatusInfo {
+  const [info, setInfo] = useState<PageStatusInfo>({ kind: "loading" });
 
   useEffect(() => {
     let cancelled = false;
@@ -63,7 +63,7 @@ export function usePageStatus(): PageInfo {
 }
 
 interface PageStatusProps {
-  info: PageInfo;
+  info: PageStatusInfo;
 }
 
 /**

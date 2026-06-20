@@ -5,6 +5,7 @@ import { ProfileTab } from "@/components/ProfileTab";
 import { jobRepo } from "@/db/repositories";
 import type { Job } from "@/models/job";
 import type { RiskFlag } from "@/models/risk";
+import type { ApplicationStatusSync } from "@/adapters/types";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 
 type TabId = "overview" | "score" | "letter" | "profile" | "history";
@@ -27,6 +28,7 @@ interface VacancyContext {
   job?: Job;
   profileId?: string;
   resumeId?: string;
+  passiveStatus?: Partial<ApplicationStatusSync> | null;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -77,7 +79,6 @@ function statusLabel(status: string): string {
   };
   return labels[status] ?? status;
 }
-
 function formatShortDate(iso: string): string {
   try {
     const d = new Date(iso);
@@ -88,6 +89,21 @@ function formatShortDate(iso: string): string {
   } catch {
     return iso;
   }
+}
+
+/**
+ * Format a passive HH status into a user-facing informational label.
+ * Only returns a label for detected statuses; returns null if no status.
+ */
+function passiveStatusLabel(
+  status: Partial<ApplicationStatusSync>,
+): string | null {
+  if (status.detectedApplied) return "HH shows: Вы откликнулись";
+  if (status.detectedRejected) return "HH shows: Отказ";
+  if (status.detectedInvitation) return "HH shows: Приглашение";
+  if (status.detectedViewedByEmployer)
+    return "HH shows: Работодатель просмотрел резюме";
+  return null;
 }
 
 function riskSeverityColor(severity: string): string {
@@ -116,27 +132,77 @@ function SidePanelContent(): ReactNode {
     setActiveTab(tab);
   }, []);
 
-  // Detect current vacancy from the active browser tab.
+  // Detect current vacancy from explicit background-managed context.
+  // Falls back to active-tab guessing only when no context is available.
   useEffect(() => {
     let cancelled = false;
 
     async function detect(): Promise<void> {
       try {
-        const [tab] = await chrome.tabs.query({
-          active: true,
-          lastFocusedWindow: true,
-        });
-        if (cancelled || !tab?.url) return;
+        // 1. Try explicit background context first.
+        const context: { tabId: number; vacancyId: string | null } | null =
+          await chrome.runtime.sendMessage({ type: "GET_SIDE_PANEL_CONTEXT" });
 
-        const match = tab.url.match(/\/vacancy\/(\d+)/);
-        if (!match) {
-          if (!cancelled) setCtx({});
-          return;
+        let tabId = context?.tabId;
+        let vacancyId = context?.vacancyId;
+
+        // 2. Validate the background context: ensure the stored tab still exists
+        // and its URL still points to a vacancy page. If the user switched tabs,
+        // the stored context is stale and we fall back to active-tab detection.
+        let contextValid = false;
+        if (tabId && tabId > 0 && vacancyId) {
+          try {
+            const storedTab = await chrome.tabs.get(tabId);
+            if (storedTab?.url) {
+              const storedMatch = storedTab.url.match(/\/vacancy\/(\d+)/);
+              if (storedMatch && storedMatch[1] === vacancyId) {
+                contextValid = true;
+              }
+            }
+          } catch {
+            // Tab no longer exists — context is stale.
+          }
         }
 
-        const vacancyId = match[1];
+        if (!contextValid) {
+          const [tab] = await chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true,
+          });
+          if (cancelled || !tab?.url || tab.id === undefined) {
+            if (!cancelled) setCtx({});
+            return;
+          }
+          tabId = tab.id;
+          const match = tab.url.match(/\/vacancy\/(\d+)/);
+          if (!match) {
+            if (!cancelled) setCtx({});
+            return;
+          }
+          vacancyId = match[1];
+        }
+
         const jobId = `hh_${vacancyId}`;
         const job = await jobRepo.getById(jobId);
+
+        // 3. Fetch passive HH status from the content script.
+        let passiveStatus:
+          | Partial<ApplicationStatusSync>
+          | null
+          | undefined;
+        if (tabId !== undefined) {
+          try {
+            const response: {
+              success: boolean;
+              passiveStatus?: Partial<ApplicationStatusSync> | null;
+            } = await chrome.tabs.sendMessage(tabId, {
+              type: "EXTRACT_VACANCY",
+            });
+            passiveStatus = response?.passiveStatus ?? undefined;
+          } catch {
+            passiveStatus = undefined;
+          }
+        }
 
         if (!cancelled) {
           setCtx({
@@ -144,6 +210,7 @@ function SidePanelContent(): ReactNode {
             job: job ?? undefined,
             profileId: job?.selectedProfileId,
             resumeId: job?.selectedResumeId,
+            passiveStatus,
           });
         }
       } catch {
@@ -163,12 +230,18 @@ function SidePanelContent(): ReactNode {
 
   // Auto-refresh when badge state changes (popup saved/rejected a vacancy).
   useEffect(() => {
-    function onChanged(changes: Record<string, chrome.storage.StorageChange>): void {
-      const hasBadgeChange = Object.keys(changes).some((k) => k.startsWith("badge_v1_hh_"));
+    function onChanged(
+      changes: Record<string, chrome.storage.StorageChange>,
+    ): void {
+      const hasBadgeChange = Object.keys(changes).some((k) =>
+        k.startsWith("badge_v1_hh_"),
+      );
       if (hasBadgeChange) handleRefresh();
     }
     chrome.storage.onChanged.addListener(onChanged);
-    return () => { chrome.storage.onChanged.removeListener(onChanged); };
+    return () => {
+      chrome.storage.onChanged.removeListener(onChanged);
+    };
   }, [handleRefresh]);
 
   return (
@@ -332,6 +405,23 @@ function OverviewTab({ ctx }: { ctx: VacancyContext }): ReactNode {
           {job.companyName || "—"}
         </p>
       </div>
+
+      {/* Passive HH status hint (informational, read-only) */}
+      {ctx.passiveStatus && passiveStatusLabel(ctx.passiveStatus) && (
+        <div
+          style={{
+            padding: "6px 8px",
+            background: "#fff8e6",
+            border: "1px solid #e6d58c",
+            borderRadius: 4,
+            marginBottom: 14,
+            fontSize: 12,
+            color: "#8a7010",
+          }}
+        >
+          {passiveStatusLabel(ctx.passiveStatus)}
+        </div>
+      )}
 
       {/* Status + Score */}
       <div

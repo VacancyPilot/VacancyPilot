@@ -117,7 +117,11 @@ async function createBadge(): Promise<void> {
 
   // ── Click → Open side panel ──
   container.addEventListener("click", () => {
-    void chrome.runtime.sendMessage({ type: "OPEN_SIDE_PANEL" });
+    const vacancyId = extractVacancyIdFromUrl();
+    void chrome.runtime.sendMessage({
+      type: "OPEN_SIDE_PANEL",
+      vacancyId,
+    });
   });
 
   shadow.appendChild(style);
@@ -139,12 +143,15 @@ async function createBadge(): Promise<void> {
       try {
         const adapter = new HHAdapter();
         const dto = adapter.extractVacancy(document);
+        const passiveStatus =
+          adapter.extractVisibleApplicationStatus?.(document) ?? undefined;
         if (dto) {
-          sendResponse({ success: true, dto });
+          sendResponse({ success: true, dto, passiveStatus });
         } else {
           sendResponse({
             success: false,
             error: "Could not extract vacancy data from this page",
+            passiveStatus,
           });
         }
       } catch (e) {
@@ -163,6 +170,15 @@ async function createBadge(): Promise<void> {
 interface BadgePayload {
   score?: number;
   status?: string;
+}
+
+/**
+ * Extract vacancy ID from the current document URL.
+ * Returns null if not on a vacancy page.
+ */
+function extractVacancyIdFromUrl(): string | null {
+  const match = document.location.href.match(/\/vacancy\/(\d+)/);
+  return match ? match[1] : null;
 }
 
 /**
