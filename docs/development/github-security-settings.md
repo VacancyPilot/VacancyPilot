@@ -23,7 +23,9 @@ push of CI/Dependabot configuration. They cannot be automated via files alone.
 - **Settings → Code security → Code scanning** → Add default setup
   - Language: JavaScript / TypeScript
   - This uses GitHub's default CodeQL configuration — no custom workflow needed.
-  - Runs on every PR and push to main.
+  - CodeQL default setup runs according to GitHub's default setup configuration,
+    typically on pull requests and pushes to the default branch. Exact behavior can
+    depend on repository settings and GitHub plan availability.
   - Note: CodeQL needs `.github/workflows/codeql.yml` only for advanced config.
     Default setup works without a workflow file.
 
@@ -59,7 +61,15 @@ If your plan supports rulesets (newer GitHub feature):
     - Require status checks to pass: `ci`, `dependency-review`
   - This is the modern replacement for branch protection rules.
 
-## 6. Verification
+## 6. pre-commit.ci
+
+The repository may show a `pre-commit.ci - push` status if the GitHub App is enabled.
+This repo includes a minimal `.pre-commit-config.yaml` only for safe file hygiene checks:
+trailing whitespace, end-of-file fixer, YAML/JSON validation and merge-conflict detection.
+
+If pre-commit.ci is not needed, it can be disabled in the GitHub App settings for this repository.
+
+## 7. Verification
 
 After all settings are applied:
 
