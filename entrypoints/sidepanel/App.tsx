@@ -1,6 +1,7 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EmptyState } from "@/components/EmptyState";
 import { CoverLetterStudio } from "@/components/CoverLetterStudio";
+import { GuidedApplyWorkspace } from "@/components/GuidedApplyWorkspace";
 import { ProfileTab } from "@/components/ProfileTab";
 import { jobRepo } from "@/db/repositories";
 import type { Job } from "@/models/job";
@@ -8,7 +9,7 @@ import type { RiskFlag } from "@/models/risk";
 import type { ApplicationStatusSync } from "@/adapters/types";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 
-type TabId = "overview" | "score" | "letter" | "profile" | "history";
+type TabId = "overview" | "score" | "letter" | "apply" | "profile" | "history";
 
 interface TabDef {
   id: TabId;
@@ -19,6 +20,7 @@ const TABS: TabDef[] = [
   { id: "overview", label: "Overview" },
   { id: "score", label: "Score" },
   { id: "letter", label: "Letter" },
+  { id: "apply", label: "Apply" },
   { id: "profile", label: "Profile" },
   { id: "history", label: "History" },
 ];
@@ -186,10 +188,7 @@ function SidePanelContent(): ReactNode {
         const job = await jobRepo.getById(jobId);
 
         // 3. Fetch passive HH status from the content script.
-        let passiveStatus:
-          | Partial<ApplicationStatusSync>
-          | null
-          | undefined;
+        let passiveStatus: Partial<ApplicationStatusSync> | null | undefined;
         if (tabId !== undefined) {
           try {
             const response: {
@@ -361,6 +360,16 @@ function TabContent({
       return <ScoreTab ctx={ctx} />;
     case "letter":
       return <LetterTab ctx={ctx} />;
+    case "apply":
+      return (
+        <GuidedApplyWorkspace
+          jobId={ctx.jobId ?? ""}
+          job={ctx.job}
+          profileId={ctx.profileId}
+          resumeId={ctx.resumeId}
+          onRefresh={onRefresh}
+        />
+      );
     case "profile":
       return <ProfileTabWrapper ctx={ctx} onRefresh={onRefresh} />;
     case "history":

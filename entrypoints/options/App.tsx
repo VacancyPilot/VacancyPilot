@@ -1,4 +1,5 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { KanbanBoard } from "@/components/KanbanBoard";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -17,18 +18,27 @@ import {
   deleteAiCacheAndEventLog,
   getDataCounts,
 } from "@/services/delete-all";
+import { getActionLog, getRemainingDailyBudget } from "@/services/labs-control";
+import { getReminders, getDailySummary } from "@/services/reminders";
+import type {
+  ReminderItem,
+  DailySummary as DailySummaryType,
+} from "@/services/reminders";
+import { loadSettings, saveSettings } from "@/db/settings-bridge";
 import { db } from "@/db";
-import { jobRepo } from "@/db/repositories";
-import type { Job, JobStatus } from "@/models/job";
+import type { JobStatus } from "@/models/job";
+import type { LabsActionLog } from "@/models/labs-action-log";
 
 type SectionId =
   | "vacancies"
+  | "summary"
   | "applications"
   | "companies"
   | "profiles"
   | "resumes"
   | "letters"
   | "events"
+  | "labs"
   | "export"
   | "settings"
   | "privacy"
@@ -42,12 +52,14 @@ interface SectionDef {
 
 const SECTIONS: SectionDef[] = [
   { id: "vacancies", label: "Vacancies", icon: "📋" },
+  { id: "summary", label: "Summary", icon: "📊" },
   { id: "applications", label: "Applications", icon: "📨" },
   { id: "companies", label: "Companies", icon: "🏢" },
   { id: "profiles", label: "Profiles", icon: "👤" },
   { id: "resumes", label: "Resumes", icon: "📄" },
   { id: "letters", label: "Letters", icon: "✉️" },
   { id: "events", label: "Events", icon: "📜" },
+  { id: "labs", label: "Labs", icon: "🧪" },
   { id: "export", label: "Export", icon: "📦" },
   { id: "settings", label: "Settings", icon: "⚙️" },
   { id: "privacy", label: "Privacy", icon: "🔒" },
@@ -218,239 +230,12 @@ export function formatShortDate(iso: string): string {
   }
 }
 
-// ── Vacancy Section ──
-
-function VacancySection(): ReactNode {
-  const [jobs, setJobs] = useState<Job[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadJobs = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    setError(null);
-    try {
-      const data = await jobRepo.list();
-      data.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-      setJobs(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load vacancies");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    void loadJobs(true);
-  }, [loadJobs]);
-
-  useEffect(() => {
-    void loadJobs();
-  }, [loadJobs]);
-
-  // Listen for chrome.storage.local changes to auto-refresh when badge state
-  // or other vacancy-related data changes from content script or popup.
-  useEffect(() => {
-    const handleStorageChange = (
-      changes: Record<string, chrome.storage.StorageChange>,
-      areaName: string,
-    ) => {
-      if (areaName !== "local") return;
-      // Reload when badge keys or job-related storage changes
-      const relevantChange = Object.keys(changes).some(
-        (key) => key.startsWith("badge_v1_hh_") || key === "app_settings_v1",
-      );
-      if (relevantChange) {
-        void loadJobs(true);
-      }
-    };
-
-    chrome.storage.onChanged.addListener(handleStorageChange);
-    return () => {
-      chrome.storage.onChanged.removeListener(handleStorageChange);
-    };
-  }, [loadJobs]);
-
-  if (loading) return <LoadingState message="Loading vacancies…" />;
-
-  if (error)
-    return (
-      <ErrorState
-        message="Failed to load vacancies"
-        details={error}
-        onRetry={() => void loadJobs()}
-      />
-    );
-
-  if (!jobs || jobs.length === 0)
-    return (
-      <EmptyState
-        icon="📋"
-        message="No vacancies yet"
-        description="Vacancies are saved automatically when you view them on HH.ru."
-      />
-    );
-
-  return (
-    <div>
-      <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 12px" }}>
-        Tracked Vacancies ({jobs.length})
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          style={{
-            marginLeft: 12,
-            padding: "2px 10px",
-            fontSize: 11,
-            cursor: refreshing ? "default" : "pointer",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-            background: refreshing ? "#f5f5f5" : "#fff",
-            color: refreshing ? "#999" : "#555",
-            fontWeight: 500,
-            opacity: refreshing ? 0.6 : 1,
-          }}
-        >
-          {refreshing ? "Refreshing…" : "Refresh"}
-        </button>
-      </h2>
-      <table
-        style={{
-          width: "100%",
-          fontSize: 13,
-          borderCollapse: "collapse",
-        }}
-      >
-        <thead>
-          <tr
-            style={{
-              borderBottom: "2px solid #e0e0e0",
-              textAlign: "left",
-            }}
-          >
-            <th
-              style={{
-                padding: "6px 8px",
-                fontWeight: 600,
-                color: "#555",
-              }}
-            >
-              Title
-            </th>
-            <th
-              style={{
-                padding: "6px 8px",
-                fontWeight: 600,
-                color: "#555",
-              }}
-            >
-              Company
-            </th>
-            <th
-              style={{
-                padding: "6px 8px",
-                fontWeight: 600,
-                color: "#555",
-                width: 60,
-              }}
-            >
-              Score
-            </th>
-            <th
-              style={{
-                padding: "6px 8px",
-                fontWeight: 600,
-                color: "#555",
-                width: 120,
-              }}
-            >
-              Status
-            </th>
-            <th
-              style={{
-                padding: "6px 8px",
-                fontWeight: 600,
-                color: "#555",
-                width: 100,
-              }}
-            >
-              Updated
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {jobs.map((job) => {
-            const badge = statusBadgeStyle(job.status);
-            return (
-              <tr key={job.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                <td style={{ padding: "6px 8px" }}>
-                  <a
-                    href={job.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      color: "#4a90d9",
-                      textDecoration: "none",
-                    }}
-                  >
-                    {job.title || "(no title)"}
-                  </a>
-                </td>
-                <td style={{ padding: "6px 8px", color: "#666" }}>
-                  {job.companyName || "—"}
-                </td>
-                <td
-                  style={{
-                    padding: "6px 8px",
-                    fontWeight: 600,
-                    color: scoreColor(job.ruleScore?.total),
-                    textAlign: "center",
-                  }}
-                >
-                  {job.ruleScore?.total !== undefined
-                    ? job.ruleScore.total
-                    : "—"}
-                </td>
-                <td style={{ padding: "6px 8px" }}>
-                  <span
-                    style={{
-                      display: "inline-block",
-                      padding: "2px 8px",
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      background: badge.bg,
-                      color: badge.fg,
-                    }}
-                  >
-                    {statusLabel(job.status)}
-                  </span>
-                </td>
-                <td
-                  style={{
-                    padding: "6px 8px",
-                    color: "#999",
-                    fontSize: 11,
-                  }}
-                >
-                  {formatShortDate(job.updatedAt)}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 function SectionContent({ section }: { section: SectionId }): ReactNode {
   switch (section) {
     case "vacancies":
-      return <VacancySection />;
+      return <KanbanBoard />;
+    case "summary":
+      return <SummarySection />;
     case "applications":
       return (
         <EmptyState
@@ -487,6 +272,8 @@ function SectionContent({ section }: { section: SectionId }): ReactNode {
           description="Activity log will appear as you use the extension."
         />
       );
+    case "labs":
+      return <LabsSection />;
     case "export":
       return <ExportSection />;
     case "settings":
@@ -1182,6 +969,684 @@ const dangerPrimaryButtonStyle = {
   color: "#fff",
   fontWeight: 700,
 } as const;
+
+// ── Summary Section ──
+
+function SummarySection(): ReactNode {
+  const [summary, setSummary] = useState<DailySummaryType | null>(null);
+  const [reminders, setReminders] = useState<ReminderItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const jobs = await db.jobs.toArray();
+      setSummary(getDailySummary(jobs));
+      setReminders(getReminders(jobs));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load summary");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(() => {
+    const handleStorageChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string,
+    ) => {
+      if (areaName !== "local") return;
+      const relevantChange = Object.keys(changes).some(
+        (key) => key.startsWith("badge_v1_hh_") || key === "app_settings_v1",
+      );
+      if (relevantChange) void load();
+    };
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
+  }, [load]);
+
+  if (loading) return <LoadingState />;
+  if (error)
+    return (
+      <ErrorState
+        message="Failed to load summary"
+        details={error}
+        onRetry={() => {
+          setError(null);
+          setLoading(true);
+          void load();
+        }}
+      />
+    );
+
+  if (!summary || summary.totalTracked === 0)
+    return (
+      <EmptyState
+        icon="📊"
+        message="No data yet"
+        description="Start saving vacancies to see your daily summary here."
+      />
+    );
+
+  const statBox = (label: string, value: number, color: string) => (
+    <div
+      style={{
+        flex: 1,
+        minWidth: 100,
+        padding: "12px",
+        background: "#fafafa",
+        border: `1px solid ${color}30`,
+        borderRadius: 6,
+        textAlign: "center",
+      }}
+    >
+      <div style={{ fontSize: 22, fontWeight: 700, color }}>{value}</div>
+      <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>{label}</div>
+    </div>
+  );
+
+  return (
+    <div>
+      <h2
+        style={{
+          fontSize: 16,
+          fontWeight: 700,
+          margin: "0 0 4px",
+          color: "#1a3a5c",
+        }}
+      >
+        Daily Summary
+      </h2>
+      <p style={{ fontSize: 11, color: "#999", margin: "0 0 16px" }}>
+        Generated {summary.generatedAt.slice(0, 16).replace("T", " ")}
+      </p>
+
+      {/* Stats row */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          flexWrap: "wrap",
+          marginBottom: 20,
+        }}
+      >
+        {statBox("Tracked", summary.totalTracked, "#4a90d9")}
+        {statBox("Active", summary.activeCount, "#e6a817")}
+        {statBox("New this week", summary.newThisWeek, "#2a8")}
+        {statBox("Applied this week", summary.appliedThisWeek, "#2a8")}
+        {statBox("Needs follow-up", summary.needsFollowUp, "#c44")}
+      </div>
+
+      {/* Reminders */}
+      {reminders.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <h3
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              margin: "0 0 8px",
+              color: "#1a3a5c",
+            }}
+          >
+            🔔 Follow-up Reminders ({reminders.length})
+          </h3>
+          {reminders.map((r) => (
+            <div
+              key={r.jobId}
+              style={{
+                padding: "8px 10px",
+                background: "#fff",
+                border: "1px solid #f0e0e0",
+                borderLeft: "3px solid #c44",
+                borderRadius: 4,
+                marginBottom: 6,
+                fontSize: 12,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <a
+                  href={r.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontWeight: 600,
+                    color: "#4a90d9",
+                    textDecoration: "none",
+                  }}
+                >
+                  {r.title}
+                </a>
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "#999",
+                  }}
+                >
+                  {r.daysSince}d ago
+                </span>
+              </div>
+              <div style={{ color: "#666", marginTop: 2 }}>{r.companyName}</div>
+              <div style={{ color: "#c44", fontSize: 10, marginTop: 2 }}>
+                ⚠ {r.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {reminders.length === 0 && (
+        <div
+          style={{
+            padding: "12px",
+            background: "#e6f7e6",
+            border: "1px solid #2a8",
+            borderRadius: 6,
+            fontSize: 12,
+            color: "#2a8",
+            marginBottom: 20,
+          }}
+        >
+          ✅ All caught up! No follow-ups needed right now.
+        </div>
+      )}
+
+      {/* Recent Activity */}
+      {summary.recentActivity.length > 0 && (
+        <div>
+          <h3
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              margin: "0 0 8px",
+              color: "#1a3a5c",
+            }}
+          >
+            📜 Recent Activity
+          </h3>
+          {summary.recentActivity.map((evt, i) => (
+            <div
+              key={`${evt.jobId}-${evt.changedAt}-${i}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "4px 0",
+                borderBottom: "1px solid #f5f5f5",
+                fontSize: 11,
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "1px 5px",
+                  borderRadius: 3,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  background: "#e6f0ff",
+                  color: "#4a90d9",
+                }}
+              >
+                {evt.status.replace(/_/g, " ")}
+              </span>
+              <span style={{ color: "#333", flex: 1 }}>
+                {evt.title} · {evt.companyName}
+              </span>
+              <span style={{ color: "#999" }}>
+                {evt.daysAgo === 0 ? "today" : `${evt.daysAgo}d ago`}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Labs Section ──
+
+function LabsSection(): ReactNode {
+  const [labsOn, setLabsOn] = useState(false);
+  const [guidedApplyOn, setGuidedApplyOn] = useState(false);
+  const [killSwitchOn, setKillSwitchOn] = useState(false);
+  const [dailyLimit, setDailyLimit] = useState(5);
+  const [remaining, setRemaining] = useState(0);
+  const [actions, setActions] = useState<LabsActionLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const refresh = useCallback(async () => {
+    try {
+      const settings = await loadSettings();
+      setLabsOn(settings.labs.enabled);
+      setGuidedApplyOn(settings.labs.guidedApplyEnabled);
+      setKillSwitchOn(settings.labs.killSwitchEnabled);
+      setDailyLimit(settings.labs.dailyActionLimit);
+      const [rem, log] = await Promise.all([
+        getRemainingDailyBudget(),
+        getActionLog(),
+      ]);
+      setRemaining(rem);
+      setActions(log);
+    } catch {
+      // settings unreadable — use safe defaults
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const handleToggleMaster = useCallback(async () => {
+    setSaving(true);
+    try {
+      const settings = await loadSettings();
+      settings.labs.enabled = !settings.labs.enabled;
+      if (!settings.labs.enabled) {
+        settings.labs.guidedApplyEnabled = false;
+        setGuidedApplyOn(false);
+      }
+      await saveSettings(settings);
+      setLabsOn(settings.labs.enabled);
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const handleToggleGuidedApply = useCallback(async () => {
+    setSaving(true);
+    try {
+      const settings = await loadSettings();
+      settings.labs.guidedApplyEnabled = !settings.labs.guidedApplyEnabled;
+      await saveSettings(settings);
+      setGuidedApplyOn(settings.labs.guidedApplyEnabled);
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const handleToggleKillSwitch = useCallback(async () => {
+    setSaving(true);
+    try {
+      const settings = await loadSettings();
+      settings.labs.killSwitchEnabled = !settings.labs.killSwitchEnabled;
+      await saveSettings(settings);
+      setKillSwitchOn(settings.labs.killSwitchEnabled);
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const handleLimitChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const v = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+      setDailyLimit(v);
+      setSaving(true);
+      try {
+        const settings = await loadSettings();
+        settings.labs.dailyActionLimit = v;
+        await saveSettings(settings);
+        setRemaining(await getRemainingDailyBudget());
+      } finally {
+        setSaving(false);
+      }
+    },
+    [],
+  );
+
+  if (loading) return <LoadingState />;
+
+  const effectiveLabsEnabled = labsOn && !killSwitchOn;
+
+  const toggleBase: React.CSSProperties = {
+    width: 40,
+    height: 22,
+    borderRadius: 11,
+    position: "relative",
+    cursor: saving ? "not-allowed" : "pointer",
+    opacity: saving ? 0.6 : 1,
+    border: "none",
+    padding: 0,
+    transition: "background 0.2s",
+  };
+
+  function knobLeft(on: boolean): number {
+    return on ? 20 : 2;
+  }
+
+  return (
+    <div>
+      <h2
+        style={{
+          fontSize: 16,
+          fontWeight: 700,
+          margin: "0 0 4px",
+          color: "#1a3a5c",
+        }}
+      >
+        Labs
+      </h2>
+      <p style={{ fontSize: 12, color: "#999", margin: "0 0 16px" }}>
+        Experimental features. Disabled by default. Enable at your own risk.
+      </p>
+
+      {/* Risk warning */}
+      <div
+        style={{
+          padding: "10px 14px",
+          background: "#fff8e6",
+          border: "1px solid #e6a817",
+          borderRadius: 6,
+          marginBottom: 20,
+          fontSize: 12,
+          color: "#8a6d14",
+          lineHeight: 1.5,
+        }}
+      >
+        <strong>⚠️ Caution:</strong> Labs features are experimental and carry
+        elevated risk. They may interact with live pages. The kill switch can
+        disable all Labs features instantly if something goes wrong.
+      </div>
+
+      {/* Master Toggle */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 0",
+          borderBottom: "1px solid #eee",
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>
+            Labs master toggle
+          </div>
+          <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>
+            Enable experimental Labs features
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleToggleMaster}
+          disabled={saving}
+          style={{ ...toggleBase, background: labsOn ? "#4a90d9" : "#ccc" }}
+          aria-label={labsOn ? "Disable Labs" : "Enable Labs"}
+        >
+          <span
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: "50%",
+              background: "#fff",
+              position: "absolute",
+              top: 2,
+              left: knobLeft(labsOn),
+              transition: "left 0.2s",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+            }}
+          />
+        </button>
+      </div>
+
+      {/* Guided Apply Toggle */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 0",
+          borderBottom: "1px solid #eee",
+          opacity: labsOn ? 1 : 0.4,
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>
+            Guided apply
+          </div>
+          <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>
+            Clipboard-only workflow with field hints (no auto-fill)
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleToggleGuidedApply}
+          disabled={saving || !labsOn}
+          style={{
+            ...toggleBase,
+            background: guidedApplyOn && labsOn ? "#4a90d9" : "#ccc",
+          }}
+          aria-label={
+            guidedApplyOn ? "Disable guided apply" : "Enable guided apply"
+          }
+        >
+          <span
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: "50%",
+              background: "#fff",
+              position: "absolute",
+              top: 2,
+              left: knobLeft(guidedApplyOn && labsOn),
+              transition: "left 0.2s",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+            }}
+          />
+        </button>
+      </div>
+
+      {/* Kill Switch */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 0",
+          borderBottom: "1px solid #eee",
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#c44" }}>
+            Kill switch
+          </div>
+          <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>
+            Instantly disable all Labs features
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleToggleKillSwitch}
+          disabled={saving}
+          style={{ ...toggleBase, background: killSwitchOn ? "#c44" : "#ccc" }}
+          aria-label={
+            killSwitchOn ? "Deactivate kill switch" : "Activate kill switch"
+          }
+        >
+          <span
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: "50%",
+              background: "#fff",
+              position: "absolute",
+              top: 2,
+              left: knobLeft(killSwitchOn),
+              transition: "left 0.2s",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+            }}
+          />
+        </button>
+      </div>
+
+      {/* Daily Action Budget */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 0",
+          borderBottom: "1px solid #eee",
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>
+            Daily action limit
+          </div>
+          <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>
+            Max Labs actions per day · {remaining} remaining today
+          </div>
+        </div>
+        <input
+          type="number"
+          min={0}
+          max={100}
+          value={dailyLimit}
+          onChange={handleLimitChange}
+          disabled={saving}
+          style={{
+            width: 56,
+            padding: "4px 8px",
+            fontSize: 13,
+            border: "1px solid #ccc",
+            borderRadius: 4,
+            textAlign: "center",
+          }}
+        />
+      </div>
+
+      {/* Status summary */}
+      <div
+        style={{
+          marginTop: 16,
+          padding: "8px 12px",
+          background: effectiveLabsEnabled ? "#e6f7e6" : "#f5f5f5",
+          borderRadius: 6,
+          fontSize: 12,
+          color: effectiveLabsEnabled ? "#2a8" : "#999",
+        }}
+      >
+        Labs status:{" "}
+        <strong>
+          {killSwitchOn
+            ? "KILL SWITCH ACTIVE — all Labs features blocked"
+            : labsOn
+              ? "Enabled"
+              : "Disabled"}
+        </strong>
+      </div>
+
+      {/* Action log */}
+      <h3
+        style={{
+          fontSize: 14,
+          fontWeight: 700,
+          margin: "24px 0 8px",
+          color: "#1a3a5c",
+        }}
+      >
+        Action Log
+      </h3>
+
+      {actions.length === 0 ? (
+        <EmptyState
+          icon="📋"
+          message="No Labs actions recorded"
+          description="Actions appear here when you use guided-apply or other Labs features."
+        />
+      ) : (
+        <div style={{ overflow: "auto" }}>
+          <table
+            style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}
+          >
+            <thead>
+              <tr style={{ borderBottom: "1px solid #e0e0e0" }}>
+                <th
+                  style={{
+                    textAlign: "left",
+                    padding: "6px 8px",
+                    fontWeight: 700,
+                    color: "#555",
+                  }}
+                >
+                  Type
+                </th>
+                <th
+                  style={{
+                    textAlign: "left",
+                    padding: "6px 8px",
+                    fontWeight: 700,
+                    color: "#555",
+                  }}
+                >
+                  Time
+                </th>
+                <th
+                  style={{
+                    textAlign: "left",
+                    padding: "6px 8px",
+                    fontWeight: 700,
+                    color: "#555",
+                  }}
+                >
+                  Details
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {actions.map((a) => (
+                <tr key={a.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
+                  <td style={{ padding: "6px 8px" }}>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "1px 6px",
+                        borderRadius: 3,
+                        fontSize: 10,
+                        fontWeight: 600,
+                        background: "#e6f0ff",
+                        color: "#4a90d9",
+                      }}
+                    >
+                      {a.type.replace(/_/g, " ")}
+                    </span>
+                  </td>
+                  <td
+                    style={{ padding: "6px 8px", color: "#999", fontSize: 11 }}
+                  >
+                    {a.createdAt.slice(0, 16).replace("T", " ")}
+                  </td>
+                  <td
+                    style={{ padding: "6px 8px", color: "#666", fontSize: 11 }}
+                  >
+                    {a.vacancyUrl
+                      ? `URL: ${a.vacancyUrl.slice(0, 60)}...`
+                      : a.jobId
+                        ? `Job: ${a.jobId.slice(0, 12)}...`
+                        : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function App(): ReactNode {
   return (

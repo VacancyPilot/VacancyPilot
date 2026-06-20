@@ -39,6 +39,9 @@ export async function deleteAllData(): Promise<void> {
     TABLE_NAMES.map((name) => db.table(name as TableName).clear()),
   );
 
+  // Clear tables added in later schema versions
+  await db.labsActions.clear();
+
   // 2. Remove known product keys from chrome.storage.local
   await chrome.storage.local.remove(PRODUCT_STORAGE_KEYS);
 
@@ -109,6 +112,8 @@ export async function hasData(): Promise<boolean> {
     const count = await db.table(name as TableName).count();
     if (count > 0) return true;
   }
+  const labsCount = await db.labsActions.count();
+  if (labsCount > 0) return true;
   return false;
 }
 
@@ -122,5 +127,6 @@ export async function getDataCounts(): Promise<Record<string, number>> {
       counts[name] = await db.table(name as TableName).count();
     }),
   );
+  counts.labsActions = await db.labsActions.count();
   return counts;
 }

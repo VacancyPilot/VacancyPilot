@@ -44,10 +44,31 @@ export {
   hasData,
   getDataCounts,
 } from "./delete-all";
+
+// Labs control plane
+export {
+  isLabsEnabled,
+  isGuidedApplyEnabled,
+  getRemainingDailyBudget,
+  hasDailyBudget,
+  checkGuidedApplyGate,
+  recordLabsAction,
+  getActionLog,
+  getTodayActionCount,
+} from "./labs-control";
 export type {
   DeleteJobDataResult,
   DeleteAiCacheAndEventLogResult,
 } from "./delete-all";
+
+// Reminders and daily summary
+export { checkReminder, getReminders, getDailySummary } from "./reminders";
+export type {
+  ReminderReason,
+  ReminderItem,
+  DailySummary,
+  ActivityEvent,
+} from "./reminders";
 export type { PayloadPreview, IncludedField } from "./payload-preview";
 
 // AI provider

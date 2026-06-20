@@ -3,6 +3,9 @@ import {
   quickSaveSearchCard,
   quickRejectSearchCard,
 } from "@/services/search-actions";
+import { jobRepo } from "@/db/repositories";
+import { createStatusChange } from "@/services/status-transitions";
+import { checkGuidedApplyGate, recordLabsAction } from "@/services/labs-control";
 import type { RawSearchItemDTO } from "@/adapters/types";
 
 interface SidePanelContext {
@@ -106,6 +109,52 @@ export default defineBackground(() => {
             error: err instanceof Error ? err.message : String(err),
           }),
       );
+      return true; // async response
+    }
+
+    // ── Guided Apply: mark job as applied ──
+
+    if (message.type === "MARK_APPLIED") {
+      const jobId = message.jobId as string | undefined;
+      if (!jobId) {
+        sendResponse({ success: false, error: "Missing jobId" });
+        return false;
+      }
+      void (async () => {
+        try {
+          const gate = await checkGuidedApplyGate();
+          if (!gate.allowed) {
+            sendResponse({ success: false, error: gate.reason });
+            return;
+          }
+          const job = await jobRepo.getById(jobId);
+          if (!job) {
+            sendResponse({ success: false, error: "Job not found" });
+            return;
+          }
+          const change = createStatusChange(
+            job.status,
+            "applied",
+            "user",
+            "Marked as applied via guided apply",
+          );
+          job.status = "applied";
+          job.statusHistory = [...job.statusHistory, change];
+          job.updatedAt = new Date().toISOString();
+          await jobRepo.save(job);
+          await recordLabsAction("guided_apply_completed", {
+            jobId,
+            vacancyUrl: job.sourceUrl,
+            countsTowardBudget: true,
+          });
+          sendResponse({ success: true });
+        } catch (err: unknown) {
+          sendResponse({
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+      })();
       return true; // async response
     }
 

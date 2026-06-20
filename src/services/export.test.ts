@@ -190,6 +190,7 @@ vi.mock("@/db", () => {
     "applications",
     "events",
     "aiCache",
+    "labsActions",
     "meta",
   ];
 
@@ -218,6 +219,9 @@ vi.mock("@/db", () => {
     },
     get aiCache() {
       return makeTable("aiCache");
+    },
+    get labsActions() {
+      return makeTable("labsActions");
     },
     get meta() {
       return makeTable("meta");
@@ -265,6 +269,7 @@ describe("exportAllJson", () => {
     expect(envelope.data).toHaveProperty("applications");
     expect(envelope.data).toHaveProperty("events");
     expect(envelope.data).toHaveProperty("aiCache");
+    expect(envelope.data).toHaveProperty("labsActions");
     expect(envelope.data).toHaveProperty("meta");
   });
 
@@ -632,7 +637,7 @@ describe("getDataCounts", () => {
 
     expect(counts.jobs).toBe(0);
     expect(counts.companies).toBe(0);
-    expect(Object.keys(counts).length).toBe(9);
+    expect(Object.keys(counts).length).toBe(10);
   });
 
   it("returns correct counts", async () => {

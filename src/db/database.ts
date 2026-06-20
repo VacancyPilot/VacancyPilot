@@ -7,7 +7,8 @@ import type { CoverLetter } from "@/models/cover-letter";
 import type { Application } from "@/models/application";
 import type { EventLog } from "@/models/event-log";
 import type { AIRequestCache } from "@/models/ai";
-import { SCHEMA_V1, SCHEMA_V2 } from "./schema";
+import type { LabsActionLog } from "@/models/labs-action-log";
+import { SCHEMA_V1, SCHEMA_V2, SCHEMA_V3 } from "./schema";
 
 /**
  * Dexie database wrapper for VacancyPilot.
@@ -25,12 +26,14 @@ export class VacancyDatabase extends Dexie {
   applications!: EntityTable<Application, "id">;
   events!: EntityTable<EventLog, "id">;
   aiCache!: EntityTable<AIRequestCache, "id">;
+  labsActions!: EntityTable<LabsActionLog, "id">;
   meta!: EntityTable<{ key: string; value: unknown }, "key">;
 
   constructor() {
     super("VacancyPilotDB");
     this.version(1).stores(SCHEMA_V1);
     this.version(2).stores(SCHEMA_V2);
+    this.version(3).stores(SCHEMA_V3);
   }
 }
 

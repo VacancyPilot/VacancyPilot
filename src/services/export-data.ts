@@ -71,6 +71,9 @@ export async function exportAllJson(): Promise<ExportEnvelope> {
     data[name] = await table.toArray();
   }
 
+  // Collect tables added in later schema versions
+  data.labsActions = await db.labsActions.toArray();
+
   // Load and redact settings
   const rawSettings = await loadSettings();
   const settings = redactSettingsForExport(rawSettings);

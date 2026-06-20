@@ -1,9 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { SCHEMA_V1, SCHEMA_V2, TABLE_NAMES, SCHEMA_VERSION } from "./schema";
+import {
+  SCHEMA_V1,
+  SCHEMA_V2,
+  SCHEMA_V3,
+  TABLE_NAMES,
+  SCHEMA_VERSION,
+} from "./schema";
 import { VacancyDatabase } from "./database";
 
 describe("schema constant", () => {
-  it("has exactly 9 tables", () => {
+  it("has exactly 9 tables (v1)", () => {
     expect(TABLE_NAMES).toHaveLength(9);
   });
 
@@ -117,8 +123,22 @@ describe("schema constant", () => {
     expect(spec).toBe("&key");
   });
 
-  it("schema version is 2", () => {
-    expect(SCHEMA_VERSION).toBe(2);
+  it("v3 adds labsActions table", () => {
+    const spec = SCHEMA_V3.labsActions;
+    expect(spec).toContain("&id");
+    expect(spec).toContain("type");
+    expect(spec).toContain("jobId");
+    expect(spec).toContain("createdAt");
+  });
+
+  it("v3 inherits all v2 tables", () => {
+    expect(SCHEMA_V3.jobs).toBe(SCHEMA_V2.jobs);
+    expect(SCHEMA_V3.companies).toBe(SCHEMA_V2.companies);
+    expect(SCHEMA_V3.events).toBe(SCHEMA_V2.events);
+  });
+
+  it("schema version is 3", () => {
+    expect(SCHEMA_VERSION).toBe(3);
   });
 });
 
@@ -140,6 +160,7 @@ describe("VacancyDatabase", () => {
     expect(instance.applications).toBeDefined();
     expect(instance.events).toBeDefined();
     expect(instance.aiCache).toBeDefined();
+    expect(instance.labsActions).toBeDefined();
     expect(instance.meta).toBeDefined();
   });
 });

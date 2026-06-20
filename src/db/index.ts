@@ -1,6 +1,12 @@
 // Local storage layer — barrel export
 
-export { SCHEMA_V1, SCHEMA_V2, TABLE_NAMES, SCHEMA_VERSION } from "./schema";
+export {
+  SCHEMA_V1,
+  SCHEMA_V2,
+  SCHEMA_V3,
+  TABLE_NAMES,
+  SCHEMA_VERSION,
+} from "./schema";
 export type { TableName } from "./schema";
 
 export { VacancyDatabase, db } from "./database";
@@ -18,5 +24,7 @@ export {
   resumeRepo,
   coverLetterRepo,
 } from "./repositories";
+
+export { labsActionRepo } from "./labs-repository";
 
 export { defaultSettings, loadSettings, saveSettings } from "./settings-bridge";

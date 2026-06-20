@@ -29,4 +29,10 @@ export type TableName = keyof typeof SCHEMA_V1;
 
 export const TABLE_NAMES = Object.keys(SCHEMA_V1) as TableName[];
 
-export const SCHEMA_VERSION = 2;
+/** v3 adds labsActions store for Labs control plane action log. */
+export const SCHEMA_V3 = {
+  ...SCHEMA_V2,
+  labsActions: "&id, type, jobId, createdAt",
+} as const;
+
+export const SCHEMA_VERSION = 3;
