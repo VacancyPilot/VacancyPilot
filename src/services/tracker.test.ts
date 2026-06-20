@@ -225,12 +225,25 @@ describe("tracker.saveFromDTO", () => {
     expect(updated.descriptionHash).toBe(created.descriptionHash);
   });
 
-  it("handles missing sourceVacancyId gracefully", async () => {
+  it("rejects missing sourceVacancyId", async () => {
     const dto = makeDTO({ sourceVacancyId: null });
-    const job = await tracker.saveFromDTO(dto);
+    await expect(tracker.saveFromDTO(dto)).rejects.toThrow(
+      "Cannot save vacancy: sourceVacancyId is missing",
+    );
+  });
 
-    expect(job.id).toBe("hh_unknown");
-    expect(job.sourceVacancyId).toBe("unknown");
+  it("rejects empty sourceVacancyId", async () => {
+    const dto = makeDTO({ sourceVacancyId: "" });
+    await expect(tracker.saveFromDTO(dto)).rejects.toThrow(
+      "Cannot save vacancy: sourceVacancyId is missing",
+    );
+  });
+
+  it("rejects whitespace-only sourceVacancyId", async () => {
+    const dto = makeDTO({ sourceVacancyId: "   " });
+    await expect(tracker.saveFromDTO(dto)).rejects.toThrow(
+      "Cannot save vacancy: sourceVacancyId is missing",
+    );
   });
 
   it("handles null description gracefully", async () => {

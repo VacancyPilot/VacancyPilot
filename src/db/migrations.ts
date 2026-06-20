@@ -1,5 +1,5 @@
-import { db } from './database';
-import { SCHEMA_VERSION } from './schema';
+import { db } from "./database";
+import { SCHEMA_VERSION } from "./schema";
 
 /**
  * Migration infrastructure.
@@ -12,7 +12,7 @@ import { SCHEMA_VERSION } from './schema';
  * - Migration tests are required for v1 → latest transitions
  */
 
-const META_KEY_VERSION = 'schemaVersion';
+const META_KEY_VERSION = "schemaVersion";
 
 /** Current schema version as defined in schema.ts */
 export const CURRENT_VERSION = SCHEMA_VERSION;

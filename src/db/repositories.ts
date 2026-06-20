@@ -38,9 +38,12 @@ export const jobRepo = {
   listUpdatedAfter: (iso: string) =>
     db.jobs.where("updatedAt").above(iso).toArray(),
 
-  /** Find a job by source and source vacancy id. Returns undefined if not found. */
+  /** Find a job by source and source vacancy id via compound index. Returns undefined if not found. */
   findBySourceVacancy: (source: string, sourceVacancyId: string) =>
-    db.jobs.where({ source, sourceVacancyId }).first(),
+    db.jobs
+      .where("[source+sourceVacancyId]")
+      .equals([source, sourceVacancyId])
+      .first(),
 };
 
 // ---- Profile repository ----

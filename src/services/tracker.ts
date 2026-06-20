@@ -52,11 +52,11 @@ async function findExistingJob(
 
 /**
  * Map RawVacancyDTO to a new Job domain object.
+ * Caller must provide a validated, non-empty sourceVacancyId.
  */
-function dtoToNewJob(dto: RawVacancyDTO): Job {
+function dtoToNewJob(dto: RawVacancyDTO, sourceVacancyId: string): Job {
   const now = new Date().toISOString();
   const descriptionClean = dto.descriptionText ?? "";
-  const sourceVacancyId = dto.sourceVacancyId ?? "unknown";
 
   return {
     id: buildJobId(sourceVacancyId),
@@ -117,16 +117,21 @@ export const tracker = {
    *   preserves the existing status and updates other fields.
    * - If new, creates a job with status 'viewed'.
    * - Logs a job_saved event in both cases.
+   * - Throws if sourceVacancyId is missing or empty.
    *
    * Returns the saved Job.
    */
   async saveFromDTO(dto: RawVacancyDTO): Promise<Job> {
-    const existing = await findExistingJob(dto.sourceVacancyId ?? "");
+    const sourceVacancyId = (dto.sourceVacancyId ?? "").trim();
+    if (!sourceVacancyId) {
+      throw new Error("Cannot save vacancy: sourceVacancyId is missing");
+    }
+
+    const existing = await findExistingJob(sourceVacancyId);
 
     if (existing) {
       const now = new Date().toISOString();
-      const descriptionClean =
-        dto.descriptionText ?? existing.descriptionClean;
+      const descriptionClean = dto.descriptionText ?? existing.descriptionClean;
       const updated: Job = {
         ...existing,
         title: dto.title ?? existing.title,
@@ -158,7 +163,7 @@ export const tracker = {
     }
 
     // New job
-    const job = dtoToNewJob(dto);
+    const job = dtoToNewJob(dto, sourceVacancyId);
     await jobRepo.save(job);
     await persistEvent("job_saved", job.id, {
       title: job.title,

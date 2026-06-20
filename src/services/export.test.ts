@@ -33,15 +33,22 @@ beforeEach(() => {
 vi.stubGlobal("chrome", {
   storage: {
     local: {
-      get: async (keys?: string | string[] | Record<string, unknown>) => {
+      get: async (
+        keys?: string | string[] | Record<string, unknown> | null,
+      ) => {
         const result: Record<string, unknown> = {};
-        if (typeof keys === "string") {
+        if (keys === null || keys === undefined) {
+          // Return all keys
+          for (const [key, value] of mockStorage.entries()) {
+            result[key] = value;
+          }
+        } else if (typeof keys === "string") {
           result[keys] = mockStorage.get(keys) ?? undefined;
         } else if (Array.isArray(keys)) {
           for (const key of keys) {
             result[key] = mockStorage.get(key) ?? undefined;
           }
-        } else if (keys) {
+        } else {
           for (const key of Object.keys(keys)) {
             result[key] = mockStorage.get(key) ?? keys[key];
           }
@@ -134,6 +141,20 @@ function makeTable(name: string) {
     },
     where: (query: string | Record<string, unknown>) => {
       if (typeof query === "string") {
+        // Handle compound index queries like '[prop1+prop2]'
+        const compoundMatch = query.match(/^\[(.+)\+(.+)\]$/);
+        if (compoundMatch) {
+          const [, prop1, prop2] = compoundMatch;
+          return {
+            equals: (value: unknown) =>
+              makeCollection(name, (row) => {
+                if (!row || typeof row !== "object") return false;
+                const r = row as Record<string, unknown>;
+                if (!Array.isArray(value) || value.length < 2) return false;
+                return r[prop1] === value[0] && r[prop2] === value[1];
+              }),
+          };
+        }
         return {
           equals: (value: unknown) =>
             makeCollection(name, (row) => {
@@ -146,7 +167,9 @@ function makeTable(name: string) {
       return makeCollection(name, (row) => {
         if (!row || typeof row !== "object") return false;
         const value = row as Record<string, unknown>;
-        return Object.entries(query).every(([key, expected]) => value[key] === expected);
+        return Object.entries(query).every(
+          ([key, expected]) => value[key] === expected,
+        );
       });
     },
     orderBy: () => ({
@@ -502,13 +525,27 @@ describe("deleteAllData", () => {
   it("does not throw when tables are already empty", async () => {
     await expect(deleteAllData()).resolves.toBeUndefined();
   });
+
+  it("removes all badge_v1_hh_* keys from chrome.storage.local", async () => {
+    mockStorage.set("badge_v1_hh_12345", { score: 85, status: "saved" });
+    mockStorage.set("badge_v1_hh_67890", { score: 42, status: "viewed" });
+    mockStorage.set("app_settings_v1", { schemaVersion: 1 });
+    mockStorage.set("some_other_key", "should survive");
+
+    await deleteAllData();
+
+    expect(mockStorage.has("badge_v1_hh_12345")).toBe(false);
+    expect(mockStorage.has("badge_v1_hh_67890")).toBe(false);
+    expect(mockStorage.has("app_settings_v1")).toBe(false);
+    expect(mockStorage.get("some_other_key")).toBe("should survive");
+  });
 });
 
 describe("deleteJobData", () => {
   it("deletes a job and related cover letters, applications, and events", async () => {
     seedTable("jobs", [
-      { id: "hh_1", title: "Keep me not" },
-      { id: "hh_2", title: "Keep me" },
+      { id: "hh_1", title: "Keep me not", sourceVacancyId: "12345" },
+      { id: "hh_2", title: "Keep me", sourceVacancyId: "67890" },
     ]);
     seedTable("coverLetters", [
       { id: "cl_1", jobId: "hh_1" },
@@ -528,10 +565,29 @@ describe("deleteJobData", () => {
     expect(result.coverLettersDeleted).toBe(1);
     expect(result.applicationsDeleted).toBe(1);
     expect(result.eventsDeleted).toBe(1);
-    expect(mockTables.jobs).toEqual([{ id: "hh_2", title: "Keep me" }]);
+    expect(mockTables.jobs).toEqual([
+      { id: "hh_2", title: "Keep me", sourceVacancyId: "67890" },
+    ]);
     expect(mockTables.coverLetters).toEqual([{ id: "cl_2", jobId: "hh_2" }]);
     expect(mockTables.applications).toEqual([{ id: "app_2", jobId: "hh_2" }]);
     expect(mockTables.events).toEqual([{ id: "evt_2", jobId: "hh_2" }]);
+  });
+
+  it("removes badge_v1_hh_ key for the deleted job", async () => {
+    mockStorage.set("badge_v1_hh_12345", { score: 85, status: "saved" });
+    mockStorage.set("badge_v1_hh_67890", { score: 42, status: "viewed" });
+    mockStorage.set("some_other_key", "should survive");
+
+    seedTable("jobs", [
+      { id: "hh_12345", sourceVacancyId: "12345", title: "Delete me" },
+    ]);
+
+    await deleteJobData("hh_12345");
+
+    expect(mockStorage.has("badge_v1_hh_12345")).toBe(false);
+    // Other badge keys survive
+    expect(mockStorage.has("badge_v1_hh_67890")).toBe(true);
+    expect(mockStorage.get("some_other_key")).toBe("should survive");
   });
 
   it("throws when the target job does not exist", async () => {
