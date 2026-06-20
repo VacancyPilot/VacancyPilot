@@ -4,6 +4,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { ProfileManager } from "@/components/ProfileManager";
 import { ResumeManager } from "@/components/ResumeManager";
+import { QueueSection } from "@/components/QueueSection";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import {
   exportAllJson,
@@ -22,6 +23,7 @@ import { jobRepo } from "@/db/repositories";
 import type { Job, JobStatus } from "@/models/job";
 
 type SectionId =
+  | "queue"
   | "vacancies"
   | "applications"
   | "companies"
@@ -41,6 +43,7 @@ interface SectionDef {
 }
 
 const SECTIONS: SectionDef[] = [
+  { id: "queue", label: "Queue", icon: "✅" },
   { id: "vacancies", label: "Vacancies", icon: "📋" },
   { id: "applications", label: "Applications", icon: "📨" },
   { id: "companies", label: "Companies", icon: "🏢" },
@@ -55,7 +58,7 @@ const SECTIONS: SectionDef[] = [
 ];
 
 function DashboardContent(): ReactNode {
-  const [activeSection, setActiveSection] = useState<SectionId>("vacancies");
+  const [activeSection, setActiveSection] = useState<SectionId>("queue");
 
   const handleSectionClick = useCallback((section: SectionId) => {
     setActiveSection(section);
@@ -449,6 +452,8 @@ function VacancySection(): ReactNode {
 
 function SectionContent({ section }: { section: SectionId }): ReactNode {
   switch (section) {
+    case "queue":
+      return <QueueSection />;
     case "vacancies":
       return <VacancySection />;
     case "applications":

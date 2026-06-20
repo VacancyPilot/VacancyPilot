@@ -1,20 +1,32 @@
 // Domain model contracts — barrel export
 // All types are compile-time only. No runtime code, no persistence, no UI.
 
-export type { JobStatus, StatusChange, PassiveHHStatus, Job } from './job';
-export type { Company } from './company';
-export type { CoverLetterConstraints, LetterPrefs, Profile } from './profile';
-export type { Resume } from './resume';
-export type { CoverLetterMode, CoverLetterVersion, CoverLetter } from './cover-letter';
-export type { Application } from './application';
-export type { EventLogType, EventLog } from './event-log';
-export type { RiskSeverity, RiskCode, RiskFlag } from './risk';
-export type { ScoringWeights, ScoreCap, ScoreResult } from './scoring';
+export type { JobStatus, StatusChange, PassiveHHStatus, Job } from "./job";
+export type { Company } from "./company";
+export type { CoverLetterConstraints, LetterPrefs, Profile } from "./profile";
+export type { Resume } from "./resume";
+export type {
+  CoverLetterMode,
+  CoverLetterVersion,
+  CoverLetter,
+} from "./cover-letter";
+export type { Application } from "./application";
+export type { EventLogType, EventLog } from "./event-log";
+export type { RiskSeverity, RiskCode, RiskFlag } from "./risk";
+export type { ScoringWeights, ScoreCap, ScoreResult } from "./scoring";
 export type {
   AIAnalysis,
   AIRequestCache,
   VacancyAnalysisInput,
   CoverLetterInput,
   LLMProvider,
-} from './ai';
-export type { AppSettings } from './settings';
+} from "./ai";
+export type { AppSettings } from "./settings";
+export type { QueueTask, QueueStage, TaskPriority } from "./queue";
+export {
+  statusToStage,
+  STAGE_LABELS,
+  statusNextAction,
+  scoreToPriority,
+} from "./queue";
+export type { DuplicateCandidate, DuplicateReason } from "./duplicate";
