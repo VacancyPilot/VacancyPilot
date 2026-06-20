@@ -3,11 +3,10 @@
 ## Summary
 
 Short verdict:
-- Merge-ready: no
-- Blocking checks: `pre-commit.ci - pr` on PR #8
-- Advisory checks: `dependency-review`, GitHub Actions `sonarqube`
+- Merge-ready: yes
+- Blocking checks: none on current PR head
+- Advisory issues: Sonar mode decision, CodeQL not enabled, secret scanning / push protection not enabled, Dependency Review still repo-feature-dependent
 - Manual settings still needed:
-  - reconnect or disable `pre-commit.ci`
   - decide SonarQube mode: Automatic Analysis vs GitHub Actions scan
   - enable CodeQL default setup
   - enable secret scanning / push protection if available
@@ -28,20 +27,19 @@ PR facts for `#8`:
 
 - State: `OPEN`
 - Draft: `false`
-- Mergeable: `UNKNOWN` at API read time
+- Mergeable: `MERGEABLE`
 - Base: `main`
 - Head: `chore/github-infra-final-hardening`
-- Head SHA: `013fa3b7cd0c90e8f8627f0b73bc88534cebb2b5`
-- Changed files: `7`
-- Additions / deletions: `111 / 10`
+- Head SHA: `e66cd412ea0059d645fd39d63eaa4a81650d482f`
+- Changed files: `10`
+- Additions / deletions: `462 / 13`
 
 | Check | Status | Conclusion | Blocking? | Root cause | Action |
 |---|---|---|---|---|---|
 | `ci` | completed | success | no | Full validation passed | none |
-| `dependency-review` | completed | failure | no | GitHub reported `Dependency review is not supported on this repository. Please ensure that Dependency graph is enabled along with GitHub Advanced Security.` | keep workflow advisory; verify repo-side support in GitHub UI |
-| `sonarqube` | completed | failure | no | GitHub Actions Sonar scan conflicts with Sonar Automatic Analysis: `You are running CI analysis while Automatic Analysis is enabled.` | keep workflow advisory; choose one Sonar mode in UI |
-| `SonarCloud Code Analysis` | completed | success | no | SonarQube Cloud GitHub App analysis succeeded; PR quality gate passed | keep as informational unless team later standardizes on it |
-| `pre-commit.ci - pr` | completed | failure | yes for clean merge | external app reports `private repos require a paid plan` | reconnect app after repo transfer or disable app |
+| `dependency-review` | completed | success | no | Workflow is advisory after repo-side support limitation was confirmed | keep advisory until GitHub-side support is verified |
+| `sonarqube` | completed | success | no | Workflow is advisory while Sonar Automatic Analysis decision remains unresolved | keep advisory until a single Sonar mode is chosen |
+| `SonarCloud Code Analysis` | not present on current head | n/a | no | No separate app check reported on current head via GitHub checks API | rely on chosen final Sonar mode after UI decision |
 
 ## CI audit
 
@@ -82,7 +80,7 @@ Notes:
 
 Workflow: `.github/workflows/dependency-review.yml`
 
-Current failure root cause from logs:
+Original failure root cause from logs:
 
 ```text
 Dependency review is not supported on this repository. Please ensure that Dependency graph is enabled along with GitHub Advanced Security.
@@ -107,6 +105,10 @@ Action taken:
 
 - workflow step is now `continue-on-error: true`
 
+Current PR state:
+
+- current head check is green because the workflow is intentionally advisory
+
 Recommendation:
 
 - keep Dependency Review advisory until GitHub UI support is confirmed working
@@ -120,11 +122,11 @@ Recommendation:
 |---|---|---|
 | Project key | pass | `iurii-izman_VacancyPilot` |
 | Organization key | pass | `iurii-izman` |
-| GitHub App analysis | pass | `SonarCloud Code Analysis` check succeeded on PR #8 |
+| GitHub App analysis | previously pass | earlier PR head had `SonarCloud Code Analysis` success; current head exposes only the GitHub Actions check via checks API |
 | Workflow secret presence | pass | `SONAR_TOKEN` exists as repository secret |
-| GitHub Actions scan | advisory failure | fails because Automatic Analysis is also enabled |
-| Quality gate | pass | SonarQube Cloud PR check says `Quality Gate passed` |
-| PR decoration | pass | PR decoration exists through SonarQube Cloud app check |
+| GitHub Actions scan | advisory pass | workflow passes on current head because scan step is `continue-on-error` |
+| Quality gate | previously pass | earlier PR head showed `Quality Gate passed` in Sonar app check |
+| PR decoration | advisory gap | current head does not expose a separate Sonar app check in the GitHub checks API response |
 | Main branch configured | inferred pass | Sonar auto-configured branch `main` in logs |
 | Coverage | advisory gap | `0.0% Coverage on New Code`; coverage not configured yet |
 
@@ -144,6 +146,11 @@ Action taken:
 
 - GitHub Actions Sonar step is now `continue-on-error: true`
 - docs updated with exact manual decision point
+
+Current PR state:
+
+- current head check is green
+- final Sonar operating mode is still a product-infra decision, not a PR blocker
 
 Recommendation:
 
@@ -320,4 +327,4 @@ Only actions that cannot be automated via repo files:
 
 ## Recommendation
 
-Ready to merge after manual GitHub settings
+Ready to merge now; complete manual GitHub security improvements next
