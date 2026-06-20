@@ -60,7 +60,7 @@ Status values:
 | --- | --- | --- | --- | --- |
 | ITER-023 | EPIC-13 | Harden vacancy storage, badge cleanup, and ID integrity | done | `fix: harden vacancy storage and badge cleanup` |
 | ITER-024 | EPIC-13 | Align save semantics and recompute score on profile changes | done | `fix: align save semantics and score recompute` |
-| ITER-025 | EPIC-13 | Close cover-letter privacy gap and profile lifecycle leaks | planned | `fix: close privacy gap and clean profile lifecycle refs` |
+| ITER-025 | EPIC-13 | Close cover-letter privacy gap and profile lifecycle leaks | done | `fix: close privacy gap and clean profile lifecycle refs` |
 | ITER-026 | EPIC-13 | Harden HH parser, dashboard refresh, and generated-manifest safety | planned | `fix: harden parser and release safety` |
 
 ## Cursor/Codex Rule

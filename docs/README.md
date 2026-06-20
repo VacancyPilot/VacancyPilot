@@ -22,5 +22,5 @@ When recommendations conflict, use the priority order from the final specificati
 
 Recommended next action:
 
-- implement [development/prompts/ITER-025.md](development/prompts/ITER-025.md) to continue the confirmed audit hardening fixes
+- implement [development/prompts/ITER-026.md](development/prompts/ITER-026.md) to continue the confirmed audit hardening fixes
 - keep [development/prompts/ITER-014.md](development/prompts/ITER-014.md) deferred until webhook automation returns to active scope

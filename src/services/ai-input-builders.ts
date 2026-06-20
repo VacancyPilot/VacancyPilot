@@ -6,20 +6,20 @@
  * that can be previewed, cached, and sent only with explicit user action.
  */
 
-import type { Job } from '@/models/job';
-import type { Profile } from '@/models/profile';
-import type { Resume } from '@/models/resume';
-import type { AppSettings } from '@/models/settings';
+import type { Job } from "@/models/job";
+import type { Profile } from "@/models/profile";
+import type { Resume } from "@/models/resume";
+import type { AppSettings } from "@/models/settings";
+import type { VacancyAnalysisInput, CoverLetterInput } from "@/models/ai";
 import type {
-  VacancyAnalysisInput,
-  CoverLetterInput,
-} from '@/models/ai';
-import type { CoverLetterMode, CoverLetterConstraints } from '@/models/cover-letter';
+  CoverLetterMode,
+  CoverLetterConstraints,
+} from "@/models/cover-letter";
 import {
   redactBaseText,
   redactContacts,
   truncateDescription,
-} from './redaction';
+} from "./redaction";
 
 // ── Vacancy Analysis builder ──────────────────────────────────────────
 
@@ -59,7 +59,7 @@ export function buildVacancyAnalysisInput(
     resume != null &&
     resume.highlightsText.length > 0;
 
-  const rawDescription = includeDescription ? job.descriptionClean : '';
+  const rawDescription = includeDescription ? job.descriptionClean : "";
   const applyPrivacy = createPrivacyRedactor(settings);
 
   return {
@@ -76,7 +76,7 @@ export function buildVacancyAnalysisInput(
             applyPrivacy(rawDescription),
             settings.ai.maxInputChars || 3000,
           )
-        : '',
+        : "",
     },
     profile: {
       summary: applyPrivacy(profile.summary),
@@ -96,7 +96,9 @@ export function buildVacancyAnalysisInput(
 export interface BuildCoverLetterOptions {
   mode?: CoverLetterMode;
   constraints?: CoverLetterConstraints;
-  language?: 'ru' | 'en' | 'ro';
+  language?: "ru" | "en" | "ro";
+  /** Per-request override: force include resume highlights (even in Strict mode). */
+  forceResumeHighlights?: boolean;
 }
 
 const DEFAULT_COVER_CONSTRAINTS: CoverLetterConstraints = {
@@ -109,6 +111,11 @@ const DEFAULT_COVER_CONSTRAINTS: CoverLetterConstraints = {
 /**
  * Build a CoverLetterInput from domain models.
  *
+ * Privacy rules (aligned with buildVacancyAnalysisInput):
+ * - Standard Privacy: includes redacted resumeHighlights when allowResumeHighlightsToAI is true.
+ * - Strict Privacy: excludes resumeHighlights by default.
+ *   Override `forceResumeHighlights` allows per-request opt-in.
+ *
  * Top requirements are selected from the job's skills list.
  * If the job has no explicit topRequirements field, we derive them
  * from skills intersecting with profile's mustHaveSkills.
@@ -120,8 +127,16 @@ export function buildCoverLetterInput(
   resume?: Resume,
   options?: BuildCoverLetterOptions,
 ): CoverLetterInput {
+  const isStrict = settings.privacy.strictPrivacyMode;
   const topRequirements = deriveTopRequirements(job, profile);
   const applyPrivacy = createPrivacyRedactor(settings);
+
+  // Gate resumeHighlights behind privacy settings (same logic as buildVacancyAnalysisInput).
+  const includeResumeHighlights =
+    settings.privacy.allowResumeHighlightsToAI === true &&
+    (!isStrict || options?.forceResumeHighlights === true) &&
+    resume != null &&
+    resume.highlightsText.length > 0;
 
   return {
     job: {
@@ -133,20 +148,23 @@ export function buildCoverLetterInput(
     profile: {
       summary: applyPrivacy(profile.summary),
     },
-    resumeHighlights: resume?.highlightsText
-      ? applyPrivacy(resume.highlightsText)
-      : '',
+    resumeHighlights: includeResumeHighlights
+      ? applyPrivacy(resume!.highlightsText)
+      : "",
     mode: options?.mode ?? profile.letterPrefs.defaultMode,
-    constraints: options?.constraints ??
+    constraints:
+      options?.constraints ??
       profile.letterPrefs.defaultConstraints ??
       DEFAULT_COVER_CONSTRAINTS,
-    language: options?.language ?? resume?.language ?? 'ru',
+    language: options?.language ?? resume?.language ?? "ru",
   };
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
-function createPrivacyRedactor(settings: AppSettings): (text: string) => string {
+function createPrivacyRedactor(
+  settings: AppSettings,
+): (text: string) => string {
   return (text: string) => {
     const baseRedacted = redactBaseText(text);
     return settings.privacy.redactContacts
@@ -168,9 +186,9 @@ function deriveTopRequirements(job: Job, profile: Profile): string {
   const matching = job.skills.filter((s) => mustHaveSet.has(s.toLowerCase()));
 
   if (matching.length > 0) {
-    return matching.slice(0, 8).join(', ');
+    return matching.slice(0, 8).join(", ");
   }
 
   // Fallback: first 5 skills from the job
-  return job.skills.slice(0, 5).join(', ') || 'не указаны';
+  return job.skills.slice(0, 5).join(", ") || "не указаны";
 }

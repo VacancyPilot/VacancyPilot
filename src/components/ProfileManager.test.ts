@@ -196,3 +196,238 @@ describe("default profile resolution (priority)", () => {
     expect(resolveProfileId(undefined, undefined, undefined)).toBeUndefined();
   });
 });
+
+// ── Salary input validation (NaN guard) ──
+
+describe("salary input validation (NaN guard)", () => {
+  /**
+   * Simulates the salary parsing logic from formToProfile().
+   * Returns undefined for invalid/NaN/negative values.
+   */
+  function parseSalary(raw: string): number | undefined {
+    const trimmed = raw.trim();
+    if (!trimmed) return undefined;
+    const n = Number(trimmed);
+    return Number.isNaN(n) || n < 0 ? undefined : n;
+  }
+
+  it("parses valid numeric string", () => {
+    expect(parseSalary("150000")).toBe(150000);
+  });
+
+  it("parses zero salary", () => {
+    expect(parseSalary("0")).toBe(0);
+  });
+
+  it("returns undefined for empty string", () => {
+    expect(parseSalary("")).toBeUndefined();
+  });
+
+  it("returns undefined for whitespace-only", () => {
+    expect(parseSalary("   ")).toBeUndefined();
+  });
+
+  it("returns undefined for non-numeric string", () => {
+    expect(parseSalary("abc")).toBeUndefined();
+  });
+
+  it("returns undefined for alphanumeric mix", () => {
+    expect(parseSalary("150k")).toBeUndefined();
+  });
+
+  it("returns undefined for negative salary", () => {
+    expect(parseSalary("-50000")).toBeUndefined();
+  });
+
+  it("returns undefined for NaN input", () => {
+    expect(parseSalary("NaN")).toBeUndefined();
+  });
+
+  it("parses salary with leading/trailing whitespace", () => {
+    expect(parseSalary("  200000  ")).toBe(200000);
+  });
+});
+
+// ── Orphan reference cleanup logic ──
+
+describe("orphan reference cleanup — profile deletion", () => {
+  /**
+   * Simulates the cleanup logic when a profile is deleted.
+   * Returns which jobs, cover letters, and applications would be cleaned.
+   */
+  function simulateProfileCleanup(
+    deletedProfileId: string,
+    jobs: Array<{ id: string; selectedProfileId?: string }>,
+    letters: Array<{ id: string; profileId: string }>,
+    applications: Array<{ id: string; profileId?: string }>,
+  ) {
+    return {
+      clearedJobRefs: jobs
+        .filter((j) => j.selectedProfileId === deletedProfileId)
+        .map((j) => j.id),
+      clearedLetterRefs: letters
+        .filter((l) => l.profileId === deletedProfileId)
+        .map((l) => l.id),
+      clearedApplicationRefs: applications
+        .filter((a) => a.profileId === deletedProfileId)
+        .map((a) => a.id),
+    };
+  }
+
+  it("clears selectedProfileId on jobs referencing deleted profile", () => {
+    const result = simulateProfileCleanup(
+      "prof_a",
+      [
+        { id: "job_1", selectedProfileId: "prof_a" },
+        { id: "job_2", selectedProfileId: "prof_b" },
+        { id: "job_3", selectedProfileId: "prof_a" },
+        { id: "job_4" },
+      ],
+      [],
+      [],
+    );
+
+    expect(result.clearedJobRefs).toEqual(["job_1", "job_3"]);
+  });
+
+  it("leaves jobs without matching profileId untouched", () => {
+    const result = simulateProfileCleanup(
+      "prof_a",
+      [{ id: "job_1", selectedProfileId: "prof_b" }, { id: "job_2" }],
+      [],
+      [],
+    );
+
+    expect(result.clearedJobRefs).toEqual([]);
+  });
+
+  it("clears profileId on cover letters referencing deleted profile", () => {
+    const result = simulateProfileCleanup(
+      "prof_a",
+      [],
+      [
+        { id: "letter_1", profileId: "prof_a" },
+        { id: "letter_2", profileId: "prof_b" },
+        { id: "letter_3", profileId: "prof_a" },
+      ],
+      [],
+    );
+
+    expect(result.clearedLetterRefs).toEqual(["letter_1", "letter_3"]);
+  });
+
+  it("clears profileId on applications referencing deleted profile", () => {
+    const result = simulateProfileCleanup(
+      "prof_a",
+      [],
+      [],
+      [
+        { id: "app_1", profileId: "prof_a" },
+        { id: "app_2", profileId: "prof_b" },
+        { id: "app_3" },
+      ],
+    );
+
+    expect(result.clearedApplicationRefs).toEqual(["app_1"]);
+  });
+
+  it("returns empty arrays when nothing references the deleted profile", () => {
+    const result = simulateProfileCleanup(
+      "prof_z",
+      [{ id: "job_1", selectedProfileId: "prof_a" }],
+      [{ id: "letter_1", profileId: "prof_a" }],
+      [{ id: "app_1", profileId: "prof_a" }],
+    );
+
+    expect(result.clearedJobRefs).toEqual([]);
+    expect(result.clearedLetterRefs).toEqual([]);
+    expect(result.clearedApplicationRefs).toEqual([]);
+  });
+
+  it("handles empty jobs, letters, and applications arrays", () => {
+    const result = simulateProfileCleanup("prof_a", [], [], []);
+
+    expect(result.clearedJobRefs).toEqual([]);
+    expect(result.clearedLetterRefs).toEqual([]);
+    expect(result.clearedApplicationRefs).toEqual([]);
+  });
+});
+
+describe("orphan reference cleanup — resume deletion", () => {
+  function simulateResumeCleanup(
+    deletedResumeId: string,
+    jobs: Array<{ id: string; selectedResumeId?: string }>,
+    letters: Array<{ id: string; resumeId?: string }>,
+    applications: Array<{ id: string; resumeId?: string }>,
+  ) {
+    return {
+      clearedJobRefs: jobs
+        .filter((j) => j.selectedResumeId === deletedResumeId)
+        .map((j) => j.id),
+      clearedLetterRefs: letters
+        .filter((l) => l.resumeId === deletedResumeId)
+        .map((l) => l.id),
+      clearedApplicationRefs: applications
+        .filter((a) => a.resumeId === deletedResumeId)
+        .map((a) => a.id),
+    };
+  }
+
+  it("clears selectedResumeId on jobs referencing deleted resume", () => {
+    const result = simulateResumeCleanup(
+      "res_1",
+      [
+        { id: "job_1", selectedResumeId: "res_1" },
+        { id: "job_2", selectedResumeId: "res_2" },
+        { id: "job_3" },
+      ],
+      [],
+      [],
+    );
+
+    expect(result.clearedJobRefs).toEqual(["job_1"]);
+  });
+
+  it("clears resumeId on cover letters referencing deleted resume", () => {
+    const result = simulateResumeCleanup(
+      "res_1",
+      [],
+      [
+        { id: "letter_1", resumeId: "res_1" },
+        { id: "letter_2", resumeId: "res_2" },
+        { id: "letter_3" },
+      ],
+      [],
+    );
+
+    expect(result.clearedLetterRefs).toEqual(["letter_1"]);
+  });
+
+  it("clears resumeId on applications referencing deleted resume", () => {
+    const result = simulateResumeCleanup(
+      "res_1",
+      [],
+      [],
+      [
+        { id: "app_1", resumeId: "res_1" },
+        { id: "app_2", resumeId: "res_2" },
+        { id: "app_3" },
+      ],
+    );
+
+    expect(result.clearedApplicationRefs).toEqual(["app_1"]);
+  });
+
+  it("returns empty arrays when nothing references the deleted resume", () => {
+    const result = simulateResumeCleanup(
+      "res_z",
+      [{ id: "job_1", selectedResumeId: "res_1" }],
+      [{ id: "letter_1", resumeId: "res_1" }],
+      [{ id: "app_1", resumeId: "res_1" }],
+    );
+
+    expect(result.clearedJobRefs).toEqual([]);
+    expect(result.clearedLetterRefs).toEqual([]);
+    expect(result.clearedApplicationRefs).toEqual([]);
+  });
+});

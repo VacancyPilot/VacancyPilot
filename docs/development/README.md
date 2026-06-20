@@ -25,8 +25,8 @@ save semantics and score recompute aligned on 2026-06-20
 Recommended next action:
 
 ```text
-ITER-025: Privacy And Profile Lifecycle Hardening
-Prompt: docs/development/prompts/ITER-025.md
+ITER-026: Parser, Dashboard Refresh, And Release Safety Hardening
+Prompt: docs/development/prompts/ITER-026.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.

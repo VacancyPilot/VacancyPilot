@@ -5,7 +5,13 @@ import {
   type ReactNode,
   type FormEvent,
 } from "react";
-import { profileRepo } from "@/db/repositories";
+import {
+  profileRepo,
+  jobRepo,
+  coverLetterRepo,
+  resumeRepo,
+} from "@/db/repositories";
+import { db } from "@/db/database";
 import { loadSettings, saveSettings } from "@/db/settings-bridge";
 import type { Profile } from "@/models/profile";
 import type { AppSettings } from "@/models/settings";
@@ -90,8 +96,11 @@ function formToProfile(form: ProfileFormData, existing?: Profile): Profile {
     avoidKeywords: parseList(form.avoidKeywordsRaw),
     preferredWorkModes: workModes,
     preferredCities: parseList(form.preferredCitiesRaw),
-    salaryExpectationMin: form.salaryExpectationMin
-      ? Number(form.salaryExpectationMin)
+    salaryExpectationMin: form.salaryExpectationMin.trim()
+      ? (() => {
+          const n = Number(form.salaryExpectationMin.trim());
+          return Number.isNaN(n) || n < 0 ? undefined : n;
+        })()
       : undefined,
     salaryCurrency: form.salaryCurrency || undefined,
     defaultResumeId: existing?.defaultResumeId,
@@ -255,15 +264,59 @@ export function ProfileManager(): ReactNode {
 
   const handleDelete = useCallback(
     async (id: string) => {
-      if (!confirm("Delete this profile?")) return;
+      if (
+        !confirm(
+          "Delete this profile? This will also remove linked resumes and clear profile references from saved vacancies.",
+        )
+      )
+        return;
       try {
+        // 1. Delete linked resumes (they depend on the profile).
+        const linkedResumes = await resumeRepo.listByProfile(id);
+        for (const resume of linkedResumes) {
+          await resumeRepo.delete(resume.id);
+        }
+
+        // 2. Clear selectedProfileId on jobs that reference this profile.
+        const allJobs = await jobRepo.list();
+        for (const job of allJobs) {
+          if (job.selectedProfileId === id) {
+            job.selectedProfileId = undefined;
+            await jobRepo.save(job);
+          }
+        }
+
+        // 3. Clear profileId on cover letters that reference this profile.
+        //    Cover letters without a valid profile are still editable.
+        const allLetters = await db.coverLetters.toArray();
+        for (const letter of allLetters) {
+          if (letter.profileId === id) {
+            letter.profileId = "";
+            await coverLetterRepo.save(letter);
+          }
+        }
+
+        // 4. Clear profileId on applications that reference this profile.
+        const allApplications = await db.applications.toArray();
+        for (const app of allApplications) {
+          if (app.profileId === id) {
+            app.profileId = undefined;
+            app.updatedAt = new Date().toISOString();
+            await db.applications.put(app);
+          }
+        }
+
+        // 5. Delete the profile itself.
         await profileRepo.delete(id);
+
+        // 6. Clear default profile in settings if it was this one.
         if (defaultProfileId === id) {
           const settings = await loadSettings();
           settings.general.defaultProfileId = undefined;
           await saveSettings(settings);
           setDefaultProfileId(undefined);
         }
+
         await load();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to delete profile");

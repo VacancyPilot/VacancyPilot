@@ -5,7 +5,13 @@ import {
   type ReactNode,
   type FormEvent,
 } from "react";
-import { resumeRepo, profileRepo } from "@/db/repositories";
+import {
+  resumeRepo,
+  profileRepo,
+  jobRepo,
+  coverLetterRepo,
+} from "@/db/repositories";
+import { db } from "@/db/database";
 import type { Resume } from "@/models/resume";
 import type { Profile } from "@/models/profile";
 import { ErrorState } from "./ErrorState";
@@ -215,8 +221,42 @@ export function ResumeManager(): ReactNode {
 
   const handleDelete = useCallback(
     async (id: string) => {
-      if (!confirm("Delete this resume?")) return;
+      if (
+        !confirm(
+          "Delete this resume? Resume references in saved vacancies will be cleared.",
+        )
+      )
+        return;
       try {
+        // 1. Clear selectedResumeId on jobs that reference this resume.
+        const allJobs = await jobRepo.list();
+        for (const job of allJobs) {
+          if (job.selectedResumeId === id) {
+            job.selectedResumeId = undefined;
+            await jobRepo.save(job);
+          }
+        }
+
+        // 2. Clear resumeId on cover letters that reference this resume.
+        const allLetters = await db.coverLetters.toArray();
+        for (const letter of allLetters) {
+          if (letter.resumeId === id) {
+            letter.resumeId = undefined;
+            await coverLetterRepo.save(letter);
+          }
+        }
+
+        // 3. Clear resumeId on applications that reference this resume.
+        const allApplications = await db.applications.toArray();
+        for (const app of allApplications) {
+          if (app.resumeId === id) {
+            app.resumeId = undefined;
+            app.updatedAt = new Date().toISOString();
+            await db.applications.put(app);
+          }
+        }
+
+        // 4. Delete the resume itself.
         await resumeRepo.delete(id);
         await load();
       } catch (e) {
