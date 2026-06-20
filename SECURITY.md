@@ -6,7 +6,7 @@ VacancyPilot is a **local-first browser extension**. It reads HH.ru pages visual
 
 If you discover a security vulnerability, **report it privately** to the repository owner. Do not open a public issue.
 
-GitHub → [Report a vulnerability](https://github.com/iurii-izman/VacancyPilot/security/advisories/new)
+GitHub → [Report a vulnerability](https://github.com/VacancyPilot/VacancyPilot/security/advisories/new)
 
 ## Forbidden Patterns in this Repository
 
