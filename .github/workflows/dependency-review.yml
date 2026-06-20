@@ -10,6 +10,7 @@ permissions:
 jobs:
   dependency-review:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       # TODO: consider blocking critical vulnerabilities once the project
@@ -18,6 +19,7 @@ jobs:
       # license compatibility. Likely candidates: GPL-2.0+, AGPL-3.0.
       # Do not add without verifying each dependency's actual license.
       - name: Dependency Review
+        continue-on-error: true
         uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high

@@ -4,12 +4,14 @@ VacancyPilot uses SonarQube Cloud (sonarcloud.io) in **advisory mode**.
 The scan runs on every PR and push to `main` but does **not** block merges.
 This document describes how to set it up and when to transition to blocking mode.
 
+Current canonical GitHub repository: `VacancyPilot/VacancyPilot`
+
 ## 1. Create a SonarQube Cloud Project
 
 1. Go to [https://sonarcloud.io](https://sonarcloud.io) and sign in with GitHub.
 2. Click **"+"** → **Analyze new project**.
 3. Select organization: **`iurii-izman`**.
-4. Select repository: **`iurii-izman/VacancyPilot`**.
+4. Select repository: **`VacancyPilot/VacancyPilot`**.
 5. Choose **"With GitHub Actions"** as the analysis method.
 6. Follow the wizard — it will show a `SONAR_TOKEN` value.
    - Copy the token **immediately** (you won't see it again).
@@ -24,6 +26,23 @@ This document describes how to set it up and when to transition to blocking mode
 
 Once the secret is added, the next PR or push to `main` will trigger the
 SonarQube scan automatically.
+
+## 2a. Automatic Analysis conflict
+
+If the GitHub Actions workflow fails with:
+
+```text
+You are running CI analysis while Automatic Analysis is enabled.
+```
+
+then SonarQube Cloud is already analyzing the repository through the GitHub App.
+
+Choose one mode and keep only one:
+
+1. **Recommended now**: keep Automatic Analysis enabled and treat the GitHub Actions `sonarqube` workflow as advisory only.
+2. Or disable Automatic Analysis in SonarQube Cloud project settings and keep only the GitHub Actions scan.
+
+Do not make the GitHub Actions Sonar workflow a required branch check while this conflict exists.
 
 ## 3. Project Configuration
 
