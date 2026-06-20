@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "11111112",
+  "title": "Content Writer (Tech / IT)",
+  "companyName": "MediaGroup",
+  "salaryRaw": "60 000 – 90 000 ₽",
+  "salaryMin": 60000,
+  "salaryMax": 90000,
+  "salaryCurrency": "RUB",
+  "city": "Москва",
+  "workMode": "remote",
+  "experienceRaw": "1–3 года",
+  "employmentType": "Частичная занятость",
+  "schedule": "Сменный график",
+  "skills": ["Technical Writing", "Markdown"],
+  "selectorVersion": "v1.0.0"
+}

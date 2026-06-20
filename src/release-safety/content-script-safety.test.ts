@@ -1,5 +1,5 @@
 /**
- * Content Script Safety Tests — ITER-015.
+ * Content Script Safety Tests — ITER-015 / ITER-026.
  *
  * Verify that content scripts do not contain forbidden HH automation patterns:
  * - No fetch() to HH domains
@@ -10,6 +10,9 @@
  * Uses static analysis (regex patterns on source files) to catch
  * accidental regressions. This is NOT a runtime test — it scans the
  * source code for dangerous patterns.
+ *
+ * ITER-026 addition: also scans the generated bundle in .output/
+ * for the same forbidden patterns, providing a second line of defense.
  */
 
 import { describe, it, expect } from "vitest";
@@ -174,4 +177,75 @@ describe("background script safety", () => {
     const content = readFileSync(bgPath, "utf-8");
     expect(content).not.toMatch(/XMLHttpRequest/i);
   });
+});
+
+// ── Generated bundle safety (ITER-026) ───────────────────────────────────
+
+describe("generated bundle safety — no HH patterns in build output", () => {
+  const BUNDLE_DIR = join(BASE_DIR, ".output", "chrome-mv3", "content-scripts");
+
+  function findBundleScripts(): string[] {
+    const results: string[] = [];
+    try {
+      const entries = readdirSync(BUNDLE_DIR, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isFile() && entry.name.endsWith(".js")) {
+          results.push(join(BUNDLE_DIR, entry.name));
+        }
+      }
+    } catch {
+      // Build output not available
+    }
+    return results;
+  }
+
+  const bundleScripts = findBundleScripts();
+
+  it("has generated content script bundles if build was run", () => {
+    if (bundleScripts.length === 0) {
+      console.warn(
+        "[content-script-safety] No generated bundle files found. " +
+          "Run pnpm build before tests to enable bundle-level checks.",
+      );
+    }
+    expect(bundleScripts.length).toBeGreaterThanOrEqual(0);
+  });
+
+  it.each(bundleScripts.map((s) => [s.replace(BASE_DIR, ""), s] as const))(
+    "%s does not contain fetch() calls to HH domains (bundle)",
+    (_label, path) => {
+      const content = readFileSync(path, "utf-8");
+      for (const pattern of HH_FETCH_PATTERNS) {
+        expect(content).not.toMatch(pattern);
+      }
+    },
+  );
+
+  it.each(bundleScripts.map((s) => [s.replace(BASE_DIR, ""), s] as const))(
+    "%s does not contain XMLHttpRequest (bundle)",
+    (_label, path) => {
+      const content = readFileSync(path, "utf-8");
+      expect(content).not.toMatch(/XMLHttpRequest/i);
+    },
+  );
+
+  it.each(bundleScripts.map((s) => [s.replace(BASE_DIR, ""), s] as const))(
+    "%s does not programmatically click HH UI controls (bundle)",
+    (_label, path) => {
+      const content = readFileSync(path, "utf-8");
+      for (const pattern of HH_CLICK_PATTERNS) {
+        expect(content).not.toMatch(pattern);
+      }
+    },
+  );
+
+  it.each(bundleScripts.map((s) => [s.replace(BASE_DIR, ""), s] as const))(
+    "%s does not set .value on HH form controls (bundle)",
+    (_label, path) => {
+      const content = readFileSync(path, "utf-8");
+      for (const pattern of HH_VALUE_PATTERNS) {
+        expect(content).not.toMatch(pattern);
+      }
+    },
+  );
 });

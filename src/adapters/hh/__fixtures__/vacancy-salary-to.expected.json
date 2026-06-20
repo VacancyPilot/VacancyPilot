@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "55555555",
+  "title": "Junior Developer (JavaScript)",
+  "companyName": "StartupXYZ",
+  "salaryRaw": "до 80 000 ₽",
+  "salaryMin": null,
+  "salaryMax": 80000,
+  "salaryCurrency": "RUB",
+  "city": "Новосибирск",
+  "workMode": "office",
+  "experienceRaw": "Нет опыта",
+  "employmentType": "Полная занятость",
+  "schedule": "Полный день",
+  "skills": ["JavaScript"],
+  "selectorVersion": "v1.0.0"
+}

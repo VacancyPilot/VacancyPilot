@@ -20,7 +20,9 @@ export class HHAdapter implements SiteAdapter {
   matchUrl(url: string): PageKind {
     try {
       const parsed = new URL(url);
-      if (!parsed.hostname.includes("hh.ru")) return null;
+      // Only exact hh.ru or subdomain *.hh.ru — reject lookalikes like evil-hh.ru
+      const host = parsed.hostname;
+      if (host !== "hh.ru" && !host.endsWith(".hh.ru")) return null;
 
       const path = parsed.pathname;
 
@@ -68,7 +70,11 @@ export class HHAdapter implements SiteAdapter {
     const experienceRaw = this.tryExtract(doc, "experience");
     const employmentType = this.tryExtract(doc, "employmentType");
     const schedule = this.tryExtract(doc, "schedule");
-    const descriptionHtml = this.tryExtract(doc, "description");
+    // Extract description separately — we need both HTML (innerHTML) and text
+    const descEl = this.tryExtractElement(doc, "description");
+    const descriptionHtml = descEl?.innerHTML?.trim() ?? null;
+    const descriptionText = descEl?.textContent?.trim() ?? null;
+
     const workModeRaw = this.tryExtract(doc, "workMode");
 
     // Collect warnings for missing fields
@@ -82,10 +88,7 @@ export class HHAdapter implements SiteAdapter {
         { key: "employmentType", value: employmentType },
         { key: "schedule", value: schedule },
         { key: "descriptionHtml", value: descriptionHtml },
-        {
-          key: "descriptionText",
-          value: descriptionHtml ? this.stripHtml(descriptionHtml) : null,
-        },
+        { key: "descriptionText", value: descriptionText },
         { key: "skills", value: this.extractSkills(doc) },
       ];
 
@@ -109,12 +112,12 @@ export class HHAdapter implements SiteAdapter {
       salaryMax: this.tryParseSalaryMax(salaryRaw),
       salaryCurrency: this.tryParseSalaryCurrency(salaryRaw),
       city: city ?? null,
-      workMode: this.normalizeWorkMode(workModeRaw),
+      workMode: this.normalizeWorkMode(workModeRaw, descriptionText),
       experienceRaw: experienceRaw ?? null,
       employmentType: employmentType ?? null,
       schedule: schedule ?? null,
-      descriptionHtml: descriptionHtml ?? null,
-      descriptionText: descriptionHtml ? this.stripHtml(descriptionHtml) : null,
+      descriptionHtml: descriptionHtml,
+      descriptionText: descriptionText,
       skills: this.extractSkills(doc),
       extractedAt: now,
       selectorVersion: SELECTOR_VERSION,
@@ -137,11 +140,65 @@ export class HHAdapter implements SiteAdapter {
   // ── Application status sync (not implemented in Phase 0) ──────
 
   extractVisibleApplicationStatus?(
-    _doc: Document,
+    doc: Document,
   ): Partial<ApplicationStatusSync> | null {
-    void _doc;
-    // Passive status detection comes later.
-    return null;
+    // Passive status extraction — DOM-only, no network requests.
+    // Looks for visible status indicators on the vacancy page.
+    // Only returns statuses that are clearly labeled by HH.
+
+    const now = new Date().toISOString();
+    const result: Partial<ApplicationStatusSync> = {
+      detectedAt: now,
+    };
+
+    let found = false;
+
+    // Check for common HH response status badges
+    const statusSelectors = [
+      '[data-qa="vacancy-response-status"]',
+      '[data-qa="negotiation-status"]',
+      ".vacancy-response-status",
+      ".negotiations-status",
+      '[data-qa="response-status-viewed"]',
+      '[data-qa="response-status-invitation"]',
+      '[data-qa="response-status-rejected"]',
+    ];
+
+    for (const selector of statusSelectors) {
+      try {
+        const el = doc.querySelector(selector);
+        if (el?.textContent) {
+          const label = el.textContent.trim().toLowerCase();
+
+          if (/отклик|отправлен|откликнулись|applied|sent/i.test(label)) {
+            result.detectedApplied = true;
+            result.rawLabel = el.textContent.trim();
+            found = true;
+          }
+          if (/просмотрен|просмотр|viewed/i.test(label)) {
+            result.detectedViewedByEmployer = true;
+            if (!result.rawLabel) result.rawLabel = el.textContent.trim();
+            found = true;
+          }
+          if (/приглашен|приглашение|invitation|invited/i.test(label)) {
+            result.detectedInvitation = true;
+            if (!result.rawLabel) result.rawLabel = el.textContent.trim();
+            found = true;
+          }
+          if (/отказ|отклонен|rejected|declined/i.test(label)) {
+            result.detectedRejected = true;
+            if (!result.rawLabel) result.rawLabel = el.textContent.trim();
+            found = true;
+          }
+
+          if (found) break;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return found ? result : null;
   }
 
   // ── Private helpers ────────────────────────────────────────────
@@ -177,23 +234,38 @@ export class HHAdapter implements SiteAdapter {
    * Try each selector in the ordered fallback list.
    * Returns the text content of the first matching element, or null.
    */
-  private tryExtract(
+  /**
+   * Try each selector in the ordered fallback list.
+   * Returns the first matching Element, or null.
+   */
+  private tryExtractElement(
     doc: Document,
     field: keyof typeof SELECTORS_V1,
-  ): string | null {
+  ): Element | null {
     const selectors = SELECTORS_V1[field];
     for (const selector of selectors) {
       try {
         const el = doc.querySelector(selector);
         if (el?.textContent?.trim()) {
-          return el.textContent.trim();
+          return el;
         }
       } catch {
-        // CSS selector parse error — skip to next
         continue;
       }
     }
     return null;
+  }
+
+  /**
+   * Try each selector in the ordered fallback list.
+   * Returns the text content of the first matching element, or null.
+   */
+  private tryExtract(
+    doc: Document,
+    field: keyof typeof SELECTORS_V1,
+  ): string | null {
+    const el = this.tryExtractElement(doc, field);
+    return el?.textContent?.trim() ?? null;
   }
 
   private extractSkills(doc: Document): string[] | null {
@@ -216,22 +288,66 @@ export class HHAdapter implements SiteAdapter {
 
   // ── Normalizers ────────────────────────────────────────────────
 
-  private normalizeWorkMode(raw: string | null): RawVacancyDTO["workMode"] {
-    if (!raw) return null;
-    const lower = raw.toLowerCase();
+  private normalizeWorkMode(
+    raw: string | null,
+    descriptionText: string | null,
+  ): RawVacancyDTO["workMode"] {
+    // Combine the explicit workMode badge with description text hints.
+    // The badge (data-qa="vacancy-work-mode") takes priority.
+    // If the badge is missing, scan the description for mode keywords.
+    const primary = raw?.toLowerCase() ?? "";
+    const secondary = descriptionText?.toLowerCase() ?? "";
+
+    // If there is no data at all, return null (not "unknown").
+    if (!primary && !secondary) return null;
+
+    // Hybrid indicators — check BEFORE remote/office, because hybrid
+    // descriptions often mention both "office" and "remote" together.
     if (
-      lower.includes("удалён") ||
-      lower.includes("удален") ||
-      lower.includes("remote")
+      primary.includes("гибрид") ||
+      primary.includes("hybrid") ||
+      secondary.includes("гибридный") ||
+      secondary.includes("hybrid") ||
+      secondary.includes("офис + удалён") ||
+      secondary.includes("офис + удален") ||
+      secondary.includes("office + remote") ||
+      (secondary.includes("офис") && secondary.includes("удалён")) ||
+      (secondary.includes("офис") && secondary.includes("удален")) ||
+      (secondary.includes("office") && secondary.includes("remote"))
+    )
+      return "hybrid";
+
+    // Remote indicators
+    if (
+      primary.includes("удалён") ||
+      primary.includes("удален") ||
+      primary.includes("remote") ||
+      secondary.includes("удалённая работа") ||
+      secondary.includes("удаленная работа") ||
+      secondary.includes("можно удалённо") ||
+      secondary.includes("можно удаленно") ||
+      secondary.includes("полностью удалён") ||
+      secondary.includes("полностью удален") ||
+      secondary.includes("fully remote") ||
+      secondary.includes("100% remote")
     )
       return "remote";
-    if (lower.includes("гибрид") || lower.includes("hybrid")) return "hybrid";
+
+    // Office indicators
     if (
-      lower.includes("офис") ||
-      lower.includes("office") ||
-      lower.includes("на месте")
+      primary.includes("офис") ||
+      primary.includes("office") ||
+      primary.includes("на месте") ||
+      secondary.includes("работа в офисе") ||
+      secondary.includes("офис в") ||
+      secondary.includes("on-site") ||
+      secondary.includes("onsite")
     )
       return "office";
+
+    // If we have a badge value but couldn't classify it, mark as unknown.
+    // If we only had description text and found nothing, return null.
+    if (!primary) return null;
     return "unknown";
   }
 

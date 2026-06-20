@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "10101010",
+  "title": "Senior Software Engineer (Go / Rust)",
+  "companyName": "GlobalTech",
+  "salaryRaw": "5000 – 7000 USD",
+  "salaryMin": 5000,
+  "salaryMax": 7000,
+  "salaryCurrency": "USD",
+  "city": "Remote",
+  "workMode": "remote",
+  "experienceRaw": "5+ years",
+  "employmentType": "Full-time",
+  "schedule": "Flexible",
+  "skills": ["Go", "Rust", "AWS"],
+  "selectorVersion": "v1.0.0"
+}

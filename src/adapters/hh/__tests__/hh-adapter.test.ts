@@ -130,6 +130,128 @@ describe("HHAdapter", () => {
       expect(adapter.matchUrl("https://hh.ru/vacancy/111")).toBe("vacancy");
       expect(adapter.matchUrl("https://hh.ru/search/vacancy")).toBe("search");
     });
+
+    it("rejects lookalike domains like evil-hh.ru", () => {
+      expect(adapter.matchUrl("https://evil-hh.ru/vacancy/123")).toBeNull();
+      expect(adapter.matchUrl("https://xhh.ru/vacancy/123")).toBeNull();
+      expect(adapter.matchUrl("https://hh.ru.evil.com/vacancy/123")).toBeNull();
+      expect(adapter.matchUrl("https://hh-ru.com/vacancy/123")).toBeNull();
+    });
+
+    it("accepts regional subdomains like spb.hh.ru", () => {
+      expect(adapter.matchUrl("https://spb.hh.ru/vacancy/999")).toBe("vacancy");
+      expect(adapter.matchUrl("https://ekaterinburg.hh.ru/vacancy/42")).toBe(
+        "vacancy",
+      );
+      expect(adapter.matchUrl("https://nn.hh.ru/search/vacancy")).toBe(
+        "search",
+      );
+    });
+  });
+
+  describe("normalizeWorkMode", () => {
+    it("returns null for null input with null description", () => {
+      // Access the private method via prototype for testing
+      const result = (
+        HHAdapter.prototype as unknown as Record<
+          string,
+          (a: string | null, b: string | null) => string | null
+        >
+      )["normalizeWorkMode"]?.("", null);
+      expect(result).toBeNull();
+    });
+
+    it("detects remote from badge", () => {
+      const fn = (
+        HHAdapter.prototype as unknown as Record<
+          string,
+          (a: string | null, b: string | null) => string | null
+        >
+      )["normalizeWorkMode"];
+      expect(fn("Можно удалённо", null)).toBe("remote");
+      expect(fn("Remote", null)).toBe("remote");
+    });
+
+    it("detects hybrid from badge", () => {
+      const fn = (
+        HHAdapter.prototype as unknown as Record<
+          string,
+          (a: string | null, b: string | null) => string | null
+        >
+      )["normalizeWorkMode"];
+      expect(fn("Гибрид", null)).toBe("hybrid");
+      expect(fn("Hybrid", null)).toBe("hybrid");
+    });
+
+    it("detects office from badge", () => {
+      const fn = (
+        HHAdapter.prototype as unknown as Record<
+          string,
+          (a: string | null, b: string | null) => string | null
+        >
+      )["normalizeWorkMode"];
+      expect(fn("Офис", null)).toBe("office");
+    });
+
+    it("detects remote from description text when badge is missing", () => {
+      const fn = (
+        HHAdapter.prototype as unknown as Record<
+          string,
+          (a: string | null, b: string | null) => string | null
+        >
+      )["normalizeWorkMode"];
+      // Badge empty, but description mentions remote work
+      expect(fn(null, "Мы предлагаем полностью удалённую работу")).toBe(
+        "remote",
+      );
+      expect(fn(null, "Fully remote position with flexible hours")).toBe(
+        "remote",
+      );
+    });
+
+    it("detects hybrid from description text", () => {
+      const fn = (
+        HHAdapter.prototype as unknown as Record<
+          string,
+          (a: string | null, b: string | null) => string | null
+        >
+      )["normalizeWorkMode"];
+      expect(fn(null, "Гибридный формат: офис + удалённая работа")).toBe(
+        "hybrid",
+      );
+    });
+
+    it("detects office from description text", () => {
+      const fn = (
+        HHAdapter.prototype as unknown as Record<
+          string,
+          (a: string | null, b: string | null) => string | null
+        >
+      )["normalizeWorkMode"];
+      expect(fn(null, "Работа в офисе в центре Москвы")).toBe("office");
+      expect(fn(null, "On-site position")).toBe("office");
+    });
+
+    it("badge takes priority over description", () => {
+      const fn = (
+        HHAdapter.prototype as unknown as Record<
+          string,
+          (a: string | null, b: string | null) => string | null
+        >
+      )["normalizeWorkMode"];
+      // Badge says remote, description mentions office — badge wins
+      expect(fn("Можно удалённо", "Работа в офисе")).toBe("remote");
+    });
+
+    it("returns unknown for unparseable data", () => {
+      const fn = (
+        HHAdapter.prototype as unknown as Record<
+          string,
+          (a: string | null, b: string | null) => string | null
+        >
+      )["normalizeWorkMode"];
+      expect(fn("Какой-то текст", null)).toBe("unknown");
+    });
   });
 
   describe("extractVacancy — skeleton", () => {
@@ -212,11 +334,92 @@ describe("HHAdapter", () => {
     });
   });
 
-  describe("extractVisibleApplicationStatus", () => {
-    it("returns null (skeleton)", () => {
+  describe("extractVisibleApplicationStatus — passive status extraction", () => {
+    it("returns null when no status indicators are present", () => {
       const doc = makeDoc("https://hh.ru/vacancy/1");
       const result = adapter.extractVisibleApplicationStatus?.(doc);
       expect(result).toBeNull();
+    });
+
+    it("detects applied status from data-qa attribute", () => {
+      const doc = makeDoc("https://hh.ru/vacancy/1");
+      doc._setElement('[data-qa="vacancy-response-status"]', {
+        tagName: "span",
+        textContent: "Вы откликнулись",
+        getAttribute: () => null,
+        querySelector: () => null,
+        querySelectorAll: () => [],
+      });
+      const result = adapter.extractVisibleApplicationStatus?.(doc);
+      expect(result).not.toBeNull();
+      expect(result!.detectedApplied).toBe(true);
+      expect(result!.rawLabel).toBe("Вы откликнулись");
+      expect(result!.detectedAt).toBeTruthy();
+    });
+
+    it("detects viewed-by-employer status", () => {
+      const doc = makeDoc("https://hh.ru/vacancy/1");
+      doc._setElement('[data-qa="negotiation-status"]', {
+        tagName: "span",
+        textContent: "Работодатель просмотрел резюме",
+        getAttribute: () => null,
+        querySelector: () => null,
+        querySelectorAll: () => [],
+      });
+      const result = adapter.extractVisibleApplicationStatus?.(doc);
+      expect(result).not.toBeNull();
+      expect(result!.detectedViewedByEmployer).toBe(true);
+    });
+
+    it("detects invitation status", () => {
+      const doc = makeDoc("https://hh.ru/vacancy/1");
+      doc._setElement(".negotiations-status", {
+        tagName: "div",
+        textContent: "Приглашение на собеседование",
+        getAttribute: () => null,
+        querySelector: () => null,
+        querySelectorAll: () => [],
+      });
+      const result = adapter.extractVisibleApplicationStatus?.(doc);
+      expect(result).not.toBeNull();
+      expect(result!.detectedInvitation).toBe(true);
+    });
+
+    it("detects rejection status", () => {
+      const doc = makeDoc("https://hh.ru/vacancy/1");
+      doc._setElement('[data-qa="response-status-rejected"]', {
+        tagName: "span",
+        textContent: "Отказ",
+        getAttribute: () => null,
+        querySelector: () => null,
+        querySelectorAll: () => [],
+      });
+      const result = adapter.extractVisibleApplicationStatus?.(doc);
+      expect(result).not.toBeNull();
+      expect(result!.detectedRejected).toBe(true);
+    });
+
+    it("detects English status labels", () => {
+      const doc = makeDoc("https://hh.ru/vacancy/1");
+      doc._setElement('[data-qa="vacancy-response-status"]', {
+        tagName: "span",
+        textContent: "Applied",
+        getAttribute: () => null,
+        querySelector: () => null,
+        querySelectorAll: () => [],
+      });
+      const result = adapter.extractVisibleApplicationStatus?.(doc);
+      expect(result).not.toBeNull();
+      expect(result!.detectedApplied).toBe(true);
+    });
+
+    it("does not crash on malformed selectors", () => {
+      const doc = makeDoc("https://hh.ru/vacancy/1");
+      // No status elements registered — should return null without throwing
+      expect(() =>
+        adapter.extractVisibleApplicationStatus?.(doc),
+      ).not.toThrow();
+      expect(adapter.extractVisibleApplicationStatus?.(doc)).toBeNull();
     });
   });
 });

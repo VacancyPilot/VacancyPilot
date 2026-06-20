@@ -224,9 +224,10 @@ function VacancySection(): ReactNode {
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadJobs = useCallback(async () => {
-    setLoading(true);
+  const loadJobs = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const data = await jobRepo.list();
@@ -236,11 +237,38 @@ function VacancySection(): ReactNode {
       setError(e instanceof Error ? e.message : "Failed to load vacancies");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    void loadJobs(true);
+  }, [loadJobs]);
+
   useEffect(() => {
     void loadJobs();
+  }, [loadJobs]);
+
+  // Listen for chrome.storage.local changes to auto-refresh when badge state
+  // or other vacancy-related data changes from content script or popup.
+  useEffect(() => {
+    const handleStorageChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+    ) => {
+      // Reload when badge keys or job-related storage changes
+      const relevantChange = Object.keys(changes).some(
+        (key) => key.startsWith("badge_v1_hh_") || key === "app_settings_v1",
+      );
+      if (relevantChange) {
+        void loadJobs(true);
+      }
+    };
+
+    chrome.storage.local.onChanged.addListener(handleStorageChange);
+    return () => {
+      chrome.storage.local.onChanged.removeListener(handleStorageChange);
+    };
   }, [loadJobs]);
 
   if (loading) return <LoadingState message="Loading vacancies…" />;
@@ -267,6 +295,25 @@ function VacancySection(): ReactNode {
     <div>
       <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 12px" }}>
         Tracked Vacancies ({jobs.length})
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={refreshing}
+          style={{
+            marginLeft: 12,
+            padding: "2px 10px",
+            fontSize: 11,
+            cursor: refreshing ? "default" : "pointer",
+            border: "1px solid #ccc",
+            borderRadius: 4,
+            background: refreshing ? "#f5f5f5" : "#fff",
+            color: refreshing ? "#999" : "#555",
+            fontWeight: 500,
+            opacity: refreshing ? 0.6 : 1,
+          }}
+        >
+          {refreshing ? "Refreshing…" : "Refresh"}
+        </button>
       </h2>
       <table
         style={{

@@ -25,8 +25,8 @@ save semantics and score recompute aligned on 2026-06-20
 Recommended next action:
 
 ```text
-ITER-026: Parser, Dashboard Refresh, And Release Safety Hardening
-Prompt: docs/development/prompts/ITER-026.md
+No active post-signoff hardening prompt.
+Next: formulate the next product stage before Phase 2 feature work.
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
@@ -55,4 +55,4 @@ docs/development/ITER-022-triage-report.md
 
 ## Status
 
-The decomposition pack is active for post-signoff hardening before Phase 2 feature work. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
+The post-signoff hardening pack is complete. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.

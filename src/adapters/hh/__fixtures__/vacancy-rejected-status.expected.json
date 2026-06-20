@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "16161616",
+  "title": "Mobile Developer (React Native)",
+  "companyName": "AppFactory",
+  "salaryRaw": "200 000 – 280 000 ₽",
+  "salaryMin": 200000,
+  "salaryMax": 280000,
+  "salaryCurrency": "RUB",
+  "city": "Москва",
+  "workMode": "remote",
+  "experienceRaw": "3–6 лет",
+  "employmentType": "Полная занятость",
+  "schedule": "Полный день",
+  "skills": ["React Native", "TypeScript"],
+  "selectorVersion": "v1.0.0"
+}

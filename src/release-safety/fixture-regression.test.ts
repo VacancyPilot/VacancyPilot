@@ -39,15 +39,14 @@ function discoverFixtures(): FixtureCase[] {
     const expectedFile = `${name}.expected.json`;
 
     if (!files.includes(expectedFile)) {
-      console.warn(`[fixture-regression] Missing expected JSON for fixture "${name}"`);
+      console.warn(
+        `[fixture-regression] Missing expected JSON for fixture "${name}"`,
+      );
       continue;
     }
 
     const html = readFileSync(join(FIXTURES_DIR, htmlFile), "utf-8");
-    const expectedRaw = readFileSync(
-      join(FIXTURES_DIR, expectedFile),
-      "utf-8",
-    );
+    const expectedRaw = readFileSync(join(FIXTURES_DIR, expectedFile), "utf-8");
     const expected = JSON.parse(expectedRaw);
 
     // Extract a numeric ID from the fixture name or use a stable placeholder
@@ -70,6 +69,22 @@ function extractVacancyId(fixtureName: string): string {
     "vacancy-normal": "12345678",
     "vacancy-no-salary": "77777777",
     "vacancy-archived": "99999999",
+    "vacancy-hybrid": "11111111",
+    "vacancy-office": "22222222",
+    "vacancy-remote-description": "33333333",
+    "vacancy-salary-from": "44444444",
+    "vacancy-salary-to": "55555555",
+    "vacancy-multiple-cities": "66666666",
+    "vacancy-minimal": "77777770",
+    "vacancy-no-experience": "88888888",
+    "vacancy-no-company": "99999990",
+    "vacancy-english": "10101010",
+    "vacancy-part-time": "11111112",
+    "vacancy-no-skills": "12121212",
+    "vacancy-applied-status": "13131313",
+    "vacancy-viewed-status": "14141414",
+    "vacancy-invitation-status": "15151515",
+    "vacancy-rejected-status": "16161616",
   };
 
   return KNOWN_IDS[fixtureName] ?? "00000000";
@@ -105,11 +120,7 @@ describe("fixture regression", () => {
       });
 
       it("matches expected DTO fields", () => {
-        const result = runFixture(
-          fixture.html,
-          fixture.url,
-          fixture.expected,
-        );
+        const result = runFixture(fixture.html, fixture.url, fixture.expected);
 
         if (!result.passed) {
           const details = result.errors
@@ -118,18 +129,12 @@ describe("fixture regression", () => {
                 `  ${e.field}: expected ${JSON.stringify(e.expected)}, got ${JSON.stringify(e.actual)}`,
             )
             .join("\n");
-          throw new Error(
-            `Fixture "${fixture.name}" mismatch:\n${details}`,
-          );
+          throw new Error(`Fixture "${fixture.name}" mismatch:\n${details}`);
         }
       });
 
       it("returns null DTO only when expected is null", () => {
-        const result = runFixture(
-          fixture.html,
-          fixture.url,
-          fixture.expected,
-        );
+        const result = runFixture(fixture.html, fixture.url, fixture.expected);
         if (fixture.expected !== null) {
           expect(result.actual).not.toBeNull();
           expect(result.actual!.sourceUrl).toBe(fixture.url);
@@ -139,25 +144,15 @@ describe("fixture regression", () => {
       });
 
       it("has valid extractedAt timestamp when DTO returned", () => {
-        const result = runFixture(
-          fixture.html,
-          fixture.url,
-          fixture.expected,
-        );
+        const result = runFixture(fixture.html, fixture.url, fixture.expected);
         if (result.actual !== null) {
           expect(result.actual.extractedAt).toBeTruthy();
-          expect(
-            () => new Date(result.actual!.extractedAt),
-          ).not.toThrow();
+          expect(() => new Date(result.actual!.extractedAt)).not.toThrow();
         }
       });
 
       it("has current selector version when DTO returned", () => {
-        const result = runFixture(
-          fixture.html,
-          fixture.url,
-          fixture.expected,
-        );
+        const result = runFixture(fixture.html, fixture.url, fixture.expected);
         if (result.actual !== null) {
           expect(result.actual.selectorVersion).toBe("v1.0.0");
         }
@@ -172,11 +167,7 @@ describe("fixture regression", () => {
       const failures: string[] = [];
 
       for (const fixture of fixtures) {
-        const result = runFixture(
-          fixture.html,
-          fixture.url,
-          fixture.expected,
-        );
+        const result = runFixture(fixture.html, fixture.url, fixture.expected);
         if (!result.passed) {
           const details = result.errors
             .map(
@@ -200,9 +191,9 @@ describe("fixture regression", () => {
       // Adding new fixtures should update the expected count.
       expect(fixtures.length).toBeGreaterThanOrEqual(2);
       console.log(
-        `[fixture-regression] Checked ${fixtures.length} fixture(s): ${
-          fixtures.map((f) => f.name).join(", ")
-        }`,
+        `[fixture-regression] Checked ${fixtures.length} fixture(s): ${fixtures
+          .map((f) => f.name)
+          .join(", ")}`,
       );
     });
   });

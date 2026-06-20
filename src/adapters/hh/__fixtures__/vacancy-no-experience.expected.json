@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "88888888",
+  "title": "UI/UX Designer",
+  "companyName": "DesignStudio",
+  "salaryRaw": "100 000 – 150 000 ₽",
+  "salaryMin": 100000,
+  "salaryMax": 150000,
+  "salaryCurrency": "RUB",
+  "city": "Москва",
+  "workMode": "remote",
+  "experienceRaw": null,
+  "employmentType": "Полная занятость",
+  "schedule": "Полный день",
+  "skills": ["Figma"],
+  "selectorVersion": "v1.0.0"
+}

@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "66666666",
+  "title": "Product Manager (B2B SaaS)",
+  "companyName": "BigCo",
+  "salaryRaw": "250 000 – 350 000 ₽",
+  "salaryMin": 250000,
+  "salaryMax": 350000,
+  "salaryCurrency": "RUB",
+  "city": "Москва, Санкт-Петербург, Казань",
+  "workMode": "hybrid",
+  "experienceRaw": "3–6 лет",
+  "employmentType": "Полная занятость",
+  "schedule": "Полный день",
+  "skills": ["Product Strategy", "UX"],
+  "selectorVersion": "v1.0.0"
+}

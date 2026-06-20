@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "11111111",
+  "title": "Fullstack Developer (React + Node.js)",
+  "companyName": "Tech Corp",
+  "salaryRaw": "200 000 – 280 000 ₽",
+  "salaryMin": 200000,
+  "salaryMax": 280000,
+  "salaryCurrency": "RUB",
+  "city": "Москва",
+  "workMode": "hybrid",
+  "experienceRaw": "3–6 лет",
+  "employmentType": "Полная занятость",
+  "schedule": "Гибкий график",
+  "skills": ["React", "Node.js", "PostgreSQL"],
+  "selectorVersion": "v1.0.0"
+}

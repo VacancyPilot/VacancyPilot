@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "14141414",
+  "title": "Frontend Developer (Vue.js)",
+  "companyName": "WebStudio",
+  "salaryRaw": "150 000 – 200 000 ₽",
+  "salaryMin": 150000,
+  "salaryMax": 200000,
+  "salaryCurrency": "RUB",
+  "city": "Санкт-Петербург",
+  "workMode": "office",
+  "experienceRaw": "1–3 года",
+  "employmentType": "Полная занятость",
+  "schedule": "Полный день",
+  "skills": ["Vue.js", "JavaScript"],
+  "selectorVersion": "v1.0.0"
+}

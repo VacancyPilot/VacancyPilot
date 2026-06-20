@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "13131313",
+  "title": "Backend Developer (Python / Django)",
+  "companyName": "ServerCo",
+  "salaryRaw": "180 000 – 250 000 ₽",
+  "salaryMin": 180000,
+  "salaryMax": 250000,
+  "salaryCurrency": "RUB",
+  "city": "Москва",
+  "workMode": "remote",
+  "experienceRaw": "3–6 лет",
+  "employmentType": "Полная занятость",
+  "schedule": "Полный день",
+  "skills": ["Python", "Django", "PostgreSQL"],
+  "selectorVersion": "v1.0.0"
+}

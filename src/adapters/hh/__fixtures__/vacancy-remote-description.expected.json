@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "33333333",
+  "title": "DevOps Engineer (AWS / Kubernetes)",
+  "companyName": "CloudTeam",
+  "salaryRaw": "300 000 – 400 000 ₽",
+  "salaryMin": 300000,
+  "salaryMax": 400000,
+  "salaryCurrency": "RUB",
+  "city": "Москва",
+  "workMode": "remote",
+  "experienceRaw": "3–6 лет",
+  "employmentType": "Полная занятость",
+  "schedule": "Полный день",
+  "skills": ["AWS", "Kubernetes", "Terraform"],
+  "selectorVersion": "v1.0.0"
+}

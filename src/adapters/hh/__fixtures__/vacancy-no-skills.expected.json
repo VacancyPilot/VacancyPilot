@@ -1,0 +1,16 @@
+{
+  "sourceVacancyId": "12121212",
+  "title": "Project Manager (IT)",
+  "companyName": "SimpleCorp",
+  "salaryRaw": "150 000 – 200 000 ₽",
+  "salaryMin": 150000,
+  "salaryMax": 200000,
+  "salaryCurrency": "RUB",
+  "city": "Москва",
+  "workMode": "hybrid",
+  "experienceRaw": "3–6 лет",
+  "employmentType": "Полная занятость",
+  "schedule": "Полный день",
+  "skills": null,
+  "selectorVersion": "v1.0.0"
+}
