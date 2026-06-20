@@ -7,6 +7,7 @@ Status values:
 - `done`
 - `blocked`
 - `deferred`
+- `backlog`
 
 ## Phase 0: Foundation
 
@@ -83,17 +84,46 @@ Status values:
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-033 | EPIC-20 | Add safe HH search-card parser and fixture harness | planned | `feat: add hh search card parser` |
-| ITER-034 | EPIC-20 | Render lightweight search-result badges | planned | `feat: add search result badges` |
-| ITER-035 | EPIC-20 | Add local quick save/reject from search cards | planned | `feat: add search quick actions` |
-| ITER-036 | EPIC-20 | Harden search triage runtime for dynamic HH result pages | planned | `fix: harden search triage runtime` |
+| ITER-033 | EPIC-20 | Add safe HH search-card parser and fixture harness | done | `feat: add hh search card parser` |
+| ITER-034 | EPIC-20 | Render lightweight search-result badges | done | `feat: add search result badges` |
+| ITER-035 | EPIC-20 | Add local quick save/reject from search cards | done | `feat: add search quick actions` |
+| ITER-036 | EPIC-20 | Harden search triage runtime for dynamic HH result pages | done | `fix: harden search triage runtime` |
 
 ## Phase 2: Queue And Dashboard Follow-Up
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-037 | EPIC-21 | Add local queue task list and duplicate detection | planned | `feat: add queue task list` |
-| ITER-038 | EPIC-21 | Add company greylist workflow and stronger Phase 2 dashboard | planned | `feat: add company greylist workflow` |
+| ITER-037 | EPIC-21 | Add local queue task list and duplicate detection | done | `feat: add queue task list` |
+| ITER-038 | EPIC-21 | Add company greylist workflow and stronger Phase 2 dashboard | done | `feat: add company greylist workflow` |
+
+## Phase 3: Guided Apply Labs
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-039 | EPIC-22 | Add Labs control plane, kill switch, and local action log | planned | `feat: add labs safety controls` |
+| ITER-040 | EPIC-22 | Add clipboard-only guided-apply workspace and resume recommendation | planned | `feat: add guided apply workspace` |
+
+## Phase 3: Workflow Automation And Reminders
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-041 | EPIC-25 | Add kanban queue workflow and manual stage actions | planned | `feat: add kanban queue workflow` |
+| ITER-042 | EPIC-25 | Add local reminders and daily workflow summary | planned | `feat: add workflow reminders and summary` |
+
+## Phase 4: External Automation And HR Workspace
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-043 | EPIC-09 | Re-open n8n via permission-gated manual workflow events | backlog | `feat: add opt in workflow webhooks` |
+| ITER-044 | EPIC-23 | Add read-only HR timeline capture and application conversation view | backlog | `feat: add hr timeline capture` |
+| ITER-045 | EPIC-23 | Add reply drafts and follow-up planning workspace | backlog | `feat: add hr follow up workspace` |
+
+## Phase 5: Expansion And Release
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-046 | EPIC-24 | Extract SiteAdapter boundary and add second-site skeleton | backlog | `refactor: extract site adapter contract` |
+| ITER-047 | EPIC-26 | Add public-release permissions, onboarding, and store-readiness pack | backlog | `docs: prepare public release pack` |
 
 ## Cursor/Codex Rule
 

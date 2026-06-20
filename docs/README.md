@@ -22,5 +22,6 @@ When recommendations conflict, use the priority order from the final specificati
 
 Recommended next action:
 
-- Phase 1 closeout gate is complete; start the prepared Phase 2 pack from `development/prompts/ITER-033.md`
+- Phase 2 search-triage and workflow queue pack is complete through `ITER-038`
+- start the prepared Phase 3 pack from `development/prompts/ITER-039.md`
 - keep [development/prompts/ITER-014.md](development/prompts/ITER-014.md) deferred until webhook automation returns to active scope
