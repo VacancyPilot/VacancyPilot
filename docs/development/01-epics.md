@@ -17,6 +17,7 @@ This file is the working map from the master specification to implementation epi
 | EPIC-08 | Export, Import Backlog, and Delete All | 1 | ready | EPIC-03 |
 | EPIC-09 | n8n and Telegram Webhook Events | 1 | ready | EPIC-03, EPIC-08 |
 | EPIC-10 | Release Hardening and QA | 1 | ready | all Phase 1 epics |
+| EPIC-11 | Runtime Workflow Completion | 1 | ready | EPIC-03, EPIC-04, EPIC-05, EPIC-07, EPIC-10 |
 
 ## Later Epics
 
@@ -37,4 +38,3 @@ This file is the working map from the master specification to implementation epi
 - No broad permissions.
 - AI and n8n are opt-in.
 - All meaningful external payloads require preview or explicit settings.
-

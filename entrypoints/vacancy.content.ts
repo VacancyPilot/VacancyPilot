@@ -1,4 +1,5 @@
 import { defineContentScript } from "wxt/sandbox";
+import { HHAdapter } from "@/adapters/hh/hh-adapter";
 
 export default defineContentScript({
   // Narrow scope: only HH.ru vacancy pages.
@@ -122,11 +123,36 @@ async function createBadge(): Promise<void> {
   shadow.appendChild(container);
   document.body.appendChild(host);
 
-  // Listen for badge updates from background/popup.
-  chrome.runtime.onMessage.addListener((message) => {
+  // Listen for badge updates and vacancy extraction requests.
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === "UPDATE_BADGE" && container) {
       updateBadgeContent(container, message.payload);
+      sendResponse({ success: true });
+      return false;
     }
+
+    if (message.type === "EXTRACT_VACANCY") {
+      try {
+        const adapter = new HHAdapter();
+        const dto = adapter.extractVacancy(document);
+        if (dto) {
+          sendResponse({ success: true, dto });
+        } else {
+          sendResponse({
+            success: false,
+            error: "Could not extract vacancy data from this page",
+          });
+        }
+      } catch (e) {
+        sendResponse({
+          success: false,
+          error: e instanceof Error ? e.message : String(e),
+        });
+      }
+      return false;
+    }
+
+    return false;
   });
 }
 

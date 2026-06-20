@@ -34,6 +34,16 @@ Status values:
 | ITER-015 | EPIC-10 | Add privacy/safety tests and release checklist | done | `test: add release safety checks` |
 | ITER-016 | EPIC-10 | Manual QA pass and Phase 1 release candidate docs | done | `docs: prepare phase 1 release candidate` |
 
+## Phase 1 Follow-up: Runtime Completion
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-017 | EPIC-11 | Wire popup actions and live vacancy state | done | `feat: wire popup runtime actions` |
+| ITER-018 | EPIC-11 | Replace dashboard vacancy shell with runtime views | planned | `feat: add dashboard runtime views` |
+| ITER-019 | EPIC-11 | Add profile and resume management flow | planned | `feat: add profile resume management` |
+| ITER-020 | EPIC-11 | Sync popup, side panel, and dashboard state | planned | `feat: sync runtime surfaces` |
+| ITER-021 | EPIC-11 | Fix runtime QA findings and prep rerun | planned | `fix: address runtime qa findings` |
+
 ## Cursor/Codex Rule
 
 Do not ask autopilot to implement more than one row at a time. If it touches unrelated epics, reject or split the change.

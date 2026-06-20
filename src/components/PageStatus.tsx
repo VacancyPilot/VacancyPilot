@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 type PageInfo =
   | { kind: "loading" }
-  | { kind: "vacancy"; url: string }
+  | { kind: "vacancy"; url: string; tabId: number; vacancyId: string }
   | { kind: "not-detected" };
 
 /**
@@ -38,8 +38,10 @@ export function usePageStatus(): PageInfo {
         });
         if (cancelled) return;
 
-        if (tab?.url && isVacancyUrl(tab.url)) {
-          setInfo({ kind: "vacancy", url: tab.url });
+        if (tab?.id !== undefined && tab?.url && isVacancyUrl(tab.url)) {
+          const match = tab.url.match(/\/vacancy\/(\d+)/);
+          const vacancyId = match ? match[1] : "";
+          setInfo({ kind: "vacancy", url: tab.url, tabId: tab.id, vacancyId });
         } else {
           setInfo({ kind: "not-detected" });
         }
@@ -69,24 +71,16 @@ interface PageStatusProps {
  */
 export function PageStatus({ info }: PageStatusProps): ReactNode {
   if (info.kind === "loading") {
-    return (
-      <span style={{ color: "#999", fontSize: 12 }}>
-        Detecting page…
-      </span>
-    );
+    return <span style={{ color: "#999", fontSize: 12 }}>Detecting page…</span>;
   }
 
   if (info.kind === "vacancy") {
     return (
-      <span style={{ color: "#2a8", fontSize: 12 }}>
-        Vacancy page detected
-      </span>
+      <span style={{ color: "#2a8", fontSize: 12 }}>Vacancy page detected</span>
     );
   }
 
   return (
-    <span style={{ color: "#999", fontSize: 12 }}>
-      Not a vacancy page
-    </span>
+    <span style={{ color: "#999", fontSize: 12 }}>Not a vacancy page</span>
   );
 }

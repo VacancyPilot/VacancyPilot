@@ -22,5 +22,5 @@ When recommendations conflict, use the priority order from the final specificati
 
 Recommended next action:
 
-- run [development/qa-checklist.md](development/qa-checklist.md)
-- then decide whether [development/prompts/ITER-014.md](development/prompts/ITER-014.md) is still needed for Phase 1
+- implement [development/prompts/ITER-018.md](development/prompts/ITER-018.md)
+- then continue through the `EPIC-11` runtime completion pack

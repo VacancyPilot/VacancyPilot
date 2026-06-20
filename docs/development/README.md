@@ -18,13 +18,15 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-016 complete
+ITER-017 complete
+manual QA findings captured on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-Run docs/development/qa-checklist.md manually in 2 Chromium browsers
+ITER-018: Dashboard Runtime Views
+Prompt: docs/development/prompts/ITER-018.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
@@ -42,6 +44,12 @@ Remaining implementation prompt, if Phase 1 still needs webhook automation:
 ```text
 ITER-014: n8n Events
 Prompt: docs/development/prompts/ITER-014.md
+```
+
+Manual QA findings driving the next pack:
+
+```text
+docs/development/manual-qa-run-2026-06-20.md
 ```
 
 ## Status

@@ -30,8 +30,15 @@ Available prompts:
 - `ITER-014.md`
 - `ITER-015.md`
 - `ITER-016.md`
+- `ITER-017.md`
+- `ITER-018.md`
+- `ITER-019.md`
+- `ITER-020.md`
+- `ITER-021.md`
 
 Recommended use after `ITER-016`:
 
-1. Run the manual QA flow from `docs/development/qa-checklist.md`
-2. Use `ITER-014.md` only if Phase 1 still needs opt-in webhook automation before release
+1. Capture manual QA findings
+2. Run `ITER-017.md`
+3. Continue through `ITER-021.md`
+4. Use `ITER-014.md` only if Phase 1 still needs opt-in webhook automation before release

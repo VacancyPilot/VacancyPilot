@@ -107,7 +107,8 @@ Required:
 ## Immediate Next Actions
 
 1. Use the committed prompt files in `docs/development/prompts/` as the source of iteration instructions.
-2. Run the manual QA checklist in `docs/development/qa-checklist.md`.
-3. Decide whether `ITER-014` remains deferred or is still required for Phase 1 scope.
-4. If using Zed for follow-up work, paste `docs/development/prompts/ZED-SESSION-START.md` once.
-5. After each follow-up iteration, review, commit, push, and update `docs/development/02-iteration-map.md` status.
+2. Use `docs/development/manual-qa-run-2026-06-20.md` as the source of concrete runtime follow-up work.
+3. Start `ITER-018`, then move through `ITER-021` one row at a time.
+4. Decide whether `ITER-014` remains deferred or is still required for Phase 1 scope.
+5. If using Zed for follow-up work, paste `docs/development/prompts/ZED-SESSION-START.md` once.
+6. After each follow-up iteration, review, commit, push, and update `docs/development/02-iteration-map.md` status.
