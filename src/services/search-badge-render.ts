@@ -1,0 +1,279 @@
+/**
+ * Search badge rendering helpers — ITER-034.
+ *
+ * Pure DOM rendering functions for compact search-result badges.
+ * No chrome.* API calls, no network — pure data → DOM transformation.
+ * Content script injects and orchestrates; this module renders.
+ */
+
+import type { RawSearchItemDTO } from "@/adapters/types";
+
+// ── Badge state shape (mirrors BadgeState from badge-state.ts) ──────────────
+
+export interface SearchBadgeState {
+  score?: number;
+  status?: string;
+}
+
+// ── Work mode labels ───────────────────────────────────────────────────────
+
+const WORK_MODE_LABELS: Record<string, string> = {
+  remote: "УД",
+  hybrid: "Гиб",
+  office: "Оф",
+};
+
+const WORK_MODE_CSS: Record<string, string> = {
+  remote: "vp-sb-wm--remote",
+  hybrid: "vp-sb-wm--hybrid",
+  office: "vp-sb-wm--office",
+};
+
+// ── Status icons ───────────────────────────────────────────────────────────
+
+const STATUS_ICONS: Record<string, string> = {
+  saved: "✓",
+  viewed: "👁",
+  letter_ready: "✉",
+  applied: "📨",
+  rejected_by_me: "✕",
+  rejected_by_company: "✗",
+  interview: "📅",
+  offer: "🏆",
+  hr_replied: "💬",
+  test_task: "📋",
+  new: "●",
+  blacklist: "🚫",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  saved: "сохр",
+  viewed: "смтр",
+  letter_ready: "письмо",
+  applied: "отклк",
+  rejected_by_me: "отклз",
+  rejected_by_company: "отказ",
+  interview: "собес",
+  offer: "офер",
+  hr_replied: "ответ",
+  test_task: "тест",
+  new: "нов",
+  blacklist: "блк",
+};
+
+// ── Score color classes ───────────────────────────────────────────────────
+
+function scoreClass(score: number): string {
+  if (score >= 80) return "vp-sb-score--high";
+  if (score >= 50) return "vp-sb-score--mid";
+  return "vp-sb-score--low";
+}
+
+// ── Public API ─────────────────────────────────────────────────────────────
+
+/**
+ * Build the HTML content string for a single search badge.
+ * Returns empty string when there is nothing to show.
+ */
+export function buildSearchBadgeHTML(
+  card: RawSearchItemDTO,
+  state: SearchBadgeState | undefined,
+): string {
+  const parts: string[] = [];
+
+  // Score (from local badge state)
+  if (state?.score !== undefined && state.score !== null) {
+    const cls = `vp-sb-score ${scoreClass(state.score)}`;
+    parts.push(`<span class="${cls}">${state.score}</span>`);
+  }
+
+  // Status icon + short label (from local badge state)
+  if (state?.status) {
+    const icon = STATUS_ICONS[state.status] ?? "";
+    const label = STATUS_LABELS[state.status] ?? state.status;
+    parts.push(
+      `<span class="vp-sb-status" title="${state.status}">${icon}${label}</span>`,
+    );
+  }
+
+  // Work mode (from visible card data)
+  if (card.workMode && card.workMode !== "unknown" && card.workMode !== null) {
+    const label = WORK_MODE_LABELS[card.workMode] ?? card.workMode;
+    const cls = WORK_MODE_CSS[card.workMode] ?? "";
+    parts.push(`<span class="vp-sb-wm ${cls}">${label}</span>`);
+  }
+
+  if (parts.length === 0) return "";
+
+  return `<span class="vp-sb-container">${parts.join("")}</span>`;
+}
+
+/**
+ * Inject scoped search badge styles into the document <head>.
+ * Idempotent — does nothing if styles already exist.
+ */
+export function injectSearchBadgeStyles(doc: Document): void {
+  if (doc.getElementById("vp-search-badge-styles")) return;
+
+  const style = doc.createElement("style");
+  style.id = "vp-search-badge-styles";
+  style.textContent = `
+    /* VacancyPilot search badge host — inline wrapper on each card */
+    .vp-sb-host {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* Container for badge pieces */
+    .vp-sb-container {
+      display: inline-flex;
+      gap: 3px;
+      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      font-size: 10px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    /* Score pill */
+    .vp-sb-score {
+      background: #4a90d9;
+      color: #fff;
+      border-radius: 8px;
+      padding: 1px 5px;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 16px;
+      min-width: 18px;
+      text-align: center;
+    }
+    .vp-sb-score--high { background: #2a8; }
+    .vp-sb-score--mid  { background: #e6a817; color: #333; }
+    .vp-sb-score--low  { background: #c44; }
+
+    /* Status text */
+    .vp-sb-status {
+      font-size: 10px;
+      color: #666;
+      max-width: 70px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Work mode pill */
+    .vp-sb-wm {
+      font-size: 9px;
+      color: #999;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      padding: 0 3px;
+      line-height: 14px;
+    }
+    .vp-sb-wm--remote { color: #2a8; border-color: #2a8; }
+    .vp-sb-wm--hybrid { color: #e6a817; border-color: #e6a817; }
+    .vp-sb-wm--office { color: #888; border-color: #ccc; }
+  `;
+  doc.head.appendChild(style);
+}
+
+/**
+ * Create a badge host element for a single search card.
+ * Does NOT attach it to the DOM — caller positions it.
+ */
+export function createBadgeHost(
+  card: RawSearchItemDTO,
+  state: SearchBadgeState | undefined,
+  doc: Document = document,
+): HTMLElement | null {
+  const html = buildSearchBadgeHTML(card, state);
+  if (!html) return null;
+
+  const host = doc.createElement("span");
+  host.className = "vp-sb-host";
+  host.innerHTML = html;
+  return host;
+}
+
+/**
+ * Attach a badge to a search card element by inserting it into the
+ * best available header slot. Idempotent — skips if a badge already exists.
+ */
+export function attachBadgeToCard(
+  cardEl: Element | null,
+  badge: HTMLElement,
+): void {
+  if (!cardEl) return;
+  if (cardEl.querySelector(".vp-sb-host")) return;
+
+  // Find the card's header area — prefer dedicated header class, fall back to first h3.
+  const header =
+    cardEl.querySelector(".serp-item__header") ??
+    cardEl.querySelector("h3") ??
+    cardEl.querySelector(".vacancy-serp-item__header") ??
+    cardEl.firstElementChild;
+
+  if (!header) return;
+
+  header.appendChild(badge);
+}
+
+/**
+ * Build a map from vacancy ID → card Element using title link href parsing.
+ */
+export function buildCardElementMap(elements: Element[]): Map<string, Element> {
+  const map = new Map<string, Element>();
+
+  const titleSelectors = [
+    '[data-qa="serp-item__title"]',
+    "a.serp-item__title",
+    ".serp-item__title a",
+    '[data-qa="vacancy-serp__title"]',
+    ".vacancy-serp-item__title a",
+  ];
+
+  for (const el of elements) {
+    for (const sel of titleSelectors) {
+      try {
+        const link = el.querySelector(sel);
+        if (link) {
+          const href = link.getAttribute("href");
+          const match = href?.match(/\/vacancy\/(\d+)/i);
+          if (match) {
+            map.set(match[1], el);
+            break;
+          }
+        }
+      } catch {
+        continue;
+      }
+    }
+  }
+
+  return map;
+}
+
+/**
+ * Find search card container elements in the document.
+ * Uses the same selector groups as HHAdapter.findSearchCards.
+ */
+export function findSearchCardElements(doc: Document): Element[] {
+  const selectors = [
+    '[data-qa="vacancy-serp-item"]',
+    ".serp-item",
+    '[data-qa="vacancy-serp"]',
+    "div.vacancy-serp-item",
+  ];
+
+  for (const selector of selectors) {
+    try {
+      const elements = Array.from(doc.querySelectorAll(selector));
+      if (elements.length > 0) return elements;
+    } catch {
+      continue;
+    }
+  }
+
+  return [];
+}
