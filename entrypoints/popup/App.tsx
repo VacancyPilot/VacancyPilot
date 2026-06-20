@@ -15,6 +15,28 @@ function buildJobId(vacancyId: string): string {
   return `hh_${vacancyId}`;
 }
 
+/**
+ * Persist badge state to chrome.storage.local so the content script
+ * can read it on page load (content scripts cannot access Dexie directly).
+ */
+function badgeStorageKey(vacancyId: string): string {
+  return `badge_v1_hh_${vacancyId}`;
+}
+
+async function persistBadgeState(vacancyId: string, job: Job): Promise<void> {
+  try {
+    const key = badgeStorageKey(vacancyId);
+    await chrome.storage.local.set({
+      [key]: {
+        score: job.ruleScore?.total,
+        status: job.status,
+      },
+    });
+  } catch {
+    // Non-critical.
+  }
+}
+
 async function updateBadge(tabId: number, job: Job): Promise<void> {
   try {
     await chrome.tabs.sendMessage(tabId, {
@@ -124,6 +146,12 @@ function PopupContent(): ReactNode {
         if (!cancelled) {
           setSavedJob(job ?? null);
           setJobLoaded(true);
+
+          // Update badge from saved state on popup open.
+          if (job) {
+            await updateBadge(pageInfo.tabId, job);
+            await persistBadgeState(pageInfo.vacancyId, job);
+          }
         }
       } catch {
         if (!cancelled) {
@@ -173,8 +201,9 @@ function PopupContent(): ReactNode {
 
       setSavedJob(jobWithScore);
 
-      // Update the page badge.
+      // Update the page badge and persist for content script.
       await updateBadge(pageInfo.tabId, jobWithScore);
+      await persistBadgeState(pageInfo.vacancyId, jobWithScore);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (
@@ -233,6 +262,7 @@ function PopupContent(): ReactNode {
       if (updated) {
         setSavedJob(updated);
         await updateBadge(pageInfo.tabId, updated);
+        await persistBadgeState(pageInfo.vacancyId, updated);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -272,6 +302,9 @@ function PopupContent(): ReactNode {
       : "#999";
 
   const isVacancy = pageInfo.kind === "vacancy";
+
+  // Score breakdown visibility toggle
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   // ── Render ──
 
@@ -355,6 +388,30 @@ function PopupContent(): ReactNode {
             <span style={{ color: "#666" }}>Status</span>
             <span style={{ fontWeight: 600 }}>{statusDisplay}</span>
           </div>
+
+          {/* Score breakdown toggle */}
+          {savedJob?.ruleScore && (
+            <div style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={() => setShowBreakdown(!showBreakdown)}
+                style={{
+                  width: "100%",
+                  padding: "3px 6px",
+                  fontSize: 11,
+                  cursor: "pointer",
+                  border: "1px solid #ddd",
+                  borderRadius: 3,
+                  background: "#f9f9f9",
+                  color: "#888",
+                  textAlign: "left",
+                }}
+              >
+                {showBreakdown ? "▾ Hide breakdown" : "▸ Show breakdown"}
+              </button>
+              {showBreakdown && <ScoreBreakdown score={savedJob.ruleScore} />}
+            </div>
+          )}
         </div>
       ) : pageInfo.kind === "loading" || (isVacancy && !jobLoaded) ? null : (
         <EmptyState
@@ -454,6 +511,122 @@ function openSidePanel(): void {
 
 function openDashboard(): void {
   chrome.runtime.openOptionsPage();
+}
+
+// ── Score Breakdown ──────────────────────────────────────────────────────
+
+function ScoreBreakdown({
+  score,
+}: {
+  score: import("@/models/scoring").ScoreResult;
+}): ReactNode {
+  const entries: Array<{ label: string; score: number; max: number }> = [
+    { label: "Title", score: score.breakdown.titleMatch, max: 20 },
+    {
+      label: "Must-have skills",
+      score: score.breakdown.mustHaveSkills,
+      max: 25,
+    },
+    { label: "Nice-to-have", score: score.breakdown.niceToHaveSkills, max: 10 },
+    { label: "Experience", score: score.breakdown.experienceFit, max: 15 },
+    {
+      label: "Work/Location",
+      score: score.breakdown.workModeLocation,
+      max: 10,
+    },
+    { label: "Salary", score: score.breakdown.salaryFit, max: 10 },
+    { label: "Company", score: score.breakdown.companyPreference, max: 5 },
+    { label: "Misc", score: score.breakdown.languageScheduleMisc, max: 5 },
+  ];
+
+  return (
+    <div
+      style={{
+        marginTop: 6,
+        padding: "6px 8px",
+        background: "#f9f9f9",
+        borderRadius: 4,
+        fontSize: 11,
+      }}
+    >
+      {entries.map((e) => {
+        const pct = e.max > 0 ? (e.score / e.max) * 100 : 0;
+        const barColor = pct >= 80 ? "#2a8" : pct >= 50 ? "#e6a817" : "#c44";
+        return (
+          <div key={e.label} style={{ marginBottom: 3 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: 1,
+              }}
+            >
+              <span style={{ color: "#888" }}>{e.label}</span>
+              <span style={{ fontWeight: 600 }}>
+                {e.score}/{e.max}
+              </span>
+            </div>
+            <div
+              style={{
+                height: 4,
+                borderRadius: 2,
+                background: "#eee",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${Math.min(pct, 100)}%`,
+                  background: barColor,
+                  borderRadius: 2,
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+
+      {score.fitReasons.length > 0 && (
+        <div style={{ marginTop: 6 }}>
+          <div style={{ fontWeight: 600, color: "#2a8", marginBottom: 2 }}>
+            Fit reasons
+          </div>
+          {score.fitReasons.slice(0, 3).map((r, i) => (
+            <div key={i} style={{ color: "#555", padding: "1px 0" }}>
+              ✓ {r}
+            </div>
+          ))}
+          {score.fitReasons.length > 3 && (
+            <div style={{ color: "#999", fontSize: 10 }}>
+              +{score.fitReasons.length - 3} more
+            </div>
+          )}
+        </div>
+      )}
+
+      {score.riskFlags.length > 0 && (
+        <div style={{ marginTop: 6 }}>
+          <div style={{ fontWeight: 600, color: "#c44", marginBottom: 2 }}>
+            Risk flags
+          </div>
+          {score.riskFlags.slice(0, 3).map((flag, i) => (
+            <div
+              key={i}
+              style={{ color: "#c44", padding: "1px 0", fontSize: 10 }}
+            >
+              ⚠ {flag.message}
+            </div>
+          ))}
+          {score.riskFlags.length > 3 && (
+            <div style={{ color: "#999", fontSize: 10 }}>
+              +{score.riskFlags.length - 3} more
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ── Action Button ──

@@ -123,6 +123,9 @@ async function createBadge(): Promise<void> {
   shadow.appendChild(container);
   document.body.appendChild(host);
 
+  // Try to restore badge state from chrome.storage.local (set by popup on save).
+  await restoreBadgeState(container);
+
   // Listen for badge updates and vacancy extraction requests.
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === "UPDATE_BADGE" && container) {
@@ -159,6 +162,25 @@ async function createBadge(): Promise<void> {
 interface BadgePayload {
   score?: number;
   status?: string;
+}
+
+/**
+ * Restore badge content from chrome.storage.local if previously saved.
+ * This ensures the badge shows correct state when the page is loaded/reloaded.
+ */
+async function restoreBadgeState(container: HTMLElement): Promise<void> {
+  try {
+    const match = document.location.href.match(/\/vacancy\/(\d+)/);
+    if (!match) return;
+    const key = `badge_v1_hh_${match[1]}`;
+    const result = await chrome.storage.local.get(key);
+    const state = result[key] as BadgePayload | undefined;
+    if (state && (state.score !== undefined || state.status)) {
+      updateBadgeContent(container, state);
+    }
+  } catch {
+    // Non-critical.
+  }
 }
 
 /**
