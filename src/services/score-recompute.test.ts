@@ -316,4 +316,57 @@ describe("recomputeScoreForJob", () => {
       result2!.ruleScore!.recommendation,
     );
   });
+
+  it("supports recompute-refresh: fresh DB read returns updated score", async () => {
+    // Simulates the ProfileTab → recomputeScoreForJob → side-panel-refresh flow.
+    // After recompute, a fresh read from the mock store should return the job
+    // with ruleScore populated and selectedProfileId updated.
+    const job = makeJob();
+    mockJobStore.set(job.id, job);
+    mockProfileStore.set("profile_1", makeProfile());
+
+    // 1. Recompute with explicit profileId (as ProfileTab does).
+    const recomputed = await recomputeScoreForJob("hh_12345", "profile_1");
+    expect(recomputed).not.toBeNull();
+    expect(recomputed!.ruleScore).toBeDefined();
+    expect(recomputed!.selectedProfileId).toBe("profile_1");
+
+    // 2. Simulate side panel refresh — re-read the job from the store.
+    const refreshed = mockJobStore.get("hh_12345");
+    expect(refreshed).toBeDefined();
+    expect(refreshed!.ruleScore).toBeDefined();
+    expect(refreshed!.ruleScore!.total).toBe(recomputed!.ruleScore!.total);
+    expect(refreshed!.selectedProfileId).toBe("profile_1");
+  });
+
+  it("supports recompute-refresh: switching profiles updates the score", async () => {
+    // Simulates ProfileTab switching from one profile to another.
+    const job = makeJob();
+    mockJobStore.set(job.id, job);
+    mockProfileStore.set("profile_a", makeProfile({ id: "profile_a" }));
+    mockProfileStore.set(
+      "profile_b",
+      makeProfile({
+        id: "profile_b",
+        targetTitles: ["Backend Developer"],
+        mustHaveSkills: ["Go"],
+      }),
+    );
+
+    // Select profile A.
+    const resultA = await recomputeScoreForJob("hh_12345", "profile_a");
+    expect(resultA!.selectedProfileId).toBe("profile_a");
+
+    // Switch to profile B.
+    const resultB = await recomputeScoreForJob("hh_12345", "profile_b");
+    expect(resultB!.selectedProfileId).toBe("profile_b");
+
+    // Scores should differ because profiles have different target titles/skills.
+    expect(resultB!.ruleScore!.total).not.toBe(resultA!.ruleScore!.total);
+
+    // Fresh read should reflect the latest profile.
+    const refreshed = mockJobStore.get("hh_12345");
+    expect(refreshed!.selectedProfileId).toBe("profile_b");
+    expect(refreshed!.ruleScore!.total).toBe(resultB!.ruleScore!.total);
+  });
 });

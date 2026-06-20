@@ -291,7 +291,7 @@ export function ProfileManager(): ReactNode {
         const allLetters = await db.coverLetters.toArray();
         for (const letter of allLetters) {
           if (letter.profileId === id) {
-            letter.profileId = "";
+            letter.profileId = undefined;
             await coverLetterRepo.save(letter);
           }
         }

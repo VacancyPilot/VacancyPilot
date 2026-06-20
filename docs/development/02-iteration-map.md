@@ -71,7 +71,7 @@ Status values:
 | ITER-028 | EPIC-14 | Fix dashboard storage listener and harden release-audit execution | done | `fix: correct dashboard storage listener and add release audit scripts` |
 | ITER-029 | EPIC-14 | Deduplicate badge-state helpers and improve parsing quality | done | `fix: dedup badge helpers, add experience parser, tighten passive status regex` |
 | ITER-030 | EPIC-14 | Integrate passive HH status and replace side panel context guessing | done | `feat: integrate passive HH status parser and fix side panel context` |
-| ITER-031 | EPIC-14 | Clean up profile lifecycle nullability and strengthen company identity | planned | `fix: make coverLetter profileId nullable, parse employer ID, verify recompute UX` |
+| ITER-031 | EPIC-14 | Clean up profile lifecycle nullability and strengthen company identity | done | `fix: make coverLetter profileId nullable, parse employer ID, verify recompute UX` |
 
 ## Cursor/Codex Rule
 

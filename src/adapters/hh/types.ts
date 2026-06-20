@@ -1,6 +1,6 @@
 // --- HH parser types ---
 
-export type ParserSeverity = 'info' | 'warn';
+export type ParserSeverity = "info" | "warn";
 
 export interface ParserWarning {
   field: string;
@@ -22,13 +22,14 @@ export interface RawVacancyDTO {
   salaryMax: number | null;
   salaryCurrency: string | null;
   city: string | null;
-  workMode: 'remote' | 'hybrid' | 'office' | 'unknown' | null;
+  workMode: "remote" | "hybrid" | "office" | "unknown" | null;
   experienceRaw: string | null;
   employmentType: string | null;
   schedule: string | null;
   descriptionHtml: string | null;
   descriptionText: string | null;
   skills: string[] | null;
+  sourceCompanyId: string | null;
   extractedAt: string;
   selectorVersion: string;
   warnings: ParserWarning[];

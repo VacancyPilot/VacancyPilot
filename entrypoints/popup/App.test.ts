@@ -120,6 +120,7 @@ function makeMinimalDTO(overrides?: Partial<RawVacancyDTO>): RawVacancyDTO {
     descriptionHtml: "<p>Test</p>",
     descriptionText: "Test",
     skills: ["React"],
+    sourceCompanyId: null,
     extractedAt: new Date().toISOString(),
     selectorVersion: "1.0.0",
     warnings: [],
@@ -221,22 +222,34 @@ function passiveStatusLabel(
 
 describe("passiveStatusLabel", () => {
   it("returns label for detectedApplied", () => {
-    const result = passiveStatusLabel({ detectedApplied: true, detectedAt: "" });
+    const result = passiveStatusLabel({
+      detectedApplied: true,
+      detectedAt: "",
+    });
     expect(result).toBe("HH shows: Вы откликнулись");
   });
 
   it("returns label for detectedRejected", () => {
-    const result = passiveStatusLabel({ detectedRejected: true, detectedAt: "" });
+    const result = passiveStatusLabel({
+      detectedRejected: true,
+      detectedAt: "",
+    });
     expect(result).toBe("HH shows: Отказ");
   });
 
   it("returns label for detectedInvitation", () => {
-    const result = passiveStatusLabel({ detectedInvitation: true, detectedAt: "" });
+    const result = passiveStatusLabel({
+      detectedInvitation: true,
+      detectedAt: "",
+    });
     expect(result).toBe("HH shows: Приглашение");
   });
 
   it("returns label for detectedViewedByEmployer", () => {
-    const result = passiveStatusLabel({ detectedViewedByEmployer: true, detectedAt: "" });
+    const result = passiveStatusLabel({
+      detectedViewedByEmployer: true,
+      detectedAt: "",
+    });
     expect(result).toContain("Работодатель");
   });
 
@@ -252,9 +265,7 @@ describe("passiveStatusLabel", () => {
 
 // ── OPEN_SIDE_PANEL explicit context payload ──
 
-function buildOpenSidePanelMessage(
-  pageInfo: PageStatusInfo,
-): {
+function buildOpenSidePanelMessage(pageInfo: PageStatusInfo): {
   type: "OPEN_SIDE_PANEL";
   tabId?: number;
   vacancyId?: string;

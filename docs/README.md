@@ -22,5 +22,5 @@ When recommendations conflict, use the priority order from the final specificati
 
 Recommended next action:
 
-- implement [development/prompts/ITER-031.md](development/prompts/ITER-031.md) to continue the second post-hardening fix pack
+- review manual verification gates and Phase 2 start readiness before opening new implementation scope
 - keep [development/prompts/ITER-014.md](development/prompts/ITER-014.md) deferred until webhook automation returns to active scope

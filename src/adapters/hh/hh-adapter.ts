@@ -77,6 +77,9 @@ export class HHAdapter implements SiteAdapter {
 
     const workModeRaw = this.tryExtract(doc, "workMode");
 
+    // Extract employer/source company ID from company link (e.g. /employer/12345)
+    const sourceCompanyId = this.extractEmployerId(doc);
+
     // Collect warnings for missing fields
     const nullableFields: Array<{ key: keyof RawVacancyDTO; value: unknown }> =
       [
@@ -119,6 +122,7 @@ export class HHAdapter implements SiteAdapter {
       descriptionHtml: descriptionHtml,
       descriptionText: descriptionText,
       skills: this.extractSkills(doc),
+      sourceCompanyId,
       extractedAt: now,
       selectorVersion: SELECTOR_VERSION,
       warnings,
@@ -231,6 +235,28 @@ export class HHAdapter implements SiteAdapter {
     const el = doc.querySelector("[data-vacancy-id]");
     if (el) return el.getAttribute("data-vacancy-id");
 
+    return null;
+  }
+
+  /**
+   * Extract employer ID from the company link element.
+   * HH.ru company links look like: <a href="/employer/12345">Company Name</a>
+   * Returns the numeric employer ID as a string, or null.
+   */
+  private extractEmployerId(doc: Document): string | null {
+    const selectors = SELECTORS_V1.companyLink;
+    for (const selector of selectors) {
+      try {
+        const el = doc.querySelector(selector);
+        if (!el) continue;
+        const href = el.getAttribute("href");
+        if (!href) continue;
+        const match = href.match(/\/employer\/(\d+)/i);
+        if (match) return match[1];
+      } catch {
+        continue;
+      }
+    }
     return null;
   }
 

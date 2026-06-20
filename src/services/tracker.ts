@@ -28,10 +28,17 @@ function hashString(s: string): string {
 }
 
 /**
- * Generate a company id from a company name.
- * Temporary until sourceCompanyId extraction is added to the parser.
+ * Generate a company id from a company name and optional employer ID.
+ * When a real employer ID is available (parsed from /employer/<id>), prefer it
+ * over a name-based slug, which is collision-prone.
  */
-function companyIdFromName(name: string): string {
+function companyIdFromName(
+  name: string,
+  sourceCompanyId?: string | null,
+): string {
+  if (sourceCompanyId) {
+    return `${SOURCE_HH}_co_emp_${sourceCompanyId}`;
+  }
   const slug = name
     .toLowerCase()
     .replace(/[^a-zа-яё0-9]+/g, "_")
@@ -133,7 +140,10 @@ function dtoToNewJob(dto: RawVacancyDTO, sourceVacancyId: string): Job {
     canonicalUrl: undefined,
 
     title: dto.title ?? "",
-    companyId: companyIdFromName(dto.companyName ?? "unknown"),
+    companyId: companyIdFromName(
+      dto.companyName ?? "unknown",
+      dto.sourceCompanyId,
+    ),
     companyName: dto.companyName ?? "",
 
     salaryRaw: dto.salaryRaw ?? undefined,
@@ -203,6 +213,13 @@ export const tracker = {
         ...existing,
         title: dto.title ?? existing.title,
         companyName: dto.companyName ?? existing.companyName,
+        // Upgrade companyId when a real employer ID becomes available
+        companyId: dto.sourceCompanyId
+          ? companyIdFromName(
+              dto.companyName ?? existing.companyName,
+              dto.sourceCompanyId,
+            )
+          : existing.companyId,
         salaryRaw: dto.salaryRaw ?? existing.salaryRaw,
         salaryMin: dto.salaryMin ?? existing.salaryMin,
         salaryMax: dto.salaryMax ?? existing.salaryMax,

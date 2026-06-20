@@ -258,7 +258,7 @@ describe("orphan reference cleanup — profile deletion", () => {
   function simulateProfileCleanup(
     deletedProfileId: string,
     jobs: Array<{ id: string; selectedProfileId?: string }>,
-    letters: Array<{ id: string; profileId: string }>,
+    letters: Array<{ id: string; profileId?: string }>,
     applications: Array<{ id: string; profileId?: string }>,
   ) {
     return {

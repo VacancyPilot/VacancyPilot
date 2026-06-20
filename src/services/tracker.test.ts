@@ -261,6 +261,7 @@ function makeDTO(overrides?: Partial<RawVacancyDTO>): RawVacancyDTO {
     descriptionHtml: "<p>We need a React developer</p>",
     descriptionText: "We need a React developer",
     skills: ["React", "TypeScript"],
+    sourceCompanyId: null,
     extractedAt: new Date().toISOString(),
     selectorVersion: "1.0.0",
     warnings: [],

@@ -21,7 +21,7 @@ export interface CoverLetterVersion {
 export interface CoverLetter {
   id: string;
   jobId: string;
-  profileId: string;
+  profileId?: string;
   resumeId?: string;
 
   mode: CoverLetterMode;

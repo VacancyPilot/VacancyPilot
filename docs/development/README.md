@@ -18,15 +18,15 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-030 complete
-passive status integration and explicit side panel context completed on 2026-06-20
+ITER-031 complete
+second audit fix pack completed on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-ITER-031: Profile Lifecycle And Company Identity Hardening
-Prompt: docs/development/prompts/ITER-031.md
+No active hardening prompt.
+Next: run manual Chrome/Edge verification gates, then decide Phase 2 start readiness.
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
@@ -56,4 +56,4 @@ docs/development/ITER-027-triage-report.md
 
 ## Status
 
-The first post-signoff hardening pack is complete. The second audit has been triaged into a narrow follow-up fix pack (`ITER-028`..`ITER-031`) before any Phase 2 start decision. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
+The first post-signoff hardening pack is complete. The second audit follow-up fix pack (`ITER-028`..`ITER-031`) is now also complete. The next decision gate is manual Chrome/Edge verification plus GitHub checks review before any Phase 2 start. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
