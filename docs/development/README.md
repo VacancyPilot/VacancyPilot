@@ -21,18 +21,19 @@ Current implementation status:
 ITER-038 complete
 phase 1 code, hardening, and closeout gate complete on 2026-06-20
 phase 2 pack complete on 2026-06-20
-dependency/toolchain maintenance pack prepared on 2026-06-20
+dependency/toolchain maintenance pack complete on 2026-06-20
+security-alert closure pack prepared on 2026-06-20
 phase 3 pack prepared on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-Maintenance first:
+Security closure first:
 1. Review docs/development/00-product-development-plan.md
-2. Start ITER-048
-3. Continue ITER-049..050 one row at a time
-4. Resume ITER-039..042 after maintenance is complete
+2. Start ITER-051
+3. Continue ITER-052..054 one row at a time
+4. Resume ITER-039..042 after security closure is complete
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
@@ -63,4 +64,4 @@ docs/development/phase-2-start-gate.md
 
 ## Status
 
-The first post-signoff hardening pack is complete. The second audit follow-up fix pack (`ITER-028`..`ITER-031`) is also complete. `ITER-032` closed the manual/infrastructure gate, Phase 2 implementation then ran through `ITER-038`, and a short maintenance pack now sits in front of the prepared Phase 3 workflow-assist sequence. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
+The first post-signoff hardening pack is complete. The second audit follow-up fix pack (`ITER-028`..`ITER-031`) is also complete. `ITER-032` closed the manual/infrastructure gate, Phase 2 implementation then ran through `ITER-038`, the dependency/toolchain maintenance pack ran through `ITER-050`, and a narrow security-alert closure pack now sits in front of the prepared Phase 3 workflow-assist sequence. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.

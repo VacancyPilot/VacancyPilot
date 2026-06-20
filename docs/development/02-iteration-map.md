@@ -100,9 +100,18 @@ Status values:
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-048 | EPIC-27 | Refresh the pinned WXT stack and re-establish a clean dependency baseline | planned | `chore: refresh wxt dependency baseline` |
-| ITER-049 | EPIC-27 | Migrate the repository cleanly to TypeScript 6 | planned | `chore: migrate to typescript 6` |
-| ITER-050 | EPIC-27 | Align the React runtime/type stack deliberately after dependency triage | planned | `chore: align react stack` |
+| ITER-048 | EPIC-27 | Refresh the pinned WXT stack and re-establish a clean dependency baseline | done | `chore: refresh wxt dependency baseline` |
+| ITER-049 | EPIC-27 | Migrate the repository cleanly to TypeScript 6 | done | `chore: migrate to typescript 6` |
+| ITER-050 | EPIC-27 | Align the React runtime/type stack deliberately after dependency triage | done | `chore: align react stack` |
+
+## Phase 2.6: Security Alert Closure
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-051 | EPIC-28 | Inventory remaining GitHub security alerts and map each one to a fix path or blocker | planned | `docs: inventory remaining security alerts` |
+| ITER-052 | EPIC-28 | Close safe transitive alerts with targeted overrides and minimal version moves | planned | `fix: close safe transitive security alerts` |
+| ITER-053 | EPIC-28 | Resolve toolchain-linked high alerts that require coordinated dependency updates | planned | `fix: resolve toolchain linked security alerts` |
+| ITER-054 | EPIC-28 | Re-run audit/verification and document final remaining alert posture | planned | `docs: finalize security alert closure status` |
 
 ## Phase 3: Guided Apply Labs
 

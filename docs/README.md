@@ -23,6 +23,7 @@ When recommendations conflict, use the priority order from the final specificati
 Recommended next action:
 
 - Phase 2 search-triage and workflow queue pack is complete through `ITER-038`
-- run the dependency/toolchain maintenance pack from `development/prompts/ITER-048.md` through `ITER-050.md`
-- resume the prepared Phase 3 pack from `development/prompts/ITER-039.md` after maintenance is complete
+- dependency/toolchain maintenance is complete through `ITER-050`
+- run the security-alert closure pack from `development/prompts/ITER-051.md` through `ITER-054.md`
+- resume the prepared Phase 3 pack from `development/prompts/ITER-039.md` after security closure work is complete
 - keep [development/prompts/ITER-014.md](development/prompts/ITER-014.md) deferred until webhook automation returns to active scope

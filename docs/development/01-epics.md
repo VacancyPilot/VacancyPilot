@@ -34,7 +34,8 @@ This file is the working map from the master specification to implementation epi
 
 | Epic | Name | Phase | Status |
 | --- | --- | --- | --- |
-| EPIC-27 | Dependency And Toolchain Maintenance | 2.5 | ready |
+| EPIC-27 | Dependency And Toolchain Maintenance | 2.5 | done |
+| EPIC-28 | Security Alert Closure | 2.6 | ready |
 
 ## Phase 3 Epics
 
