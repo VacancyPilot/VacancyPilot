@@ -23,3 +23,8 @@ export type {
 } from "./ai";
 export type { AppSettings } from "./settings";
 export type { LabsActionType, LabsActionLog } from "./labs-action-log";
+export type {
+  HrReplyType,
+  HrTimelineEntry,
+  RawHrTimelineDTO,
+} from "./hr-timeline";

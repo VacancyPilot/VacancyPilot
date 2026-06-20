@@ -1,6 +1,7 @@
 // --- HHAdapter — safe, read-only parser ---
 // Phase 0–1: vacancy page extraction.
 // Phase 2: search card extraction (extractSearchList).
+// Phase 5: HR timeline extraction (extractHrTimeline).
 // Uses versioned selectors with graceful degradation.
 // Never makes network requests, never modifies the page.
 
@@ -11,8 +12,11 @@ import type {
   ApplicationStatusSync,
 } from "../types";
 import type { RawVacancyDTO, ParserWarning } from "./types";
+import type { RawHrTimelineDTO } from "@/models/hr-timeline";
 import { SELECTORS_V1, SELECTOR_VERSION } from "./selectors-v1";
 import { SEARCH_SELECTORS_V1 } from "./search-selectors-v1";
+import { HR_SELECTORS } from "./hr-selectors";
+import { classifyHrReply } from "@/services/hr-classification";
 
 export class HHAdapter implements SiteAdapter {
   readonly siteId = "hh" as const;
@@ -30,6 +34,7 @@ export class HHAdapter implements SiteAdapter {
 
       if (/^\/vacancy\/\d+/i.test(path)) return "vacancy";
       if (/^\/search\/vacancy/i.test(path)) return "search";
+      if (/^\/applicant\/responses/i.test(path)) return "applications";
       if (/^\/applicant\/resumes/i.test(path)) return "applications";
       if (/^\/negotiations/i.test(path)) return "messages";
 
@@ -221,6 +226,254 @@ export class HHAdapter implements SiteAdapter {
     }
 
     return found ? result : null;
+  }
+
+  // ── HR timeline extraction — Phase 5 ─────────────────────────
+
+  /**
+   * Extract visible HR communication entries from user-opened
+   * application / negotiation pages.
+   *
+   * Read-only DOM parsing. No network requests. No DOM writes.
+   * Returns sanitized, classified timeline DTOs.
+   */
+  extractHrTimeline?(doc: Document): RawHrTimelineDTO[] {
+    const now = new Date().toISOString();
+    const sourceUrl = doc.URL;
+
+    // Determine page kind from URL for sourcePage tagging
+    const sourcePage = this.detectHrPageKind(doc.URL);
+
+    const results: RawHrTimelineDTO[] = [];
+
+    // Try to find message/communication blocks
+    const messageElements = this.findHrMessageBlocks(doc);
+
+    if (messageElements.length > 0) {
+      for (const el of messageElements) {
+        try {
+          const dto = this.extractSingleHrMessage(
+            el,
+            sourceUrl,
+            sourcePage,
+            now,
+          );
+          if (dto) results.push(dto);
+        } catch {
+          // Skip entries that cause errors — never crash on bad DOM.
+          continue;
+        }
+      }
+    }
+
+    // If no message blocks found, try response cards (applications list)
+    if (results.length === 0) {
+      const responseElements = this.findHrResponseCards(doc);
+      for (const el of responseElements) {
+        try {
+          const dto = this.extractSingleHrResponse(
+            el,
+            sourceUrl,
+            sourcePage,
+            now,
+          );
+          if (dto) results.push(dto);
+        } catch {
+          continue;
+        }
+      }
+    }
+
+    return results;
+  }
+
+  extractLinkedVacancyIdFromHrPage?(doc: Document): string | null {
+    for (const selector of HR_SELECTORS.responseLink) {
+      try {
+        const link = doc.querySelector(selector);
+        const href = link?.getAttribute("href") ?? null;
+        const fromSelector = this.extractVacancyIdFromHref(href);
+        if (fromSelector) return fromSelector;
+      } catch {
+        continue;
+      }
+    }
+
+    const allLinks = Array.from(doc.querySelectorAll('a[href*="/vacancy/"]'));
+    for (const link of allLinks) {
+      const href = link.getAttribute("href") ?? null;
+      const vacancyId = this.extractVacancyIdFromHref(href);
+      if (vacancyId) return vacancyId;
+    }
+
+    return null;
+  }
+
+  // ── HR timeline private helpers ───────────────────────────────
+
+  /**
+   * Detect which HR page kind we're on from the URL.
+   */
+  private detectHrPageKind(
+    url: string,
+  ): "applications" | "messages" | "negotiations" {
+    try {
+      const path = new URL(url).pathname;
+      if (/\/negotiations\/\d+/i.test(path)) return "messages";
+      if (/\/negotiations/i.test(path)) return "negotiations";
+      if (/\/applicant\/responses/i.test(path)) return "applications";
+    } catch {
+      // fall through
+    }
+    return "negotiations";
+  }
+
+  /**
+   * Find all message/communication blocks using hr-selectors.
+   */
+  private findHrMessageBlocks(doc: Document): Element[] {
+    const selectors = HR_SELECTORS.messageBlocks;
+    for (const selector of selectors) {
+      try {
+        const elements = Array.from(doc.querySelectorAll(selector));
+        if (elements.length > 0) return elements;
+      } catch {
+        continue;
+      }
+    }
+    return [];
+  }
+
+  /**
+   * Find all response cards using hr-selectors.
+   */
+  private findHrResponseCards(doc: Document): Element[] {
+    const selectors = HR_SELECTORS.responseCards;
+    for (const selector of selectors) {
+      try {
+        const elements = Array.from(doc.querySelectorAll(selector));
+        if (elements.length > 0) return elements;
+      } catch {
+        continue;
+      }
+    }
+    return [];
+  }
+
+  /**
+   * Extract a single HR message DTO from a message block element.
+   */
+  private extractSingleHrMessage(
+    el: Element,
+    sourceUrl: string,
+    sourcePage: "applications" | "messages" | "negotiations",
+    now: string,
+  ): RawHrTimelineDTO | null {
+    // Extract text content
+    const textEl = this.tryExtractHrElement(el, "messageText");
+    const text = textEl?.textContent?.trim() ?? null;
+
+    // Extract HTML snippet (sanitized — just the inner structure)
+    const html = textEl?.innerHTML?.trim() ?? null;
+
+    // Extract status badge
+    const badge = this.tryExtractHrText(el, "statusBadge");
+
+    // Extract timestamp
+    const timestampText = this.tryExtractHrText(el, "timestamp");
+
+    // Classify based on badge + text
+    const classification = classifyHrReply({
+      text: text ?? "",
+      statusBadge: badge,
+    });
+
+    return {
+      text,
+      html,
+      type: classification.type,
+      statusBadge: badge,
+      timestampText,
+      sourceUrl,
+      sourcePage,
+      extractedAt: now,
+    };
+  }
+
+  /**
+   * Extract a single HR response DTO from a response card element.
+   */
+  private extractSingleHrResponse(
+    el: Element,
+    sourceUrl: string,
+    sourcePage: "applications" | "messages" | "negotiations",
+    now: string,
+  ): RawHrTimelineDTO | null {
+    // Extract status badge
+    const badge = this.tryExtractHrText(el, "statusBadge");
+
+    // Extract text from the response content
+    const textEl = this.tryExtractHrElement(el, "messageText");
+    const text = textEl?.textContent?.trim() ?? null;
+
+    // If no message text, try to use the response title + status as text
+    const effectiveText = text ?? this.tryExtractHrText(el, "responseTitle");
+
+    const html = textEl?.innerHTML?.trim() ?? null;
+
+    // Extract timestamp
+    const timestampText = this.tryExtractHrText(el, "timestamp");
+
+    // Classify based on badge + text
+    const classification = classifyHrReply({
+      text: effectiveText ?? "",
+      statusBadge: badge,
+    });
+
+    return {
+      text: effectiveText,
+      html,
+      type: classification.type,
+      statusBadge: badge,
+      timestampText,
+      sourceUrl,
+      sourcePage,
+      extractedAt: now,
+    };
+  }
+
+  /**
+   * Try each selector within a scoped element.
+   * Returns the first matching Element, or null.
+   */
+  private tryExtractHrElement(
+    scope: Element,
+    field: keyof typeof HR_SELECTORS,
+  ): Element | null {
+    const selectors = HR_SELECTORS[field];
+    for (const selector of selectors) {
+      try {
+        const el = scope.querySelector(selector);
+        if (el?.textContent?.trim()) {
+          return el;
+        }
+      } catch {
+        continue;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Try each selector within a scoped element.
+   * Returns the text content of the first matching element, or null.
+   */
+  private tryExtractHrText(
+    scope: Element,
+    field: keyof typeof HR_SELECTORS,
+  ): string | null {
+    const el = this.tryExtractHrElement(scope, field);
+    return el?.textContent?.trim() ?? null;
   }
 
   // ── Search card extraction helpers ───────────────────────────

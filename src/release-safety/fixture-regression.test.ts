@@ -1,8 +1,11 @@
 /**
  * Fixture Regression Tests — ITER-015.
  *
- * Run all HH parser fixtures and produce a pass/fail summary.
+ * Run all HH **vacancy** parser fixtures and produce a pass/fail summary.
  * Fails the test suite if any fixture regression is detected.
+ *
+ * HR timeline fixtures (hr-*) are excluded — they're tested separately
+ * in hr-fixtures.test.ts via extractHrTimeline.
  *
  * This is a safety gate: if a parser change breaks an existing fixture,
  * CI will catch it immediately.
@@ -24,9 +27,17 @@ interface FixtureCase {
   url: string;
 }
 
+/** Fixture names that are for HR timeline, not vacancy parsing. */
+const HR_FIXTURE_PREFIXES = ["hr-"];
+
+function isHrFixture(name: string): boolean {
+  return HR_FIXTURE_PREFIXES.some((prefix) => name.startsWith(prefix));
+}
+
 /**
- * Discover all fixture pairs in the fixtures directory.
+ * Discover all vacancy fixture pairs in the fixtures directory.
  * A fixture pair consists of <name>.html and <name>.expected.json.
+ * HR timeline fixtures (hr-*) are skipped — they use a different parser.
  */
 function discoverFixtures(): FixtureCase[] {
   const files = readdirSync(FIXTURES_DIR);
@@ -36,6 +47,10 @@ function discoverFixtures(): FixtureCase[] {
 
   for (const htmlFile of htmlFiles) {
     const name = basename(htmlFile, ".html");
+
+    // Skip HR timeline fixtures — they're tested separately
+    if (isHrFixture(name)) continue;
+
     const expectedFile = `${name}.expected.json`;
 
     if (!files.includes(expectedFile)) {
@@ -97,8 +112,16 @@ describe("fixture regression", () => {
 
   // ── Discovery ───────────────────────────────────────────────────────
 
-  it("finds at least 2 fixture pairs in the fixtures directory", () => {
+  it("finds at least 2 vacancy fixture pairs in the fixtures directory", () => {
+    // HR fixtures are excluded — only vacancy fixtures should be counted
     expect(fixtures.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("does not include HR timeline fixtures", () => {
+    const names = fixtures.map((f) => f.name);
+    for (const name of names) {
+      expect(name.startsWith("hr-")).toBe(false);
+    }
   });
 
   it("each fixture has an HTML file and expected JSON file", () => {
@@ -186,12 +209,12 @@ describe("fixture regression", () => {
       }
     });
 
-    it("reports the total number of fixtures checked", () => {
-      // This is a meta-test: it documents how many fixtures exist.
-      // Adding new fixtures should update the expected count.
+    it("reports the total number of vacancy fixtures checked", () => {
+      // This is a meta-test: it documents how many vacancy fixtures exist.
+      // HR timeline fixtures are excluded — they're tested separately.
       expect(fixtures.length).toBeGreaterThanOrEqual(2);
       console.log(
-        `[fixture-regression] Checked ${fixtures.length} fixture(s): ${fixtures
+        `[fixture-regression] Checked ${fixtures.length} vacancy fixture(s): ${fixtures
           .map((f) => f.name)
           .join(", ")}`,
       );

@@ -111,3 +111,18 @@ export type {
   CacheStoreParams,
   CoverLetterCacheStoreParams,
 } from "./ai-cache";
+
+// HR classification
+export { classifyHrReply } from "./hr-classification";
+export type {
+  ClassificationInput,
+  ClassificationResult,
+} from "./hr-classification";
+
+// HR timeline sync
+export {
+  upsertApplicationFromJob,
+  buildHrTimelineEntryId,
+  normalizeHrTimelineEntry,
+  persistHrTimelineForJob,
+} from "./hr-timeline-sync";

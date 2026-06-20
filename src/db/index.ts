@@ -4,6 +4,7 @@ export {
   SCHEMA_V1,
   SCHEMA_V2,
   SCHEMA_V3,
+  SCHEMA_V4,
   TABLE_NAMES,
   SCHEMA_VERSION,
 } from "./schema";
@@ -26,5 +27,7 @@ export {
 } from "./repositories";
 
 export { labsActionRepo } from "./labs-repository";
+
+export { hrTimelineRepo } from "./hr-timeline-repository";
 
 export { defaultSettings, loadSettings, saveSettings } from "./settings-bridge";

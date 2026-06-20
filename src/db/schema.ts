@@ -35,4 +35,10 @@ export const SCHEMA_V3 = {
   labsActions: "&id, type, jobId, createdAt",
 } as const;
 
-export const SCHEMA_VERSION = 3;
+/** v4 adds hrTimeline store for HR communication timeline entries. */
+export const SCHEMA_V4 = {
+  ...SCHEMA_V3,
+  hrTimeline: "&id, applicationId, type, extractedAt, updatedAt",
+} as const;
+
+export const SCHEMA_VERSION = 4;

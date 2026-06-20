@@ -2,14 +2,17 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EmptyState } from "@/components/EmptyState";
 import { CoverLetterStudio } from "@/components/CoverLetterStudio";
 import { GuidedApplyWorkspace } from "@/components/GuidedApplyWorkspace";
+import { HrWorkspace } from "@/components/HrWorkspace";
 import { ProfileTab } from "@/components/ProfileTab";
 import { jobRepo } from "@/db/repositories";
 import type { Job } from "@/models/job";
 import type { RiskFlag } from "@/models/risk";
 import type { ApplicationStatusSync } from "@/adapters/types";
+import type { RawHrTimelineDTO } from "@/models/hr-timeline";
+import { persistHrTimelineForJob } from "@/services/hr-timeline-sync";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 
-type TabId = "overview" | "score" | "letter" | "apply" | "profile" | "history";
+type TabId = "overview" | "score" | "letter" | "apply" | "profile" | "history" | "hr";
 
 interface TabDef {
   id: TabId;
@@ -23,6 +26,7 @@ const TABS: TabDef[] = [
   { id: "apply", label: "Apply" },
   { id: "profile", label: "Profile" },
   { id: "history", label: "History" },
+  { id: "hr", label: "HR" },
 ];
 
 interface VacancyContext {
@@ -31,6 +35,13 @@ interface VacancyContext {
   profileId?: string;
   resumeId?: string;
   passiveStatus?: Partial<ApplicationStatusSync> | null;
+}
+
+interface HrExtractionResponse {
+  success: boolean;
+  timeline?: RawHrTimelineDTO[];
+  sourceVacancyId?: string | null;
+  error?: string;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -123,6 +134,26 @@ function riskSeverityColor(severity: string): string {
   }
 }
 
+function detectSupportedPageKind(
+  url: string | undefined,
+): "vacancy" | "applications" | "messages" | "other" {
+  if (!url) return "other";
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== "hh.ru" && !parsed.hostname.endsWith(".hh.ru")) {
+      return "other";
+    }
+
+    if (/^\/vacancy\/\d+/i.test(parsed.pathname)) return "vacancy";
+    if (/^\/applicant\/responses/i.test(parsed.pathname)) return "applications";
+    if (/^\/negotiations/i.test(parsed.pathname)) return "messages";
+    return "other";
+  } catch {
+    return "other";
+  }
+}
+
 // ── Main Side Panel ────────────────────────────────────────────────────────
 
 function SidePanelContent(): ReactNode {
@@ -141,77 +172,110 @@ function SidePanelContent(): ReactNode {
 
     async function detect(): Promise<void> {
       try {
-        // 1. Try explicit background context first.
         const context: { tabId: number; vacancyId: string | null } | null =
           await chrome.runtime.sendMessage({ type: "GET_SIDE_PANEL_CONTEXT" });
 
-        let tabId = context?.tabId;
-        let vacancyId = context?.vacancyId;
-
-        // 2. Validate the background context: ensure the stored tab still exists
-        // and its URL still points to a vacancy page. If the user switched tabs,
-        // the stored context is stale and we fall back to active-tab detection.
-        let contextValid = false;
-        if (tabId && tabId > 0 && vacancyId) {
+        let tab: chrome.tabs.Tab | undefined;
+        if (context?.tabId && context.tabId > 0) {
           try {
-            const storedTab = await chrome.tabs.get(tabId);
-            if (storedTab?.url) {
-              const storedMatch = storedTab.url.match(/\/vacancy\/(\d+)/);
-              if (storedMatch && storedMatch[1] === vacancyId) {
-                contextValid = true;
-              }
-            }
+            tab = await chrome.tabs.get(context.tabId);
           } catch {
-            // Tab no longer exists — context is stale.
+            tab = undefined;
           }
         }
 
-        if (!contextValid) {
-          const [tab] = await chrome.tabs.query({
+        if (!tab) {
+          const [activeTab] = await chrome.tabs.query({
             active: true,
             lastFocusedWindow: true,
           });
-          if (cancelled || !tab?.url || tab.id === undefined) {
-            if (!cancelled) setCtx({});
-            return;
-          }
-          tabId = tab.id;
+          tab = activeTab;
+        }
+
+        if (cancelled || !tab?.url || tab.id === undefined) {
+          if (!cancelled) setCtx({});
+          return;
+        }
+
+        const pageKind = detectSupportedPageKind(tab.url);
+
+        if (pageKind === "vacancy") {
           const match = tab.url.match(/\/vacancy\/(\d+)/);
           if (!match) {
             if (!cancelled) setCtx({});
             return;
           }
-          vacancyId = match[1];
-        }
 
-        const jobId = `hh_${vacancyId}`;
-        const job = await jobRepo.getById(jobId);
+          const vacancyId = match[1];
+          const jobId = `hh_${vacancyId}`;
+          const job = await jobRepo.getById(jobId);
 
-        // 3. Fetch passive HH status from the content script.
-        let passiveStatus: Partial<ApplicationStatusSync> | null | undefined;
-        if (tabId !== undefined) {
           try {
             const response: {
               success: boolean;
               passiveStatus?: Partial<ApplicationStatusSync> | null;
-            } = await chrome.tabs.sendMessage(tabId, {
+            } = await chrome.tabs.sendMessage(tab.id, {
               type: "EXTRACT_VACANCY",
             });
-            passiveStatus = response?.passiveStatus ?? undefined;
+            if (!cancelled) {
+              setCtx({
+                jobId,
+                job: job ?? undefined,
+                profileId: job?.selectedProfileId,
+                resumeId: job?.selectedResumeId,
+                passiveStatus: response?.passiveStatus ?? undefined,
+              });
+            }
           } catch {
-            passiveStatus = undefined;
+            if (!cancelled) {
+              setCtx({
+                jobId,
+                job: job ?? undefined,
+                profileId: job?.selectedProfileId,
+                resumeId: job?.selectedResumeId,
+              });
+            }
           }
+          return;
         }
 
-        if (!cancelled) {
-          setCtx({
-            jobId,
-            job: job ?? undefined,
-            profileId: job?.selectedProfileId,
-            resumeId: job?.selectedResumeId,
-            passiveStatus,
-          });
+        if (pageKind === "applications" || pageKind === "messages") {
+          let vacancyId = context?.tabId === tab.id ? context?.vacancyId : null;
+
+          let hrResponse: HrExtractionResponse | null = null;
+          try {
+            hrResponse = (await chrome.tabs.sendMessage(tab.id, {
+              type: "EXTRACT_HR_TIMELINE",
+            })) as HrExtractionResponse;
+          } catch {
+            hrResponse = null;
+          }
+
+          vacancyId = hrResponse?.sourceVacancyId ?? vacancyId ?? null;
+          if (!vacancyId) {
+            if (!cancelled) setCtx({});
+            return;
+          }
+
+          const jobId = `hh_${vacancyId}`;
+          const job = await jobRepo.getById(jobId);
+
+          if (job && hrResponse?.success && hrResponse.timeline) {
+            await persistHrTimelineForJob(job, hrResponse.timeline);
+          }
+
+          if (!cancelled) {
+            setCtx({
+              jobId,
+              job: job ?? undefined,
+              profileId: job?.selectedProfileId,
+              resumeId: job?.selectedResumeId,
+            });
+          }
+          return;
         }
+
+        if (!cancelled) setCtx({});
       } catch {
         if (!cancelled) setCtx({});
       }
@@ -372,6 +436,14 @@ function TabContent({
       );
     case "profile":
       return <ProfileTabWrapper ctx={ctx} onRefresh={onRefresh} />;
+    case "hr":
+      return (
+        <HrWorkspace
+          jobId={ctx.jobId ?? ""}
+          job={ctx.job}
+          onRefresh={onRefresh}
+        />
+      );
     case "history":
       return <HistoryTab ctx={ctx} />;
   }

@@ -3,6 +3,7 @@ import {
   SCHEMA_V1,
   SCHEMA_V2,
   SCHEMA_V3,
+  SCHEMA_V4,
   TABLE_NAMES,
   SCHEMA_VERSION,
 } from "./schema";
@@ -137,8 +138,23 @@ describe("schema constant", () => {
     expect(SCHEMA_V3.events).toBe(SCHEMA_V2.events);
   });
 
-  it("schema version is 3", () => {
-    expect(SCHEMA_VERSION).toBe(3);
+  it("schema version is 4", () => {
+    expect(SCHEMA_VERSION).toBe(4);
+  });
+  it("v4 adds hrTimeline table", () => {
+    const spec = SCHEMA_V4.hrTimeline;
+    expect(spec).toContain("&id");
+    expect(spec).toContain("applicationId");
+    expect(spec).toContain("type");
+    expect(spec).toContain("extractedAt");
+    expect(spec).toContain("updatedAt");
+  });
+
+  it("v4 inherits all v3 tables", () => {
+    expect(SCHEMA_V4.jobs).toBe(SCHEMA_V3.jobs);
+    expect(SCHEMA_V4.companies).toBe(SCHEMA_V3.companies);
+    expect(SCHEMA_V4.labsActions).toBe(SCHEMA_V3.labsActions);
+    expect(SCHEMA_V4.hrTimeline).toBeDefined();
   });
 });
 
@@ -161,6 +177,7 @@ describe("VacancyDatabase", () => {
     expect(instance.events).toBeDefined();
     expect(instance.aiCache).toBeDefined();
     expect(instance.labsActions).toBeDefined();
+    expect(instance.hrTimeline).toBeDefined();
     expect(instance.meta).toBeDefined();
   });
 });

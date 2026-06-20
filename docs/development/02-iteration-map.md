@@ -108,32 +108,32 @@ Status values:
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-051 | EPIC-28 | Inventory remaining GitHub security alerts and map each one to a fix path or blocker | planned | `docs: inventory remaining security alerts` |
-| ITER-052 | EPIC-28 | Close safe transitive alerts with targeted overrides and minimal version moves | planned | `fix: close safe transitive security alerts` |
-| ITER-053 | EPIC-28 | Resolve toolchain-linked high alerts that require coordinated dependency updates | planned | `fix: resolve toolchain linked security alerts` |
-| ITER-054 | EPIC-28 | Re-run audit/verification and document final remaining alert posture | planned | `docs: finalize security alert closure status` |
+| ITER-051 | EPIC-28 | Inventory remaining GitHub security alerts and map each one to a fix path or blocker | done | `docs: inventory remaining security alerts` |
+| ITER-052 | EPIC-28 | Close safe transitive alerts with targeted overrides and minimal version moves | done | `fix: close safe transitive security alerts` |
+| ITER-053 | EPIC-28 | Resolve toolchain-linked high alerts that require coordinated dependency updates | done | `fix: resolve toolchain linked security alerts` |
+| ITER-054 | EPIC-28 | Re-run audit/verification and document final remaining alert posture | done | `docs: finalize security alert closure status` |
 
 ## Phase 3: Guided Apply Labs
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-039 | EPIC-22 | Add Labs control plane, kill switch, and local action log | planned | `feat: add labs safety controls` |
-| ITER-040 | EPIC-22 | Add clipboard-only guided-apply workspace and resume recommendation | planned | `feat: add guided apply workspace` |
+| ITER-039 | EPIC-22 | Add Labs control plane, kill switch, and local action log | done | `feat: add labs safety controls` |
+| ITER-040 | EPIC-22 | Add clipboard-only guided-apply workspace and resume recommendation | done | `feat: add guided apply workspace` |
 
 ## Phase 3: Workflow Automation And Reminders
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-041 | EPIC-25 | Add kanban queue workflow and manual stage actions | planned | `feat: add kanban queue workflow` |
-| ITER-042 | EPIC-25 | Add local reminders and daily workflow summary | planned | `feat: add workflow reminders and summary` |
+| ITER-041 | EPIC-25 | Add kanban queue workflow and manual stage actions | done | `feat: add kanban queue workflow` |
+| ITER-042 | EPIC-25 | Add local reminders and daily workflow summary | done | `feat: add workflow reminders and summary` |
 
-## Phase 4: External Automation And HR Workspace
+## Phase 4: HR Communication Hub
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-043 | EPIC-09 | Re-open n8n via permission-gated manual workflow events | backlog | `feat: add opt in workflow webhooks` |
-| ITER-044 | EPIC-23 | Add read-only HR timeline capture and application conversation view | backlog | `feat: add hr timeline capture` |
-| ITER-045 | EPIC-23 | Add reply drafts and follow-up planning workspace | backlog | `feat: add hr follow up workspace` |
+| ITER-043 | EPIC-09 | Re-open n8n via permission-gated manual workflow events | deferred | `feat: add opt in workflow webhooks` |
+| ITER-044 | EPIC-23 | Add read-only HR timeline capture and reply classification from user-opened HH pages | planned | `feat: add hr timeline capture` |
+| ITER-045 | EPIC-23 | Add reply drafts and follow-up planning workspace | planned | `feat: add hr follow up workspace` |
 
 ## Phase 5: Expansion And Release
 

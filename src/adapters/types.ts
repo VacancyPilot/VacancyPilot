@@ -1,6 +1,8 @@
 // --- Adapter contract types ---
 // Phase 0–1: only HHAdapter is implemented.
 
+import type { RawHrTimelineDTO } from "@/models/hr-timeline";
+
 export type SourceSite =
   | "hh"
   | "linkedin"
@@ -54,4 +56,8 @@ export interface SiteAdapter {
   extractVisibleApplicationStatus?(
     doc: Document,
   ): Partial<ApplicationStatusSync> | null;
+  /** Extract visible HR communication entries from application/negotiation pages. Phase 5. */
+  extractHrTimeline?(doc: Document): RawHrTimelineDTO[];
+  /** Resolve linked vacancy id from a visible HR page when available. */
+  extractLinkedVacancyIdFromHrPage?(doc: Document): string | null;
 }

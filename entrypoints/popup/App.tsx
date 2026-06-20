@@ -521,7 +521,19 @@ function buildOpenSidePanelMessage(
 }
 
 function openSidePanel(pageInfo: PageStatusInfo): void {
-  chrome.runtime.sendMessage(buildOpenSidePanelMessage(pageInfo));
+  if (pageInfo.kind === "vacancy") {
+    chrome.runtime.sendMessage(buildOpenSidePanelMessage(pageInfo));
+    return;
+  }
+
+  void chrome.tabs
+    .query({ active: true, currentWindow: true })
+    .then(([tab]) =>
+      chrome.runtime.sendMessage({
+        type: "OPEN_SIDE_PANEL",
+        tabId: tab?.id,
+      }),
+    );
 }
 
 function openDashboard(): void {

@@ -35,21 +35,26 @@ This file is the working map from the master specification to implementation epi
 | Epic | Name | Phase | Status |
 | --- | --- | --- | --- |
 | EPIC-27 | Dependency And Toolchain Maintenance | 2.5 | done |
-| EPIC-28 | Security Alert Closure | 2.6 | ready |
+| EPIC-28 | Security Alert Closure | 2.6 | done |
 
 ## Phase 3 Epics
 
 | Epic | Name | Phase | Status |
 | --- | --- | --- | --- |
-| EPIC-22 | Guided Apply Labs | 3 | ready |
-| EPIC-25 | Workflow Automation And Reminders | 3 | ready |
+| EPIC-22 | Guided Apply Labs | 3 | done |
+| EPIC-25 | Workflow Automation And Reminders | 3 | done |
+
+## Phase 4 Epics
+
+| Epic | Name | Phase | Status |
+| --- | --- | --- | --- |
+| EPIC-23 | HR Communication Hub | 4 | ready |
 
 ## Later Epics
 
 | Epic | Name | Phase | Status |
 | --- | --- | --- | --- |
 | EPIC-09 | n8n And Telegram Webhook Events (re-open only after permission decision) | 4 | deferred |
-| EPIC-23 | HR Communication Hub | 4 | backlog |
 | EPIC-24 | Multi-Site Adapter Expansion | 5 | backlog |
 | EPIC-26 | Public Release And Store Readiness | 6 | backlog |
 

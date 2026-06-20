@@ -164,7 +164,7 @@ describe("generated manifest audit", () => {
   describe("content scripts (generated)", () => {
     const hasManifest = manifestExists();
 
-    it("content scripts only match HH vacancy or search pages", () => {
+    it("content scripts only match approved HH vacancy, search, or HR pages", () => {
       if (!hasManifest) return;
       const manifest = readManifest();
       const contentScripts = manifest.content_scripts as
@@ -179,11 +179,21 @@ describe("generated manifest audit", () => {
       for (const cs of contentScripts) {
         expect(Array.isArray(cs.matches)).toBe(true);
         for (const pattern of cs.matches ?? []) {
-          // All match patterns must be restricted to HH.ru vacancy or search pages.
-          // ITER-034: search badges use /search/vacancy* pattern.
+          // All match patterns must be restricted to narrow HH product surfaces.
+          // Approved surfaces:
+          // - /vacancy/*
+          // - /search/vacancy*
+          // - /applicant/responses*
+          // - /negotiations*
           const isVacancy = /^https:\/\/.*hh\.ru\/vacancy\//.test(pattern);
           const isSearch = /^https:\/\/.*hh\.ru\/search\/vacancy/.test(pattern);
-          expect(isVacancy || isSearch).toBe(true);
+          const isResponses =
+            /^https:\/\/.*hh\.ru\/applicant\/responses/.test(pattern);
+          const isNegotiations =
+            /^https:\/\/.*hh\.ru\/negotiations/.test(pattern);
+          expect(
+            isVacancy || isSearch || isResponses || isNegotiations,
+          ).toBe(true);
           // Must not be overly broad
           expect(pattern).not.toBe("https://hh.ru/*");
           expect(pattern).not.toBe("https://*.hh.ru/*");
@@ -203,9 +213,12 @@ describe("generated manifest audit", () => {
 
       for (const cs of contentScripts) {
         for (const pattern of cs.matches ?? []) {
-          // Vacancy or search path restriction must be present
+          // Narrow path restriction must be present
           const hasPath =
-            /\/vacancy\//.test(pattern) || /\/search\/vacancy/.test(pattern);
+            /\/vacancy\//.test(pattern) ||
+            /\/search\/vacancy/.test(pattern) ||
+            /\/applicant\/responses/.test(pattern) ||
+            /\/negotiations/.test(pattern);
           expect(hasPath).toBe(true);
         }
       }

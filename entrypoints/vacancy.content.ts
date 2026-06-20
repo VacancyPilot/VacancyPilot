@@ -2,14 +2,84 @@ import { defineContentScript } from "wxt/utils/define-content-script";
 import { HHAdapter } from "@/adapters/hh/hh-adapter";
 
 export default defineContentScript({
-  // Narrow scope: only HH.ru vacancy pages.
-  // Badge displays score and status; click opens side panel.
-  // Cover both hh.ru and *.hh.ru (regional subdomains).
-  matches: ["https://hh.ru/vacancy/*", "https://*.hh.ru/vacancy/*"],
+  // Covers vacancy pages plus read-only HR workflow pages.
+  // Visible badge is injected only on vacancy pages; HR pages only expose
+  // read-only extraction handlers for the side panel.
+  matches: [
+    "https://hh.ru/vacancy/*",
+    "https://*.hh.ru/vacancy/*",
+    "https://hh.ru/negotiations*",
+    "https://*.hh.ru/negotiations*",
+    "https://hh.ru/applicant/responses*",
+    "https://*.hh.ru/applicant/responses*",
+  ],
   main() {
-    void createBadge();
+    setupRuntimeBridge();
+
+    const adapter = new HHAdapter();
+    if (adapter.matchUrl(document.location.href) === "vacancy") {
+      void createBadge();
+    }
   },
 });
+
+let badgeContainer: HTMLElement | null = null;
+let runtimeBridgeInstalled = false;
+
+function setupRuntimeBridge(): void {
+  if (runtimeBridgeInstalled) return;
+  runtimeBridgeInstalled = true;
+
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message.type === "UPDATE_BADGE" && badgeContainer) {
+      updateBadgeContent(badgeContainer, message.payload);
+      sendResponse({ success: true });
+      return false;
+    }
+
+    if (message.type === "EXTRACT_VACANCY") {
+      try {
+        const adapter = new HHAdapter();
+        const dto = adapter.extractVacancy(document);
+        const passiveStatus =
+          adapter.extractVisibleApplicationStatus?.(document) ?? undefined;
+        if (dto) {
+          sendResponse({ success: true, dto, passiveStatus });
+        } else {
+          sendResponse({
+            success: false,
+            error: "Could not extract vacancy data from this page",
+            passiveStatus,
+          });
+        }
+      } catch (e) {
+        sendResponse({
+          success: false,
+          error: e instanceof Error ? e.message : String(e),
+        });
+      }
+      return false;
+    }
+
+    if (message.type === "EXTRACT_HR_TIMELINE") {
+      try {
+        const adapter = new HHAdapter();
+        const timeline = adapter.extractHrTimeline?.(document) ?? [];
+        const sourceVacancyId =
+          adapter.extractLinkedVacancyIdFromHrPage?.(document) ?? null;
+        sendResponse({ success: true, timeline, sourceVacancyId });
+      } catch (e) {
+        sendResponse({
+          success: false,
+          error: e instanceof Error ? e.message : String(e),
+        });
+      }
+      return false;
+    }
+
+    return false;
+  });
+}
 
 /**
  * Create a lightweight badge in Shadow DOM on HH.ru vacancy pages.
@@ -127,44 +197,10 @@ async function createBadge(): Promise<void> {
   shadow.appendChild(style);
   shadow.appendChild(container);
   document.body.appendChild(host);
+  badgeContainer = container;
 
   // Try to restore badge state from chrome.storage.local (set by popup on save).
   await restoreBadgeState(container);
-
-  // Listen for badge updates and vacancy extraction requests.
-  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message.type === "UPDATE_BADGE" && container) {
-      updateBadgeContent(container, message.payload);
-      sendResponse({ success: true });
-      return false;
-    }
-
-    if (message.type === "EXTRACT_VACANCY") {
-      try {
-        const adapter = new HHAdapter();
-        const dto = adapter.extractVacancy(document);
-        const passiveStatus =
-          adapter.extractVisibleApplicationStatus?.(document) ?? undefined;
-        if (dto) {
-          sendResponse({ success: true, dto, passiveStatus });
-        } else {
-          sendResponse({
-            success: false,
-            error: "Could not extract vacancy data from this page",
-            passiveStatus,
-          });
-        }
-      } catch (e) {
-        sendResponse({
-          success: false,
-          error: e instanceof Error ? e.message : String(e),
-        });
-      }
-      return false;
-    }
-
-    return false;
-  });
 }
 
 interface BadgePayload {

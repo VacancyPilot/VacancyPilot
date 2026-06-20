@@ -1,13 +1,14 @@
 # VacancyPilot Product Development Plan
 
-Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; dependency maintenance pack complete; security-closure pack open; Phase 3 pack prepared  
+Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; dependency maintenance pack complete; security-closure pack complete; workflow-assist pack complete; HR communication pack ready  
 Source of truth: `docs/Техническое заданиеV.1.md` v1.1 FINAL
 
 Implementation note:
 
 - spec-level `Phase 3 — Workflow Queue` was partially absorbed into the enlarged implementation Phase 2 pack (`ITER-037` / `ITER-038`);
-- the workflow-assist and Labs pack is prepared, but dependency/toolchain maintenance landed first;
-- one additional narrow security-alert closure pack now comes before resuming product-scope Phase 3 work.
+- spec-level `Phase 4 — Guided Apply Labs` and the local workflow-assist layer landed through `ITER-039`..`ITER-042`;
+- the dependency/toolchain maintenance and security-closure packs landed after that product work;
+- the next active product-scope pack is `Phase 5 — HR Communication Hub`, while `n8n` remains deferred until its permission model is explicitly reopened.
 
 ## Decision
 
@@ -112,8 +113,8 @@ Required:
 
 ## Immediate Next Actions
 
-1. Start the security-closure pack with `ITER-051`.
-2. Continue `ITER-052` through `ITER-054`, one row at a time.
-3. Resume the prepared Phase 3 pack with `ITER-039` through `ITER-042`.
-4. Keep `ITER-014` deferred until the n8n permission model decision is explicitly reopened.
-5. Leave HR hub, external notifications, and multi-site work out of the next active pack.
+1. Start the HR communication pack with `ITER-044`.
+2. Continue `ITER-045` after `ITER-044` is reviewed and validated.
+3. Keep `ITER-043` deferred until the `n8n` permission model decision is explicitly reopened.
+4. Leave multi-site expansion and public-release packaging out of the next active pack.
+5. Re-evaluate the single remaining `uuid` dev-only alert only when upstream `wxt -> web-ext-run -> node-notifier` moves.

@@ -7,6 +7,7 @@ import { jobRepo } from "@/db/repositories";
 import { createStatusChange } from "@/services/status-transitions";
 import { checkGuidedApplyGate, recordLabsAction } from "@/services/labs-control";
 import type { RawSearchItemDTO } from "@/adapters/types";
+import { upsertApplicationFromJob } from "@/services/hr-timeline-sync";
 
 interface SidePanelContext {
   tabId: number;
@@ -45,13 +46,16 @@ export default defineBackground(() => {
   // Handle OPEN_SIDE_PANEL message from popup, content badge, or side panel.
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "OPEN_SIDE_PANEL") {
+      const nextTabId = message.tabId ?? sender.tab?.id ?? -1;
       // Store explicit context so the side panel can pick it up.
       // If the sender is a tab (content script), use sender.tab.
       // Popup messages come without a tab; they include vacancyId in the message.
       const vacancyId =
-        message.vacancyId ?? extractVacancyIdFromUrl(sender.tab?.url);
+        message.vacancyId ??
+        extractVacancyIdFromUrl(sender.tab?.url) ??
+        (activeContext?.tabId === nextTabId ? activeContext?.vacancyId : null);
       activeContext = {
-        tabId: message.tabId ?? sender.tab?.id ?? -1,
+        tabId: nextTabId,
         vacancyId,
       };
 
@@ -142,6 +146,7 @@ export default defineBackground(() => {
           job.statusHistory = [...job.statusHistory, change];
           job.updatedAt = new Date().toISOString();
           await jobRepo.save(job);
+          await upsertApplicationFromJob(job, "guided");
           await recordLabsAction("guided_apply_completed", {
             jobId,
             vacancyUrl: job.sourceUrl,
