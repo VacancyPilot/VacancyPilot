@@ -18,15 +18,15 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-017 complete
+ITER-018 complete
 manual QA findings captured on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-ITER-018: Dashboard Runtime Views
-Prompt: docs/development/prompts/ITER-018.md
+ITER-019: Profile and Resume Management
+Prompt: docs/development/prompts/ITER-019.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.

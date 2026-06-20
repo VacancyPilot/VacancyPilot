@@ -1,6 +1,7 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
+import { LoadingState } from "@/components/LoadingState";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import {
   exportAllJson,
@@ -15,6 +16,8 @@ import {
   getDataCounts,
 } from "@/services/delete-all";
 import { db } from "@/db";
+import { jobRepo } from "@/db/repositories";
+import type { Job, JobStatus } from "@/models/job";
 
 type SectionId =
   | "vacancies"
@@ -145,16 +148,258 @@ function DashboardContent(): ReactNode {
   );
 }
 
+// ── Pure helpers for vacancy rendering ──
+
+/** Map score total to a display color. */
+export function scoreColor(total: number | undefined): string {
+  if (total === undefined) return "#999";
+  if (total >= 85) return "#2a8";
+  if (total >= 70) return "#6a6";
+  if (total >= 50) return "#e6a817";
+  return "#c44";
+}
+
+/** Map job status to a badge color. */
+export function statusBadgeStyle(status: JobStatus): {
+  bg: string;
+  fg: string;
+} {
+  switch (status) {
+    case "applied":
+    case "interview":
+    case "offer":
+      return { bg: "#e6f7e6", fg: "#2a8" };
+    case "saved":
+    case "letter_ready":
+      return { bg: "#e6f0ff", fg: "#4a90d9" };
+    case "rejected_by_me":
+    case "rejected_by_company":
+    case "blacklist":
+      return { bg: "#fff0f0", fg: "#c44" };
+    case "test_task":
+    case "hr_replied":
+      return { bg: "#fff8e6", fg: "#e6a817" };
+    default:
+      return { bg: "#f5f5f5", fg: "#999" };
+  }
+}
+
+/** Human-readable label for a JobStatus value. */
+export function statusLabel(status: JobStatus): string {
+  const labels: Record<JobStatus, string> = {
+    new: "New",
+    viewed: "Viewed",
+    saved: "Saved",
+    rejected_by_me: "Rejected",
+    letter_ready: "Letter ready",
+    applied: "Applied",
+    hr_replied: "HR replied",
+    interview: "Interview",
+    test_task: "Test task",
+    rejected_by_company: "Rejected by co.",
+    offer: "Offer",
+    blacklist: "Blacklisted",
+  };
+  return labels[status] ?? status;
+}
+
+/** Format an ISO-8601 timestamp to a short date. */
+export function formatShortDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${dd}.${mm}.${d.getFullYear()}`;
+  } catch {
+    return iso;
+  }
+}
+
+// ── Vacancy Section ──
+
+function VacancySection(): ReactNode {
+  const [jobs, setJobs] = useState<Job[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadJobs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await jobRepo.list();
+      data.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+      setJobs(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load vacancies");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadJobs();
+  }, [loadJobs]);
+
+  if (loading) return <LoadingState message="Loading vacancies…" />;
+
+  if (error)
+    return (
+      <ErrorState
+        message="Failed to load vacancies"
+        details={error}
+        onRetry={() => void loadJobs()}
+      />
+    );
+
+  if (!jobs || jobs.length === 0)
+    return (
+      <EmptyState
+        icon="📋"
+        message="No vacancies yet"
+        description="Vacancies are saved automatically when you view them on HH.ru."
+      />
+    );
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 12px" }}>
+        Tracked Vacancies ({jobs.length})
+      </h2>
+      <table
+        style={{
+          width: "100%",
+          fontSize: 13,
+          borderCollapse: "collapse",
+        }}
+      >
+        <thead>
+          <tr
+            style={{
+              borderBottom: "2px solid #e0e0e0",
+              textAlign: "left",
+            }}
+          >
+            <th
+              style={{
+                padding: "6px 8px",
+                fontWeight: 600,
+                color: "#555",
+              }}
+            >
+              Title
+            </th>
+            <th
+              style={{
+                padding: "6px 8px",
+                fontWeight: 600,
+                color: "#555",
+              }}
+            >
+              Company
+            </th>
+            <th
+              style={{
+                padding: "6px 8px",
+                fontWeight: 600,
+                color: "#555",
+                width: 60,
+              }}
+            >
+              Score
+            </th>
+            <th
+              style={{
+                padding: "6px 8px",
+                fontWeight: 600,
+                color: "#555",
+                width: 120,
+              }}
+            >
+              Status
+            </th>
+            <th
+              style={{
+                padding: "6px 8px",
+                fontWeight: 600,
+                color: "#555",
+                width: 100,
+              }}
+            >
+              Updated
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {jobs.map((job) => {
+            const badge = statusBadgeStyle(job.status);
+            return (
+              <tr key={job.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                <td style={{ padding: "6px 8px" }}>
+                  <a
+                    href={job.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: "#4a90d9",
+                      textDecoration: "none",
+                    }}
+                  >
+                    {job.title || "(no title)"}
+                  </a>
+                </td>
+                <td style={{ padding: "6px 8px", color: "#666" }}>
+                  {job.companyName || "—"}
+                </td>
+                <td
+                  style={{
+                    padding: "6px 8px",
+                    fontWeight: 600,
+                    color: scoreColor(job.ruleScore?.total),
+                    textAlign: "center",
+                  }}
+                >
+                  {job.ruleScore?.total !== undefined
+                    ? job.ruleScore.total
+                    : "—"}
+                </td>
+                <td style={{ padding: "6px 8px" }}>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      padding: "2px 8px",
+                      borderRadius: 10,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      background: badge.bg,
+                      color: badge.fg,
+                    }}
+                  >
+                    {statusLabel(job.status)}
+                  </span>
+                </td>
+                <td
+                  style={{
+                    padding: "6px 8px",
+                    color: "#999",
+                    fontSize: 11,
+                  }}
+                >
+                  {formatShortDate(job.updatedAt)}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function SectionContent({ section }: { section: SectionId }): ReactNode {
   switch (section) {
     case "vacancies":
-      return (
-        <EmptyState
-          icon="📋"
-          message="No vacancies yet"
-          description="Vacancies are saved automatically when you view them on HH.ru."
-        />
-      );
+      return <VacancySection />;
     case "applications":
       return (
         <EmptyState
