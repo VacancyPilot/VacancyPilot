@@ -174,6 +174,46 @@ export function injectSearchBadgeStyles(doc: Document): void {
     .vp-sb-wm--remote { color: #2a8; border-color: #2a8; }
     .vp-sb-wm--hybrid { color: #e6a817; border-color: #e6a817; }
     .vp-sb-wm--office { color: #888; border-color: #ccc; }
+
+    /* Quick action buttons */
+    .vp-sb-actions {
+      display: inline-flex;
+      gap: 2px;
+      margin-left: 2px;
+    }
+    .vp-sb-action {
+      all: initial;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border: 1px solid transparent;
+      border-radius: 3px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      font-size: 11px;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      color: #666;
+      background: transparent;
+    }
+    .vp-sb-host:hover .vp-sb-action {
+      opacity: 1;
+    }
+    .vp-sb-action:hover {
+      background: #f0f0f0;
+      border-color: #ccc;
+    }
+    .vp-sb-action--save:hover {
+      color: #2a8;
+      border-color: #2a8;
+    }
+    .vp-sb-action--reject:hover {
+      color: #c44;
+      border-color: #c44;
+    }
   `;
   doc.head.appendChild(style);
 }
@@ -276,4 +316,60 @@ export function findSearchCardElements(doc: Document): Element[] {
   }
 
   return [];
+}
+
+// ── Quick action buttons (ITER-035) ────────────────────────────────────────
+
+/**
+ * Create a quick-save button element.
+ * Does NOT attach event listeners — callers wire the click handler.
+ */
+export function createSaveButton(doc: Document = document): HTMLButtonElement {
+  const btn = doc.createElement("button");
+  btn.className = "vp-sb-action vp-sb-action--save";
+  btn.textContent = "⊕";
+  btn.title = "Save vacancy";
+  btn.setAttribute("type", "button");
+  return btn;
+}
+
+/**
+ * Create a quick-reject button element.
+ * Does NOT attach event listeners — callers wire the click handler.
+ */
+export function createRejectButton(
+  doc: Document = document,
+): HTMLButtonElement {
+  const btn = doc.createElement("button");
+  btn.className = "vp-sb-action vp-sb-action--reject";
+  btn.textContent = "⊗";
+  btn.title = "Reject vacancy";
+  btn.setAttribute("type", "button");
+  return btn;
+}
+
+/**
+ * Append save and reject action buttons to a badge host element.
+ * Returns the wrapper span so callers can add event listeners
+ * to individual buttons.
+ */
+export function appendActionButtons(
+  badgeHost: HTMLElement,
+  doc: Document = document,
+): {
+  wrapper: HTMLElement;
+  saveBtn: HTMLButtonElement;
+  rejectBtn: HTMLButtonElement;
+} {
+  const wrapper = doc.createElement("span");
+  wrapper.className = "vp-sb-actions";
+
+  const saveBtn = createSaveButton(doc);
+  const rejectBtn = createRejectButton(doc);
+
+  wrapper.appendChild(saveBtn);
+  wrapper.appendChild(rejectBtn);
+  badgeHost.appendChild(wrapper);
+
+  return { wrapper, saveBtn, rejectBtn };
 }

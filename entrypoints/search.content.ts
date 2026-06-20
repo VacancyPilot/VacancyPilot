@@ -1,14 +1,17 @@
 /**
- * Search page content script — ITER-034.
+ * Search page content script — ITER-034 / ITER-035.
  *
  * Runs on HH.ru search result pages and injects lightweight triage badges
  * onto visible search cards. Badges show score, status, and work mode hints
  * from local data (chrome.storage.local badge state) and visible-card parsing.
  *
+ * ITER-035 addition: quick save/reject action buttons on each badge.
+ *
  * Rules:
  * - No hidden fetches, no auto-click, no form fill.
  * - Read-first, local-only data presentation.
  * - Lightweight DOM — no React, minimal per-card footprint.
+ * - Quick actions affect only local data via background messages.
  */
 import { defineContentScript } from "wxt/sandbox";
 import { HHAdapter } from "@/adapters/hh/hh-adapter";
@@ -20,7 +23,10 @@ import {
   attachBadgeToCard,
   findSearchCardElements,
   buildCardElementMap,
+  buildSearchBadgeHTML,
+  appendActionButtons,
 } from "@/services/search-badge-render";
+import type { RawSearchItemDTO } from "@/adapters/types";
 
 export default defineContentScript({
   matches: ["https://hh.ru/search/vacancy*", "https://*.hh.ru/search/vacancy*"],
@@ -73,7 +79,7 @@ async function injectSearchBadges(): Promise<void> {
   // ── Inject styles once ─────────────────────────────────────────────
   injectSearchBadgeStyles(document);
 
-  // ── Attach badges ──────────────────────────────────────────────────
+  // ── Attach badges with quick action buttons ─────────────────────────
   for (const card of cards) {
     try {
       const cardEl = cardMap.get(card.sourceId);
@@ -81,12 +87,110 @@ async function injectSearchBadges(): Promise<void> {
 
       const state = badgeStates[card.sourceId];
       const badge = createBadgeHost(card, state);
-      if (!badge) continue;
 
-      attachBadgeToCard(cardEl, badge);
+      // Always create a host for action buttons, even if badge is null.
+      const host = badge ?? document.createElement("span");
+      if (!badge) {
+        host.className = "vp-sb-host";
+        host.style.display = "inline-flex";
+      }
+
+      // Append quick action buttons.
+      const { saveBtn, rejectBtn } = appendActionButtons(host);
+
+      // Wire click handlers — each sends a message to the background.
+      saveBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        void handleQuickSave(card, host);
+      });
+
+      rejectBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        void handleQuickReject(card, host);
+      });
+
+      attachBadgeToCard(cardEl, host);
     } catch {
       // One malformed card must not break badges for the rest.
       continue;
     }
+  }
+}
+
+// ── Quick action handlers ──────────────────────────────────────────────
+
+interface QuickActionResponse {
+  success: boolean;
+  jobId?: string;
+  status?: string;
+  score?: number;
+  error?: string;
+}
+
+async function handleQuickSave(
+  card: RawSearchItemDTO,
+  host: HTMLElement,
+): Promise<void> {
+  try {
+    const response = (await chrome.runtime.sendMessage({
+      type: "QUICK_SAVE_SEARCH_CARD",
+      card,
+    })) as QuickActionResponse;
+
+    if (response.success) {
+      refreshBadgeHost(host, card, {
+        status: response.status ?? "saved",
+        score: response.score,
+      });
+    }
+  } catch {
+    // Silently ignore — quick actions are non-critical.
+  }
+}
+
+async function handleQuickReject(
+  card: RawSearchItemDTO,
+  host: HTMLElement,
+): Promise<void> {
+  try {
+    const response = (await chrome.runtime.sendMessage({
+      type: "QUICK_REJECT_SEARCH_CARD",
+      card,
+    })) as QuickActionResponse;
+
+    if (response.success) {
+      refreshBadgeHost(host, card, {
+        status: "rejected_by_me",
+        score: response.score,
+      });
+    }
+  } catch {
+    // Silently ignore.
+  }
+}
+
+/**
+ * Refresh a badge host in-place after a quick action.
+ * Rebuilds the inner HTML and preserves action buttons.
+ */
+function refreshBadgeHost(
+  host: HTMLElement,
+  card: RawSearchItemDTO,
+  newState: SearchBadgeState,
+): void {
+  // Preserve action buttons wrapper (last child).
+  const actionsWrapper = host.querySelector(".vp-sb-actions");
+
+  // Rebuild badge content.
+  const html = buildSearchBadgeHTML(card, newState);
+
+  // Clear and rebuild inner content.
+  host.innerHTML = html || "";
+
+  // Re-attach action buttons if they were present.
+  if (actionsWrapper) {
+    host.appendChild(actionsWrapper);
   }
 }

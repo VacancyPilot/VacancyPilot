@@ -1,4 +1,9 @@
 import { defineBackground } from "wxt/sandbox";
+import {
+  quickSaveSearchCard,
+  quickRejectSearchCard,
+} from "@/services/search-actions";
+import type { RawSearchItemDTO } from "@/adapters/types";
 
 interface SidePanelContext {
   tabId: number;
@@ -66,6 +71,42 @@ export default defineBackground(() => {
       sendResponse(activeContext);
       // Don't clear — the side panel may re-read on refresh.
       return false;
+    }
+
+    // ── Search quick actions (ITER-035) ──
+
+    if (message.type === "QUICK_SAVE_SEARCH_CARD") {
+      const card = message.card as RawSearchItemDTO | undefined;
+      if (!card?.sourceId) {
+        sendResponse({ success: false, error: "Invalid search card data" });
+        return false;
+      }
+      void quickSaveSearchCard(card).then(
+        (result) => sendResponse({ success: true, ...result }),
+        (err: unknown) =>
+          sendResponse({
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+      );
+      return true; // async response
+    }
+
+    if (message.type === "QUICK_REJECT_SEARCH_CARD") {
+      const card = message.card as RawSearchItemDTO | undefined;
+      if (!card?.sourceId) {
+        sendResponse({ success: false, error: "Invalid search card data" });
+        return false;
+      }
+      void quickRejectSearchCard(card).then(
+        (result) => sendResponse({ success: true, ...result }),
+        (err: unknown) =>
+          sendResponse({
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+      );
+      return true; // async response
     }
 
     // Return false — no async response.

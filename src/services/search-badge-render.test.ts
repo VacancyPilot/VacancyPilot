@@ -14,6 +14,9 @@ import {
   attachBadgeToCard,
   buildCardElementMap,
   findSearchCardElements,
+  createSaveButton,
+  createRejectButton,
+  appendActionButtons,
 } from "./search-badge-render";
 import type { SearchBadgeState } from "./search-badge-render";
 import type { RawSearchItemDTO } from "@/adapters/types";
@@ -432,5 +435,79 @@ describe("findSearchCardElements", () => {
     );
     const elements = findSearchCardElements(doc);
     expect(elements).toEqual([]);
+  });
+});
+
+// ── Quick action buttons (ITER-035) ───────────────────────────────────
+
+describe("createSaveButton", () => {
+  it("creates a button element with correct class and text", () => {
+    const win = new Window({ url: "https://hh.ru/search/vacancy" });
+    const doc = win.document as unknown as Document;
+    const btn = createSaveButton(doc);
+
+    expect(btn.tagName.toLowerCase()).toBe("button");
+    expect(btn.className).toContain("vp-sb-action");
+    expect(btn.className).toContain("vp-sb-action--save");
+    expect(btn.textContent).toBe("\u2295");
+    expect(btn.title).toBe("Save vacancy");
+    expect(btn.getAttribute("type")).toBe("button");
+  });
+});
+
+describe("createRejectButton", () => {
+  it("creates a button element with correct class and text", () => {
+    const win = new Window({ url: "https://hh.ru/search/vacancy" });
+    const doc = win.document as unknown as Document;
+    const btn = createRejectButton(doc);
+
+    expect(btn.tagName.toLowerCase()).toBe("button");
+    expect(btn.className).toContain("vp-sb-action");
+    expect(btn.className).toContain("vp-sb-action--reject");
+    expect(btn.textContent).toBe("\u2297");
+    expect(btn.title).toBe("Reject vacancy");
+    expect(btn.getAttribute("type")).toBe("button");
+  });
+});
+
+describe("appendActionButtons", () => {
+  it("appends save and reject buttons to a badge host", () => {
+    const win = new Window({ url: "https://hh.ru/search/vacancy" });
+    const doc = win.document as unknown as Document;
+
+    const host = doc.createElement("span");
+    host.className = "vp-sb-host";
+
+    const { wrapper, saveBtn, rejectBtn } = appendActionButtons(host, doc);
+
+    expect(wrapper.className).toBe("vp-sb-actions");
+    expect(host.contains(wrapper)).toBe(true);
+    expect(wrapper.contains(saveBtn)).toBe(true);
+    expect(wrapper.contains(rejectBtn)).toBe(true);
+  });
+
+  it("returns references to created buttons", () => {
+    const win = new Window({ url: "https://hh.ru/search/vacancy" });
+    const doc = win.document as unknown as Document;
+
+    const host = doc.createElement("span");
+    host.className = "vp-sb-host";
+
+    const { saveBtn, rejectBtn } = appendActionButtons(host, doc);
+
+    expect(saveBtn.textContent).toBe("\u2295");
+    expect(rejectBtn.textContent).toBe("\u2297");
+  });
+
+  it("buttons are children of the wrapper", () => {
+    const win = new Window({ url: "https://hh.ru/search/vacancy" });
+    const doc = win.document as unknown as Document;
+
+    const host = doc.createElement("span");
+    host.className = "vp-sb-host";
+
+    const { wrapper } = appendActionButtons(host, doc);
+    const buttons = wrapper.querySelectorAll(".vp-sb-action");
+    expect(buttons.length).toBe(2);
   });
 });
