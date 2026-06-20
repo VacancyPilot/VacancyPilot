@@ -27,13 +27,37 @@ import {
   appendActionButtons,
 } from "@/services/search-badge-render";
 import type { RawSearchItemDTO } from "@/adapters/types";
+import {
+  createRenderScheduler,
+  observeDynamicSearchList,
+} from "@/services/search-page-sync";
 
 export default defineContentScript({
   matches: ["https://hh.ru/search/vacancy*", "https://*.hh.ru/search/vacancy*"],
   main() {
-    void injectSearchBadges();
+    void startSearchBadgeSync();
   },
 });
+
+let searchListObserver: MutationObserver | null = null;
+
+async function startSearchBadgeSync(): Promise<void> {
+  await injectSearchBadges();
+
+  if (searchListObserver) return;
+
+  const scheduleRefresh = createRenderScheduler(() => injectSearchBadges());
+  searchListObserver = observeDynamicSearchList(document, scheduleRefresh);
+
+  window.addEventListener(
+    "pagehide",
+    () => {
+      searchListObserver?.disconnect();
+      searchListObserver = null;
+    },
+    { once: true },
+  );
+}
 
 /**
  * Main orchestration: parse cards, load badge state, render badges.
