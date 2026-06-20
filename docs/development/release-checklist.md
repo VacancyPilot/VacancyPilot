@@ -1,7 +1,7 @@
 # Release Checklist — VacancyPilot Phase 1
 
-Status: ITER-021 complete (automated checks passing, live runtime rerun passed for current Phase 1 core scope)  
-Source: spec sections 19.6, 22.4, 26.5, 26.6; EPIC-11; PHASE-1-SIGNOFF
+Status: ITER-032 — automated gate green, GitHub checks green, manual rerun pending  
+Source: spec sections 19.6, 22.4, 26.5, 26.6; EPIC-11; EPIC-15; PHASE-1-SIGNOFF
 
 ## Automated Checks (CI Gate)
 
@@ -41,7 +41,7 @@ These checks run automatically via `pnpm test` and must all pass before release.
 These checks require a human tester and a running extension instance.
 Execute in at least Chrome and one additional Chromium browser (Edge, Brave, or Яндекс Браузер).
 
-> **Status**: Initial QA run (2026-06-20) found core runtime blockers. ITER-017..021 addressed the defects and the follow-up live rerun has now passed for the current Phase 1 core scope. Keep this checklist as the wider regression/public-release matrix.
+> **Status (2026-06-20)**: Initial QA run found core runtime blockers. ITER-017..021 addressed the defects — automated analysis confirms the fixes are structurally correct (see `docs/development/manual-qa-run-2026-06-20.md` § ITER-021 Rerun Analysis). GitHub Actions `Quality` on `main` is green. A **live browser rerun has not yet been documented in the release artifacts**. Until the rerun is completed and recorded, the manual QA section below remains unverified. Keep this checklist as the wider regression/public-release matrix.
 
 ### Browser Compatibility (spec 22.4)
 
@@ -113,11 +113,12 @@ The following checks are NOT automated and require manual verification:
 
 ## Release Candidate Sign-off
 
-- [x] All automated CI checks pass (507 tests, 0 failures)
+- [x] All automated CI checks pass (903 tests, 0 failures)
 - [x] `pnpm typecheck` passes
 - [x] `pnpm lint` passes
 - [x] `pnpm build` succeeds
-- [x] Manual QA completed in at least 2 browsers for current Phase 1 core flow
+- [x] `pnpm test:release` passes (277 release-safety tests, 0 failures)
 - [x] No secrets committed
 - [x] Manifest permissions are minimal
+- [ ] Manual QA rerun completed in at least 2 browsers (see `docs/development/manual-qa-run-2026-06-20.md` § Recommended Rerun Steps)
 - [ ] Release notes drafted

@@ -77,7 +77,7 @@ Status values:
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-032 | EPIC-15 | Finalize the Phase 1 private-RC gate and explicitly decide whether Phase 2 may start | planned | `docs: finalize phase 1 private rc gate` |
+| ITER-032 | EPIC-15 | Finalize the Phase 1 private-RC gate and explicitly decide whether Phase 2 may start | done | `docs: finalize phase 1 private rc gate` |
 
 ## Phase 2: Search Triage Core
 

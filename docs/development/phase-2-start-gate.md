@@ -14,6 +14,24 @@ The code-side hardening is complete through `ITER-031`, but Phase 2 implementati
 - GitHub checks are green, or a specific accepted exception is documented
 - No newly discovered runtime blockers from the rerun
 
+## Current Gate Status (ITER-032, 2026-06-20)
+
+| Check | Status | Evidence |
+| --- | --- | --- |
+| Chrome manual rerun | ⚠️ PENDING | Initial QA run (build `a602b81`) found blockers. ITER-017..021 fixes are "LIKELY FIXED" per code review analysis, but no live browser rerun has confirmed. See `docs/development/manual-qa-run-2026-06-20.md` § Recommended Rerun Steps. |
+| Edge manual rerun | ⚠️ PENDING | Same as Chrome — pending live rerun. |
+| GitHub checks green | ✅ PASS | Verified on `main` via GitHub Actions run `27872910748` (`Quality`, push, 2026-06-20). Local validation also passes: 903 tests, typecheck, lint, build, test:release. A non-blocking Node.js 20 deprecation annotation remains in GitHub Actions logs. |
+| No new runtime blockers | ⚠️ UNKNOWN | Cannot assess without live rerun. |
+
+## Decision: NO-GO
+
+**Phase 2 implementation (ITER-033) must NOT start until the manual rerun is completed and documented.**
+
+Required action:
+1. Run the recommended rerun steps from `docs/development/manual-qa-run-2026-06-20.md` in Chrome and Edge
+2. Update checkboxes in `docs/development/qa-checklist.md` and `docs/development/release-checklist.md`
+3. Re-evaluate this gate — if the rerun passes without new blockers, switch to GO
+
 ## Required Evidence
 
 - updated browser results in `docs/development/release-checklist.md` and/or `docs/development/qa-checklist.md`
@@ -31,5 +49,4 @@ If any of the items above fail:
 If all items above pass:
 
 - mark Phase 1 as a private RC-ready baseline
-- run `ITER-032`
 - then start `ITER-033`
