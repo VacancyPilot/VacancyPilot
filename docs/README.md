@@ -20,6 +20,7 @@ When recommendations conflict, use the priority order from the final specificati
 
 - [development/](development/) - implementation epics, iteration map, and autopilot prompts.
 
-Recommended next implementation prompt:
+Recommended next action:
 
-- [development/prompts/ITER-015.md](development/prompts/ITER-015.md)
+- run [development/qa-checklist.md](development/qa-checklist.md)
+- then decide whether [development/prompts/ITER-014.md](development/prompts/ITER-014.md) is still needed for Phase 1

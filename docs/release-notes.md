@@ -26,7 +26,7 @@ VacancyPilot is a **local-first, read-first HH.ru job search copilot**. It helps
 - Save vacancies to local database (IndexedDB via Dexie).
 - Track application status: Saved → Applied → Interview → Offer → Rejected → Archived.
 - Full status history with timestamps.
-- Dashboard with filtering and sorting.
+- Dashboard shell and local data views.
 
 ### Rule-Based Scoring
 - Explainable 0–100 score without AI.
@@ -40,11 +40,12 @@ VacancyPilot is a **local-first, read-first HH.ru job search copilot**. It helps
 - Redaction of emails, phones, URLs before external requests.
 - Strict Privacy mode excludes description and resume text.
 - AI cache with configurable controls.
+- Mock-provider workflow and validation path are implemented; a real provider is still pending.
 
 ### Cover Letter Studio
 - Generate cover letters using AI with multiple modes (short, full, concise).
 - Edit, save, and copy letters.
-- Letter library for saved letters.
+- Saved letters persist locally and can be reused from the vacancy workflow.
 
 ### Export & Data Ownership
 - Export all data as CSV or JSON.
@@ -61,9 +62,9 @@ VacancyPilot is a **local-first, read-first HH.ru job search copilot**. It helps
 ### Extension UI
 - Content badge on HH.ru vacancy pages (Shadow DOM isolated).
 - Side panel with vacancy details, score, and actions.
-- Popup with quick stats and navigation.
-- Dashboard for tracking all vacancies.
-- Settings page for full configuration.
+- Popup shell with vacancy detection and navigation.
+- Dashboard/options shell with export and privacy controls.
+- Settings and Labs remain partially placeholder-driven outside the implemented privacy/export flows.
 
 ---
 
@@ -167,7 +168,7 @@ See `docs/development/private-install-guide.md` for detailed instructions.
 | P1 | Execute manual QA in 2+ browsers | ITER-016 follow-up |
 | P1 | Resolve API key storage approach | Spec 26.6 |
 | P2 | Implement n8n or make explicit deferral decision | ITER-014 |
-| P2 | Create root README | Future |
+| P2 | Expand contributor onboarding docs | Future |
 | P2 | Test performance with 500+ jobs | Manual QA |
 
 ---

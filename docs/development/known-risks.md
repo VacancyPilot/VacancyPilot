@@ -150,15 +150,15 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 
 ---
 
-### R11 — Documentation Gaps (P2)
+### R11 — Contributor Documentation Gaps (P2)
 
-**Risk**: No README, no install guide, no onboarding walkthrough exists at the project root. Users installing from source have no guidance.
+**Risk**: A root README and private install guide exist, but contributor-facing onboarding remains thin. External contributors still lack a concise implementation walkthrough, architecture map, and troubleshooting guide.
 
-**Mitigation**: Private install guide and release notes are created in ITER-016. Onboarding UI exists in the extension.
+**Mitigation**: Root README, private install guide, release notes, and development pack are in place. Onboarding UI exists in the extension.
 
-**Residual**: External contributors have no entry point.
+**Residual**: New contributors may still need repo walkthrough support for implementation details and local debugging.
 
-**Action**: Create root README when the project is shared beyond personal use.
+**Action**: Add contributor onboarding/troubleshooting docs before broader sharing.
 
 ---
 
@@ -176,7 +176,7 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 | R8 — API key storage | P1 | Accepted for personal MVP | Evaluate for public release |
 | R9 — Name/trademark | P3 | Not checked | Before public submission |
 | R10 — Manual QA pending | P1 | QA checklist ready | Execute before release |
-| R11 — README missing | P2 | Accepted for private use | Before sharing |
+| R11 — Contributor docs gap | P2 | Accepted for private use | Before broader sharing |
 
 ---
 
@@ -188,6 +188,6 @@ For **private/personal use Phase 1 release**, the following risks are explicitly
 - R6 (n8n deferred)
 - R7 (mock provider only)
 - R8 (plaintext key storage)
-- R11 (no root README)
+- R11 (contributor onboarding still thin)
 
 For **public release**, all P1 risks must be resolved. P2 risks must be at minimum documented with mitigation plans.

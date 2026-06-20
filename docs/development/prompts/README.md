@@ -31,8 +31,7 @@ Available prompts:
 - `ITER-015.md`
 - `ITER-016.md`
 
-Recommended next run after `ITER-013`:
+Recommended use after `ITER-016`:
 
-1. `ITER-015.md`
-2. `ITER-016.md`
-3. `ITER-014.md` only if Phase 1 still needs opt-in webhook automation before release.
+1. Run the manual QA flow from `docs/development/qa-checklist.md`
+2. Use `ITER-014.md` only if Phase 1 still needs opt-in webhook automation before release

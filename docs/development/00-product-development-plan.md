@@ -107,8 +107,7 @@ Required:
 ## Immediate Next Actions
 
 1. Use the committed prompt files in `docs/development/prompts/` as the source of iteration instructions.
-2. If using Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once.
-3. Recommended next run after `ITER-013` is `docs/development/prompts/ITER-015.md`.
-4. Run `ITER-016` after release-safety checks land.
-5. Treat `ITER-014` as deferred until there is a deliberate go/no-go decision on Phase 1 n8n integration.
-6. After each iteration, review, commit, push, and update `docs/development/02-iteration-map.md` status.
+2. Run the manual QA checklist in `docs/development/qa-checklist.md`.
+3. Decide whether `ITER-014` remains deferred or is still required for Phase 1 scope.
+4. If using Zed for follow-up work, paste `docs/development/prompts/ZED-SESSION-START.md` once.
+5. After each follow-up iteration, review, commit, push, and update `docs/development/02-iteration-map.md` status.

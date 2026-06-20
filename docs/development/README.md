@@ -18,14 +18,13 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-013 complete
+ITER-016 complete
 ```
 
-Recommended next implementation task is:
+Recommended next action:
 
 ```text
-ITER-015: Release Safety Tests
-Prompt: docs/development/prompts/ITER-015.md
+Run docs/development/qa-checklist.md manually in 2 Chromium browsers
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
@@ -38,6 +37,13 @@ docs/development/prompts/RISK-CLOSURE.md
 
 Run it in the same Zed chat before asking Codex to review.
 
+Remaining implementation prompt, if Phase 1 still needs webhook automation:
+
+```text
+ITER-014: n8n Events
+Prompt: docs/development/prompts/ITER-014.md
+```
+
 ## Status
 
-The decomposition pack is active for late Phase 1 development. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
+The decomposition pack is active for Phase 1 release hardening and follow-up implementation. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
