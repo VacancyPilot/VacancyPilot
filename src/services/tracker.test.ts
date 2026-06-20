@@ -4,6 +4,7 @@ import type { EventLog } from "@/models/event-log";
 import type { RawVacancyDTO } from "@/adapters/hh/types";
 import { createStatusChange, STATUS_ORDER } from "./status-transitions";
 import { createEventLogEntry } from "./event-log-helper";
+import { parseExperienceMinYears } from "./tracker";
 
 // ---- Status transitions (pure) ----
 
@@ -80,6 +81,125 @@ describe("createEventLogEntry", () => {
       { jobId: "hh_1", applicationId: "app_1" },
     );
     expect(entry.applicationId).toBe("app_1");
+  });
+});
+
+// ---- Experience parser (pure) ----
+
+describe("parseExperienceMinYears", () => {
+  it("returns undefined for null/undefined/empty", () => {
+    expect(parseExperienceMinYears(null)).toBeUndefined();
+    expect(parseExperienceMinYears(undefined)).toBeUndefined();
+    expect(parseExperienceMinYears("")).toBeUndefined();
+    expect(parseExperienceMinYears("   ")).toBeUndefined();
+  });
+
+  it("returns undefined for unparseable strings", () => {
+    expect(parseExperienceMinYears("some random text")).toBeUndefined();
+    expect(parseExperienceMinYears("unknown")).toBeUndefined();
+  });
+
+  // ── RU range patterns ──
+
+  it('parses RU range "1–3 года" → 1', () => {
+    expect(parseExperienceMinYears("1–3 года")).toBe(1);
+  });
+
+  it('parses RU range "3–6 лет" → 3', () => {
+    expect(parseExperienceMinYears("3–6 лет")).toBe(3);
+  });
+
+  it('parses RU range with hyphen "1-3 года" → 1', () => {
+    expect(parseExperienceMinYears("1-3 года")).toBe(1);
+  });
+
+  it('parses RU range with em-dash "3—6 лет" → 3', () => {
+    expect(parseExperienceMinYears("3—6 лет")).toBe(3);
+  });
+
+  // ── RU minimum patterns ──
+
+  it('parses "более 6 лет" → 6', () => {
+    expect(parseExperienceMinYears("более 6 лет")).toBe(6);
+  });
+
+  it('parses "более 5 лет" → 5', () => {
+    expect(parseExperienceMinYears("более 5 лет")).toBe(5);
+  });
+
+  it('parses "от 1 года" → 1', () => {
+    expect(parseExperienceMinYears("от 1 года")).toBe(1);
+  });
+
+  it('parses "от 3 лет" → 3', () => {
+    expect(parseExperienceMinYears("от 3 лет")).toBe(3);
+  });
+
+  it('parses "6+ лет" → 6', () => {
+    expect(parseExperienceMinYears("6+ лет")).toBe(6);
+  });
+
+  // ── RU no experience ──
+
+  it('parses "не требуется" → 0', () => {
+    expect(parseExperienceMinYears("не требуется")).toBe(0);
+  });
+
+  it('parses "нет опыта" → 0', () => {
+    expect(parseExperienceMinYears("нет опыта")).toBe(0);
+  });
+
+  it('parses "без опыта" → 0', () => {
+    expect(parseExperienceMinYears("без опыта")).toBe(0);
+  });
+
+  // ── EN patterns ──
+
+  it('parses EN range "1–3 years" → 1', () => {
+    expect(parseExperienceMinYears("1–3 years")).toBe(1);
+  });
+
+  it('parses EN range "3–6 years" → 3', () => {
+    expect(parseExperienceMinYears("3–6 years")).toBe(3);
+  });
+
+  it('parses "5+ years" → 5', () => {
+    expect(parseExperienceMinYears("5+ years")).toBe(5);
+  });
+
+  it('parses "more than 5 years" → 5', () => {
+    expect(parseExperienceMinYears("more than 5 years")).toBe(5);
+  });
+
+  it('parses "more than 10 years" → 10', () => {
+    expect(parseExperienceMinYears("more than 10 years")).toBe(10);
+  });
+
+  it('parses "no experience" → 0', () => {
+    expect(parseExperienceMinYears("no experience")).toBe(0);
+  });
+
+  it('parses "not required" → 0', () => {
+    expect(parseExperienceMinYears("not required")).toBe(0);
+  });
+
+  // ── Edge cases ──
+
+  it("handles leading/trailing whitespace", () => {
+    expect(parseExperienceMinYears("  3–6 лет  ")).toBe(3);
+  });
+
+  it("handles mixed case", () => {
+    expect(parseExperienceMinYears("No Experience")).toBe(0);
+    expect(parseExperienceMinYears("More Than 5 Years")).toBe(5);
+  });
+
+  it('parses single number RU "3 года" → 3', () => {
+    expect(parseExperienceMinYears("3 года")).toBe(3);
+  });
+
+  it('parses single number RU "5 лет" → 5', () => {
+    expect(parseExperienceMinYears("5 лет")).toBe(5);
   });
 });
 

@@ -18,15 +18,15 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-028 complete
-dashboard storage listener and release audit path hardened on 2026-06-20
+ITER-029 complete
+badge-state dedup and parsing hardening completed on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-ITER-029: Badge State, Experience, And Passive Status Hardening
-Prompt: docs/development/prompts/ITER-029.md
+ITER-030: Passive Status And Side Panel Context
+Prompt: docs/development/prompts/ITER-030.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.

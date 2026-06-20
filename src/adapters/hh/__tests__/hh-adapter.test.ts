@@ -413,6 +413,21 @@ describe("HHAdapter", () => {
       expect(result!.detectedApplied).toBe(true);
     });
 
+    it("does NOT detect CTA button text as applied", () => {
+      // Regression: bare "отклик" in regex previously matched "Откликнуться" CTA.
+      const doc = makeDoc("https://hh.ru/vacancy/1");
+      doc._setElement('[data-qa="vacancy-response-status"]', {
+        tagName: "button",
+        textContent: "Откликнуться",
+        getAttribute: () => null,
+        querySelector: () => null,
+        querySelectorAll: () => [],
+      });
+      const result = adapter.extractVisibleApplicationStatus?.(doc);
+      // CTA text should NOT set detectedApplied.
+      expect(result).toBeNull();
+    });
+
     it("does not crash on malformed selectors", () => {
       const doc = makeDoc("https://hh.ru/vacancy/1");
       // No status elements registered — should return null without throwing

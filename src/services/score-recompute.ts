@@ -3,28 +3,7 @@ import type { Profile } from "@/models/profile";
 import { scoreJob } from "./scoring";
 import { jobRepo, profileRepo } from "@/db/repositories";
 import { loadSettings } from "@/db/settings-bridge";
-
-/**
- * Persist badge state to chrome.storage.local so the content script
- * can read it on page load (content scripts cannot access Dexie directly).
- */
-function badgeStorageKey(vacancyId: string): string {
-  return `badge_v1_hh_${vacancyId}`;
-}
-
-async function persistBadgeState(vacancyId: string, job: Job): Promise<void> {
-  try {
-    const key = badgeStorageKey(vacancyId);
-    await chrome.storage.local.set({
-      [key]: {
-        score: job.ruleScore?.total,
-        status: job.status,
-      },
-    });
-  } catch {
-    // Non-critical.
-  }
-}
+import { persistBadgeState } from "./badge-state";
 
 /**
  * Find the best matching profile for a job.
@@ -49,7 +28,9 @@ async function resolveProfile(
 
   const settings = await loadSettings();
   if (settings.general.defaultProfileId) {
-    const profile = await profileRepo.getById(settings.general.defaultProfileId);
+    const profile = await profileRepo.getById(
+      settings.general.defaultProfileId,
+    );
     if (profile) return profile;
   }
 
@@ -77,7 +58,10 @@ export async function recomputeScoreForJob(
   const job = await jobRepo.getById(jobId);
   if (!job) return null;
 
-  const profile = await resolveProfile(explicitProfileId, job.selectedProfileId);
+  const profile = await resolveProfile(
+    explicitProfileId,
+    job.selectedProfileId,
+  );
   if (!profile) {
     // No profile available — score stays undefined.
     return job;
@@ -96,7 +80,10 @@ export async function recomputeScoreForJob(
   // Persist badge state so the content script picks up the new score on page load.
   // The vacancyId is the part after "hh_" in the job ID.
   const vacancyId = job.sourceVacancyId;
-  await persistBadgeState(vacancyId, updated);
+  await persistBadgeState(vacancyId, {
+    score: updated.ruleScore?.total,
+    status: updated.status,
+  });
 
   return updated;
 }

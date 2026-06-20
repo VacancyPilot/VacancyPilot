@@ -170,7 +170,11 @@ export class HHAdapter implements SiteAdapter {
         if (el?.textContent) {
           const label = el.textContent.trim().toLowerCase();
 
-          if (/отклик|отправлен|откликнулись|applied|sent/i.test(label)) {
+          if (
+            /вы откликнулись|отклик отправлен|откликнулись|applied|sent/i.test(
+              label,
+            )
+          ) {
             result.detectedApplied = true;
             result.rawLabel = el.textContent.trim();
             found = true;

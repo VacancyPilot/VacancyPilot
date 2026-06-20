@@ -41,6 +41,73 @@ function companyIdFromName(name: string): string {
 }
 
 /**
+ * Parse experienceRaw string into a numeric minimum years value.
+ *
+ * Supported RU patterns:
+ *   "1–3 года", "3–6 лет", "1-3 года", "3-6 лет"     → lower bound
+ *   "более 6 лет", "более 5 лет"                      → 6, 5
+ *   "от 1 года", "от 3 лет"                           → 1, 3
+ *   "6+ лет"                                           → 6
+ *   "не требуется", "нет опыта", "без опыта"          → 0
+ *
+ * Supported EN patterns:
+ *   "1–3 years", "3–6 years"                           → lower bound
+ *   "5+ years"                                         → 5
+ *   "more than 5 years", "more than 10 years"          → 5, 10
+ *   "no experience", "not required"                    → 0
+ *
+ * Returns undefined when the string cannot be parsed.
+ */
+export function parseExperienceMinYears(
+  raw: string | null | undefined,
+): number | undefined {
+  if (!raw) return undefined;
+
+  const s = raw.trim().toLowerCase();
+  if (!s) return undefined;
+
+  // ── No experience patterns ──
+  if (
+    /^(не\s+требуется|нет\s+опыта|без\s+опыта|no\s+experience|not\s+required)$/i.test(
+      s,
+    )
+  ) {
+    return 0;
+  }
+
+  // ── "more than X" patterns (check before range to avoid false matches on en-dash) ──
+  const moreThanMatch = s.match(/more\s+than\s+(\d+)/i);
+  if (moreThanMatch) return parseInt(moreThanMatch[1], 10);
+
+  // ── "более X" patterns ──
+  const boleeMatch = s.match(/более\s+(\d+)/i);
+  if (boleeMatch) return parseInt(boleeMatch[1], 10);
+
+  // ── "от X" patterns ──
+  const otMatch = s.match(/^от\s+(\d+)/i);
+  if (otMatch) return parseInt(otMatch[1], 10);
+
+  // ── "X+" patterns ──
+  const plusMatch = s.match(/^(\d+)\s*\+/);
+  if (plusMatch) return parseInt(plusMatch[1], 10);
+
+  // ── Range patterns: "X–Y", "X-Y", "X — Y" ──
+  const rangeMatch = s.match(/(\d+)\s*[–\-—]\s*(\d+)/);
+  if (rangeMatch) {
+    const lower = parseInt(rangeMatch[1], 10);
+    const upper = parseInt(rangeMatch[2], 10);
+    // Return the lower bound — this represents minimum required years.
+    if (!Number.isNaN(lower) && !Number.isNaN(upper)) return lower;
+  }
+
+  // ── Single number patterns: "3 года", "5 лет", "2 years" ──
+  const singleMatch = s.match(/^(\d+)\s*(года?|лет|years?)/i);
+  if (singleMatch) return parseInt(singleMatch[1], 10);
+
+  return undefined;
+}
+
+/**
  * Find an existing job by source vacancy id via the repository.
  * Returns undefined if no match.
  */
@@ -78,7 +145,7 @@ function dtoToNewJob(dto: RawVacancyDTO, sourceVacancyId: string): Job {
     city: dto.city ?? undefined,
     workMode: dto.workMode ?? "unknown",
     experienceRaw: dto.experienceRaw ?? undefined,
-    experienceMinYears: undefined,
+    experienceMinYears: parseExperienceMinYears(dto.experienceRaw),
     employmentType: dto.employmentType ?? undefined,
     schedule: dto.schedule ?? undefined,
 
@@ -143,6 +210,10 @@ export const tracker = {
         city: dto.city ?? existing.city,
         workMode: dto.workMode ?? existing.workMode,
         experienceRaw: dto.experienceRaw ?? existing.experienceRaw,
+        experienceMinYears:
+          dto.experienceRaw != null
+            ? parseExperienceMinYears(dto.experienceRaw)
+            : existing.experienceMinYears,
         employmentType: dto.employmentType ?? existing.employmentType,
         schedule: dto.schedule ?? existing.schedule,
         descriptionClean,

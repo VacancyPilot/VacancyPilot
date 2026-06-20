@@ -4,6 +4,7 @@ import { usePageStatus, PageStatus } from "@/components/PageStatus";
 import { EmptyState } from "@/components/EmptyState";
 import { tracker } from "@/services/tracker";
 import { recomputeScoreForJob } from "@/services/score-recompute";
+import { persistBadgeState } from "@/services/badge-state";
 import { jobRepo, profileRepo } from "@/db/repositories";
 import { loadSettings } from "@/db/settings-bridge";
 import type { Job, JobStatus } from "@/models/job";
@@ -13,28 +14,6 @@ import type { Profile } from "@/models/profile";
 
 function buildJobId(vacancyId: string): string {
   return `hh_${vacancyId}`;
-}
-
-/**
- * Persist badge state to chrome.storage.local so the content script
- * can read it on page load (content scripts cannot access Dexie directly).
- */
-function badgeStorageKey(vacancyId: string): string {
-  return `badge_v1_hh_${vacancyId}`;
-}
-
-async function persistBadgeState(vacancyId: string, job: Job): Promise<void> {
-  try {
-    const key = badgeStorageKey(vacancyId);
-    await chrome.storage.local.set({
-      [key]: {
-        score: job.ruleScore?.total,
-        status: job.status,
-      },
-    });
-  } catch {
-    // Non-critical.
-  }
 }
 
 async function updateBadge(tabId: number, job: Job): Promise<void> {
@@ -109,7 +88,10 @@ function PopupContent(): ReactNode {
           // Update badge from saved state on popup open.
           if (job) {
             await updateBadge(pageInfo.tabId, job);
-            await persistBadgeState(pageInfo.vacancyId, job);
+            await persistBadgeState(pageInfo.vacancyId, {
+              score: job.ruleScore?.total,
+              status: job.status,
+            });
           }
         }
       } catch {
@@ -221,7 +203,10 @@ function PopupContent(): ReactNode {
       if (updated) {
         setSavedJob(updated);
         await updateBadge(pageInfo.tabId, updated);
-        await persistBadgeState(pageInfo.vacancyId, updated);
+        await persistBadgeState(pageInfo.vacancyId, {
+          score: updated.ruleScore?.total,
+          status: updated.status,
+        });
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);

@@ -1,6 +1,7 @@
 import { db, TABLE_NAMES } from "@/db";
 import type { TableName } from "@/db";
 import { invalidateCache } from "./ai-cache";
+import { removeBadgeState, removeAllBadgeStates } from "./badge-state";
 
 /**
  * Safe delete-all-data service.
@@ -14,29 +15,6 @@ import { invalidateCache } from "./ai-cache";
 
 /** Known product keys in chrome.storage.local that should be wiped. */
 const PRODUCT_STORAGE_KEYS = ["app_settings_v1"];
-
-/** Prefix for badge state keys stored in chrome.storage.local. */
-const BADGE_KEY_PREFIX = "badge_v1_hh_";
-
-/**
- * Remove all badge state keys from chrome.storage.local.
- */
-async function removeAllBadgeKeys(): Promise<void> {
-  const all = await chrome.storage.local.get(null);
-  const badgeKeys = Object.keys(all).filter((k) =>
-    k.startsWith(BADGE_KEY_PREFIX),
-  );
-  if (badgeKeys.length > 0) {
-    await chrome.storage.local.remove(badgeKeys);
-  }
-}
-
-/**
- * Remove the badge state key for a specific vacancy id.
- */
-async function removeBadgeKey(sourceVacancyId: string): Promise<void> {
-  await chrome.storage.local.remove(`${BADGE_KEY_PREFIX}${sourceVacancyId}`);
-}
 
 export interface DeleteJobDataResult {
   coverLettersDeleted: number;
@@ -65,7 +43,7 @@ export async function deleteAllData(): Promise<void> {
   await chrome.storage.local.remove(PRODUCT_STORAGE_KEYS);
 
   // 3. Remove all badge state keys
-  await removeAllBadgeKeys();
+  await removeAllBadgeStates();
 }
 
 /**
@@ -95,7 +73,7 @@ export async function deleteJobData(
   await db.jobs.delete(jobId);
 
   // Remove badge state for this vacancy
-  await removeBadgeKey(job.sourceVacancyId);
+  await removeBadgeState(job.sourceVacancyId);
 
   return {
     coverLettersDeleted,
