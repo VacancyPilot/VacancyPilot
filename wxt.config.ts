@@ -7,8 +7,8 @@ export default defineConfig({
   srcDir: "src",
   entrypointsDir: "../entrypoints",
   publicDir: "../public",
+  manifestVersion: 3,
   manifest: {
-    manifest_version: 3,
     name: "VacancyPilot",
     short_name: "VacancyPilot",
     version: "0.1.0",

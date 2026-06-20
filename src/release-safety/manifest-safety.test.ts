@@ -120,8 +120,12 @@ describe("manifest permission safety", () => {
 
   describe("manifest structure", () => {
     it("uses manifest_version 3", () => {
-      // manifest_version is a number, not a string, in the config
-      expect(config).toMatch(/manifest_version\s*:\s*3\b/);
+      // wxt 0.19 kept manifest_version inside manifest{};
+      // wxt 0.20+ uses manifestVersion at config top-level.
+      // Both are valid; the generated output always gets manifest_version: 3.
+      expect(config).toMatch(
+        /manifest_version\s*:\s*3\b|manifestVersion\s*:\s*3\b/,
+      );
     });
 
     it("has a name", () => {

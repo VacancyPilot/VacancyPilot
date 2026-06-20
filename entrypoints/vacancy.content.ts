@@ -1,4 +1,4 @@
-import { defineContentScript } from "wxt/sandbox";
+import { defineContentScript } from "wxt/utils/define-content-script";
 import { HHAdapter } from "@/adapters/hh/hh-adapter";
 
 export default defineContentScript({

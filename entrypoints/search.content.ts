@@ -13,7 +13,7 @@
  * - Lightweight DOM — no React, minimal per-card footprint.
  * - Quick actions affect only local data via background messages.
  */
-import { defineContentScript } from "wxt/sandbox";
+import { defineContentScript } from "wxt/utils/define-content-script";
 import { HHAdapter } from "@/adapters/hh/hh-adapter";
 import { BADGE_KEY_PREFIX, badgeStorageKey } from "@/services/badge-state";
 import type { SearchBadgeState } from "@/services/search-badge-render";
