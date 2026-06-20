@@ -12,6 +12,11 @@ export {
   runMigrations,
 } from "./migrations";
 
-export { jobRepo, profileRepo, coverLetterRepo } from "./repositories";
+export {
+  jobRepo,
+  profileRepo,
+  resumeRepo,
+  coverLetterRepo,
+} from "./repositories";
 
 export { defaultSettings, loadSettings, saveSettings } from "./settings-bridge";

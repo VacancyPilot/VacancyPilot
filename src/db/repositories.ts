@@ -1,6 +1,7 @@
 import { db } from "./database";
 import type { Job } from "@/models/job";
 import type { Profile } from "@/models/profile";
+import type { Resume } from "@/models/resume";
 import type { CoverLetter } from "@/models/cover-letter";
 
 /**
@@ -52,6 +53,22 @@ export const profileRepo = {
   save: (profile: Profile) => db.profiles.put(profile),
 
   delete: (id: string) => db.profiles.delete(id as Profile["id"]),
+};
+
+// ---- Resume repository ----
+
+export const resumeRepo = {
+  list: () => db.resumes.toArray(),
+
+  getById: (id: string) => db.resumes.get(id as Resume["id"]),
+
+  /** List resumes for a given profile. */
+  listByProfile: (profileId: string) =>
+    db.resumes.where("profileId").equals(profileId).toArray(),
+
+  save: (resume: Resume) => db.resumes.put(resume),
+
+  delete: (id: string) => db.resumes.delete(id as Resume["id"]),
 };
 
 // ---- Cover Letter repository ----

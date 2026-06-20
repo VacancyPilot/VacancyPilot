@@ -1,7 +1,9 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EmptyState } from "@/components/EmptyState";
 import { CoverLetterStudio } from "@/components/CoverLetterStudio";
+import { ProfileTab } from "@/components/ProfileTab";
 import { jobRepo } from "@/db/repositories";
+import type { Job } from "@/models/job";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 
 type TabId = "overview" | "score" | "letter" | "profile" | "history";
@@ -127,13 +129,7 @@ function TabContent({ tab }: { tab: TabId }): ReactNode {
     case "letter":
       return <LetterTab />;
     case "profile":
-      return (
-        <EmptyState
-          icon="👤"
-          message="Profile & Resume"
-          description="Select a profile and resume for this vacancy."
-        />
-      );
+      return <ProfileTabWrapper />;
     case "history":
       return (
         <EmptyState
@@ -149,6 +145,7 @@ function TabContent({ tab }: { tab: TabId }): ReactNode {
 
 interface VacancyContext {
   jobId?: string;
+  job?: Job;
   profileId?: string;
   resumeId?: string;
 }
@@ -183,6 +180,7 @@ function useVacancyContext(): VacancyContext {
         if (!cancelled) {
           setCtx({
             jobId,
+            job: job ?? undefined,
             profileId: job?.selectedProfileId,
             resumeId: job?.selectedResumeId,
           });
@@ -199,6 +197,18 @@ function useVacancyContext(): VacancyContext {
   }, []);
 
   return ctx;
+}
+
+function ProfileTabWrapper(): ReactNode {
+  const ctx = useVacancyContext();
+  return (
+    <ProfileTab
+      jobId={ctx.jobId}
+      job={ctx.job}
+      profileId={ctx.profileId}
+      resumeId={ctx.resumeId}
+    />
+  );
 }
 
 function LetterTab(): ReactNode {

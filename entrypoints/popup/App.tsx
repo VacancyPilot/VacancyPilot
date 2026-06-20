@@ -1,12 +1,13 @@
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { usePageStatus, PageStatus } from "@/components/PageStatus";
 import { EmptyState } from "@/components/EmptyState";
 import { tracker } from "@/services/tracker";
 import { scoreJob } from "@/services/scoring";
 import { jobRepo, profileRepo } from "@/db/repositories";
+import { loadSettings } from "@/db/settings-bridge";
 import type { Job, JobStatus } from "@/models/job";
 import type { Profile } from "@/models/profile";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 // ── Helpers ──
 
@@ -28,14 +29,27 @@ async function updateBadge(tabId: number, job: Job): Promise<void> {
   }
 }
 
-async function computeAndStoreScore(job: Job): Promise<Job> {
+async function computeAndStoreScore(
+  job: Job,
+  profileId?: string,
+): Promise<Job> {
   // Try to find a relevant profile.
-  // Priority: job.selectedProfileId > first available profile.
+  // Priority: explicit profileId > job.selectedProfileId > settings default > first available profile.
   let profile: Profile | undefined;
 
-  if (job.selectedProfileId) {
-    profile = await profileRepo.getById(job.selectedProfileId);
+  const lookupId = profileId ?? job.selectedProfileId;
+  if (lookupId) {
+    profile = await profileRepo.getById(lookupId);
   }
+
+  if (!profile) {
+    // Try the default profile from settings
+    const settings = await loadSettings();
+    if (settings.general.defaultProfileId) {
+      profile = await profileRepo.getById(settings.general.defaultProfileId);
+    }
+  }
+
   if (!profile) {
     const profiles = await profileRepo.list();
     profile = profiles[0];
@@ -50,7 +64,7 @@ async function computeAndStoreScore(job: Job): Promise<Job> {
   const updated: Job = {
     ...job,
     ruleScore: scoreResult,
-    selectedProfileId: job.selectedProfileId ?? profile.id,
+    selectedProfileId: profile.id,
   };
   await jobRepo.save(updated);
   return updated;
@@ -64,6 +78,32 @@ function PopupContent(): ReactNode {
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [jobLoaded, setJobLoaded] = useState(false);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState<
+    string | undefined
+  >();
+
+  // Load profiles on mount
+  useEffect(() => {
+    async function loadProfiles(): Promise<void> {
+      try {
+        const [list, settings] = await Promise.all([
+          profileRepo.list(),
+          loadSettings(),
+        ]);
+        setProfiles(list);
+        // Preselect: job's selectedProfileId > settings default > first profile
+        const defaultId =
+          savedJob?.selectedProfileId ??
+          settings.general.defaultProfileId ??
+          list[0]?.id;
+        setSelectedProfileId(defaultId);
+      } catch {
+        // Non-critical
+      }
+    }
+    void loadProfiles();
+  }, [savedJob?.selectedProfileId]);
 
   // Load saved job from DB when vacancy is detected.
   useEffect(() => {
@@ -129,7 +169,7 @@ function PopupContent(): ReactNode {
       const job = await tracker.saveFromDTO(response.dto);
 
       // Compute score if a profile is available.
-      const jobWithScore = await computeAndStoreScore(job);
+      const jobWithScore = await computeAndStoreScore(job, selectedProfileId);
 
       setSavedJob(jobWithScore);
 
@@ -150,7 +190,7 @@ function PopupContent(): ReactNode {
     } finally {
       setIsSaving(false);
     }
-  }, [pageInfo]);
+  }, [pageInfo, selectedProfileId]);
 
   // ── Reject ──
 
@@ -322,6 +362,42 @@ function PopupContent(): ReactNode {
           message="No vacancy detected"
           description="Open an HH.ru vacancy page to start."
         />
+      )}
+
+      {/* Profile selector */}
+      {isVacancy && profiles.length > 1 && (
+        <div style={{ marginBottom: 10 }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#666",
+              marginBottom: 3,
+            }}
+          >
+            Profile
+          </label>
+          <select
+            value={selectedProfileId ?? ""}
+            onChange={(e) => setSelectedProfileId(e.target.value || undefined)}
+            style={{
+              width: "100%",
+              padding: "4px 6px",
+              fontSize: 12,
+              border: "1px solid #ddd",
+              borderRadius: 3,
+              background: "#fff",
+              color: "#333",
+            }}
+          >
+            {profiles.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
       )}
 
       {/* Error message */}

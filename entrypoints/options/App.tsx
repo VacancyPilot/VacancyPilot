@@ -2,6 +2,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
+import { ProfileManager } from "@/components/ProfileManager";
+import { ResumeManager } from "@/components/ResumeManager";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import {
   exportAllJson,
@@ -417,21 +419,9 @@ function SectionContent({ section }: { section: SectionId }): ReactNode {
         />
       );
     case "profiles":
-      return (
-        <EmptyState
-          icon="👤"
-          message="No profiles yet"
-          description="Create a profile to tailor scoring and cover letters."
-        />
-      );
+      return <ProfileManager />;
     case "resumes":
-      return (
-        <EmptyState
-          icon="📄"
-          message="No resumes yet"
-          description="Add your CV to pair it with applications."
-        />
-      );
+      return <ResumeManager />;
     case "letters":
       return (
         <EmptyState

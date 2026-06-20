@@ -18,15 +18,15 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-018 complete
+ITER-019 complete
 manual QA findings captured on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-ITER-019: Profile and Resume Management
-Prompt: docs/development/prompts/ITER-019.md
+ITER-020: Runtime Surface Sync
+Prompt: docs/development/prompts/ITER-020.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
