@@ -73,6 +73,28 @@ Status values:
 | ITER-030 | EPIC-14 | Integrate passive HH status and replace side panel context guessing | done | `feat: integrate passive HH status parser and fix side panel context` |
 | ITER-031 | EPIC-14 | Clean up profile lifecycle nullability and strengthen company identity | done | `fix: make coverLetter profileId nullable, parse employer ID, verify recompute UX` |
 
+## Phase 1 Closeout Gate
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-032 | EPIC-15 | Finalize the Phase 1 private-RC gate and explicitly decide whether Phase 2 may start | planned | `docs: finalize phase 1 private rc gate` |
+
+## Phase 2: Search Triage Core
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-033 | EPIC-20 | Add safe HH search-card parser and fixture harness | planned | `feat: add hh search card parser` |
+| ITER-034 | EPIC-20 | Render lightweight search-result badges | planned | `feat: add search result badges` |
+| ITER-035 | EPIC-20 | Add local quick save/reject from search cards | planned | `feat: add search quick actions` |
+| ITER-036 | EPIC-20 | Harden search triage runtime for dynamic HH result pages | planned | `fix: harden search triage runtime` |
+
+## Phase 2: Queue And Dashboard Follow-Up
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-037 | EPIC-21 | Add local queue task list and duplicate detection | planned | `feat: add queue task list` |
+| ITER-038 | EPIC-21 | Add company greylist workflow and stronger Phase 2 dashboard | planned | `feat: add company greylist workflow` |
+
 ## Cursor/Codex Rule
 
 Do not ask autopilot to implement more than one row at a time. If it touches unrelated epics, reject or split the change.

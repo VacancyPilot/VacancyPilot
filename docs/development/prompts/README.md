@@ -45,6 +45,13 @@ Available prompts:
 - `ITER-029.md`
 - `ITER-030.md`
 - `ITER-031.md`
+- `ITER-032.md`
+- `ITER-033.md`
+- `ITER-034.md`
+- `ITER-035.md`
+- `ITER-036.md`
+- `ITER-037.md`
+- `ITER-038.md`
 - `PHASE-1-SIGNOFF.md`
 
 Recommended use after `ITER-016`:
@@ -57,4 +64,7 @@ Recommended use after `ITER-016`:
 6. Run `ITER-023.md` through `ITER-026.md` one row at a time for confirmed hardening fixes
 7. Run `ITER-027.md` if a new external audit is produced after `ITER-026`
 8. Run `ITER-028.md` through `ITER-031.md` one row at a time for the second-audit fix pack
-9. Use `ITER-014.md` only if Phase 1 still needs opt-in webhook automation before release
+9. Run `ITER-032.md` after the final Chrome/Edge + GitHub closeout gate
+10. Run `ITER-033.md` through `ITER-036.md` one row at a time for the Phase 2 search-triage core
+11. Run `ITER-037.md` and `ITER-038.md` only after the search-surface core is stable
+12. Use `ITER-014.md` only if Phase 1 still needs opt-in webhook automation before release

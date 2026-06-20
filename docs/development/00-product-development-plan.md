@@ -1,6 +1,6 @@
 # VacancyPilot Product Development Plan
 
-Status: Phase 1 core complete; confirmed audit hardening active  
+Status: Phase 1 implementation complete; Phase 2 pack prepared; manual closeout gate pending  
 Source of truth: `docs/Техническое заданиеV.1.md` v1.1 FINAL
 
 ## Decision
@@ -106,11 +106,8 @@ Required:
 
 ## Immediate Next Actions
 
-1. ~~Use the committed prompt files in `docs/development/prompts/` as the source of iteration instructions.~~ Done — all prompts used through ITER-021.
-2. ~~Use `docs/development/manual-qa-run-2026-06-20.md` as the source of concrete runtime follow-up work.~~ Done — ITER-017..021 addressed all findings.
-3. ~~Close `ITER-021` after successful live rerun evidence and sync the release-status docs.~~ Done — live browser rerun passed and Phase 1 core runtime is closed.
-4. ~~Decide whether `ITER-014` remains deferred or is still required for current Phase 1 scope.~~ **Resolved (PHASE-1-SIGNOFF)**: ITER-014 (n8n) is deferred from current Phase 1 completion path.
-5. ~~If `ITER-014` is not required now, run `docs/development/prompts/PHASE-1-SIGNOFF.md`.~~ Done — this document is the result.
-6. **Next**: execute `ITER-023` through `ITER-026` one row at a time.
-7. After `ITER-026`, run another focused Chrome + Edge rerun for the hardened core loop.
-8. Revisit `ITER-014` only when webhook automation is brought back into active scope.
+1. Run the remaining Phase 1 manual/infrastructure gate from `docs/development/phase-2-start-gate.md`.
+2. If the gate is green, run `ITER-032` to align docs and explicitly open Phase 2 scope.
+3. Start Phase 2 implementation with `ITER-033` through `ITER-036`, one row at a time.
+4. Start `ITER-037` and `ITER-038` only after the search-surface core is stable.
+5. Revisit `ITER-014` only when webhook automation is brought back into active scope.

@@ -20,13 +20,20 @@ This file is the working map from the master specification to implementation epi
 | EPIC-11 | Runtime Workflow Completion | 1 | ready | EPIC-03, EPIC-04, EPIC-05, EPIC-07, EPIC-10 |
 | EPIC-12 | Post-Signoff Audit Hardening | 1.5 | ready | EPIC-01, EPIC-02, EPIC-03, EPIC-04, EPIC-06, EPIC-08, EPIC-10, EPIC-11 |
 | EPIC-13 | Confirmed Audit Fixes | 1.6 | ready | EPIC-12 |
+| EPIC-14 | Second Audit Confirmation And Closure | 1.7 | done | EPIC-13 |
+| EPIC-15 | Phase 1 Closeout And Phase 2 Readiness | 1.9 | ready | EPIC-14 |
+
+## Phase 2 Epics
+
+| Epic | Name | Phase | Status |
+| --- | --- | --- | --- |
+| EPIC-20 | Search Triage Core | 2 | ready |
+| EPIC-21 | Queue And Dashboard Follow-Up | 2 | ready |
 
 ## Later Epics
 
 | Epic | Name | Phase | Status |
 | --- | --- | --- | --- |
-| EPIC-20 | Search Triage Badges | 2 | backlog |
-| EPIC-21 | Workflow Queue | 3 | backlog |
 | EPIC-22 | Guided Apply Labs | 4 | backlog |
 | EPIC-23 | HR Communication Hub | 5 | backlog |
 | EPIC-24 | Multi-Site Adapter Expansion | 6 | backlog |

@@ -22,5 +22,5 @@ When recommendations conflict, use the priority order from the final specificati
 
 Recommended next action:
 
-- review manual verification gates and Phase 2 start readiness before opening new implementation scope
+- complete the Phase 1 closeout gate, then start the prepared Phase 2 pack from `development/prompts/ITER-032.md`
 - keep [development/prompts/ITER-014.md](development/prompts/ITER-014.md) deferred until webhook automation returns to active scope
