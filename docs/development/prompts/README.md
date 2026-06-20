@@ -35,10 +35,12 @@ Available prompts:
 - `ITER-019.md`
 - `ITER-020.md`
 - `ITER-021.md`
+- `PHASE-1-SIGNOFF.md`
 
 Recommended use after `ITER-016`:
 
 1. Capture manual QA findings
 2. Run `ITER-017.md`
 3. Continue through `ITER-021.md`
-4. Use `ITER-014.md` only if Phase 1 still needs opt-in webhook automation before release
+4. Run `PHASE-1-SIGNOFF.md` after the runtime rerun passes
+5. Use `ITER-014.md` only if Phase 1 still needs opt-in webhook automation before release

@@ -22,5 +22,5 @@ When recommendations conflict, use the priority order from the final specificati
 
 Recommended next action:
 
-- implement [development/prompts/ITER-021.md](development/prompts/ITER-021.md)
-- then continue through the `EPIC-11` runtime completion pack
+- if Phase 1 still requires webhook automation, implement [development/prompts/ITER-014.md](development/prompts/ITER-014.md)
+- otherwise run [development/prompts/PHASE-1-SIGNOFF.md](development/prompts/PHASE-1-SIGNOFF.md)

@@ -42,7 +42,7 @@ Status values:
 | ITER-018 | EPIC-11 | Replace dashboard vacancy shell with runtime views | done | `feat: add dashboard runtime views` |
 | ITER-019 | EPIC-11 | Add profile and resume management flow | done | `feat: add profile resume management` |
 | ITER-020 | EPIC-11 | Sync popup, side panel, and dashboard state | done | `feat: sync runtime surfaces` |
-| ITER-021 | EPIC-11 | Fix runtime QA findings and prep rerun | in_progress | `fix: address runtime qa findings` |
+| ITER-021 | EPIC-11 | Fix runtime QA findings and prep rerun | done | `fix: address runtime qa findings` |
 
 ## Cursor/Codex Rule
 

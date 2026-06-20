@@ -18,15 +18,15 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-020 complete
-manual QA findings captured on 2026-06-20
+ITER-021 complete
+manual QA rerun confirmed by user on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-ITER-021: Runtime QA Fixes and Rerun Prep
-Prompt: docs/development/prompts/ITER-021.md
+Phase 1 signoff and scope decision
+Prompt: docs/development/prompts/PHASE-1-SIGNOFF.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
