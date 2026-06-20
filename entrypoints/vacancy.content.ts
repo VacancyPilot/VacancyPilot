@@ -4,7 +4,8 @@ import { HHAdapter } from "@/adapters/hh/hh-adapter";
 export default defineContentScript({
   // Narrow scope: only HH.ru vacancy pages.
   // Badge displays score and status; click opens side panel.
-  matches: ["https://*.hh.ru/vacancy/*"],
+  // Cover both hh.ru and *.hh.ru (regional subdomains).
+  matches: ["https://hh.ru/vacancy/*", "https://*.hh.ru/vacancy/*"],
   main() {
     void createBadge();
   },
