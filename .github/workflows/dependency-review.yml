@@ -1,0 +1,23 @@
+name: Dependency Review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # TODO: consider blocking critical vulnerabilities once the project
+      # has a stable dependency baseline and a track record of clean audits.
+      # TODO: add deny-licenses list after reviewing current dependency
+      # license compatibility. Likely candidates: GPL-2.0+, AGPL-3.0.
+      # Do not add without verifying each dependency's actual license.
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high

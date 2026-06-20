@@ -1,0 +1,69 @@
+name: SonarQube Cloud
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sonarqube:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # ── Check if SONAR_TOKEN is available ──────────────────────────────
+      # Advisory mode: skip the entire scan if the secret is not configured.
+      # This avoids breaking PRs before the manual SonarQube setup is done.
+      - name: Check SONAR_TOKEN availability
+        id: check-token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=SonarQube::SONAR_TOKEN secret is not configured in this repository. SonarQube scan skipped."
+            echo "::notice title=SonarQube::See docs/development/sonarqube-cloud-setup.md for manual setup instructions."
+          else
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Checkout (full history for accurate blame) ─────────────────────
+      - uses: actions/checkout@v4
+        if: steps.check-token.outputs.has_token == 'true'
+        with:
+          fetch-depth: 0
+
+      # ── Node + pnpm ────────────────────────────────────────────────────
+      - name: Enable Corepack
+        if: steps.check-token.outputs.has_token == 'true'
+        run: corepack enable
+
+      - uses: actions/setup-node@v4
+        if: steps.check-token.outputs.has_token == 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        if: steps.check-token.outputs.has_token == 'true'
+        run: pnpm install --frozen-lockfile
+
+      # ── Tests (no coverage yet) ────────────────────────────────────────
+      # TODO: add coverage step after configuring vitest coverage:
+      #   - run: pnpm test:coverage
+      #     if: steps.check-token.outputs.has_token == 'true'
+      - name: Run tests
+        if: steps.check-token.outputs.has_token == 'true'
+        run: pnpm test
+
+      # ── SonarQube scan ─────────────────────────────────────────────────
+      - name: SonarQube Scan
+        if: steps.check-token.outputs.has_token == 'true'
+        uses: SonarSource/sonarqube-scan-action@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
