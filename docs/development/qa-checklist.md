@@ -1,13 +1,15 @@
 # Manual QA Checklist — VacancyPilot Phase 1
 
-Status: ITER-032 (GitHub checks green, manual rerun pending)  
+Status: ITER-032 complete (Phase 2 gate GO)  
 Source: spec section 22.4, EPIC-10, EPIC-15
 
-> **Gate status (2026-06-20)**: Automated checks are green (903 tests, typecheck, lint, build, release safety), and GitHub Actions `Quality` on `main` is green. Manual QA was run once (ITER-016, build `a602b81`) and found core runtime blockers. ITER-017..021 addressed the blockers and automated analysis confirms the fixes are structurally correct. However, a **live browser rerun has not yet been documented here** to confirm the fixes in real Chrome/Edge runtime. Until this rerun is captured in the QA artifacts, Phase 2 implementation (ITER-033) remains **NO-GO**.
+> **Gate status (2026-06-20)**: Automated checks are green (903 tests, typecheck, lint, build, release safety), GitHub Actions `Quality` on `main` is green, and the follow-up Chrome + Edge rerun for the current Phase 1 core scope was reported as successful. Phase 2 implementation is now **GO**. See `docs/development/manual-qa-run-2026-06-20.md` § Phase 1 Closeout Rerun.
 
 Run this checklist manually in at least **two Chromium browsers** (Chrome + one of Edge, Brave, Яндекс Браузер) before declaring Phase 1 release-candidate ready.
 
 Record results in the checkboxes below. Re-run after each breaking change to the parser or content script.
+
+The detailed matrix below remains the wider manual regression checklist. The Phase 2 start gate is already closed separately by the documented closeout rerun above.
 
 ---
 

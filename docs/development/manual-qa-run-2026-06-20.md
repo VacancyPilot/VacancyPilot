@@ -119,3 +119,37 @@ pnpm build    → success (manifest now has both match patterns)
 8. Open Dashboard → confirm saved/rejected vacancy appears in the table.
 9. Repeat on `hh.ru` (without subdomain, if accessible) to verify match pattern fix.
 10. Repeat in Edge if second-browser scope applies.
+
+---
+
+## Phase 1 Closeout Rerun — 2026-06-20
+
+Source: user-reported follow-up Chrome + Edge rerun on current `main` after `ITER-032` review
+
+## Meta
+
+- Tester: `Izman`
+- Browsers: `Chrome`, `Edge`
+- Build basis: current `main` as of 2026-06-20
+- Result: pass for current Phase 1 core scope
+
+## Summary
+
+The follow-up manual rerun for the current Phase 1 core scope was reported as successful in both Chrome and Edge. No new runtime blockers were reported.
+
+Confirmed at closeout level:
+
+- extension loads in Chrome and Edge;
+- vacancy page detection works;
+- badge is present and usable in the current core flow;
+- popup actions behave correctly in the current core flow;
+- save/reject flow works;
+- side panel opens and participates in the core flow;
+- dashboard path works for the saved vacancy flow;
+- no new blocker was found that would justify holding `ITER-033`.
+
+## Scope Note
+
+This closeout rerun is sufficient for the Phase 1 private-RC gate and for opening Phase 2 implementation.
+
+It does **not** mean that the entire wider regression/public-release matrix in `release-checklist.md` has been exhaustively re-run item by item.

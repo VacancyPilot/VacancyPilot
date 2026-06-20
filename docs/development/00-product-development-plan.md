@@ -1,6 +1,6 @@
 # VacancyPilot Product Development Plan
 
-Status: Phase 1 implementation complete; Phase 2 pack prepared; manual closeout gate pending  
+Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack open  
 Source of truth: `docs/Техническое заданиеV.1.md` v1.1 FINAL
 
 ## Decision
@@ -106,8 +106,7 @@ Required:
 
 ## Immediate Next Actions
 
-1. Run the remaining Phase 1 manual/infrastructure gate from `docs/development/phase-2-start-gate.md`.
-2. If the gate is green, run `ITER-032` to align docs and explicitly open Phase 2 scope.
-3. Start Phase 2 implementation with `ITER-033` through `ITER-036`, one row at a time.
-4. Start `ITER-037` and `ITER-038` only after the search-surface core is stable.
-5. Revisit `ITER-014` only when webhook automation is brought back into active scope.
+1. Start Phase 2 implementation with `ITER-033`.
+2. Continue `ITER-034` through `ITER-036`, one row at a time.
+3. Start `ITER-037` and `ITER-038` only after the search-surface core is stable.
+4. Revisit `ITER-014` only when webhook automation is brought back into active scope.

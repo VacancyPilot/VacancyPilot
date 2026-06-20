@@ -1,6 +1,6 @@
 # Release Checklist — VacancyPilot Phase 1
 
-Status: ITER-032 — automated gate green, GitHub checks green, manual rerun pending  
+Status: ITER-032 complete — automated gate green, GitHub checks green, core manual rerun passed  
 Source: spec sections 19.6, 22.4, 26.5, 26.6; EPIC-11; EPIC-15; PHASE-1-SIGNOFF
 
 ## Automated Checks (CI Gate)
@@ -41,7 +41,7 @@ These checks run automatically via `pnpm test` and must all pass before release.
 These checks require a human tester and a running extension instance.
 Execute in at least Chrome and one additional Chromium browser (Edge, Brave, or Яндекс Браузер).
 
-> **Status (2026-06-20)**: Initial QA run found core runtime blockers. ITER-017..021 addressed the defects — automated analysis confirms the fixes are structurally correct (see `docs/development/manual-qa-run-2026-06-20.md` § ITER-021 Rerun Analysis). GitHub Actions `Quality` on `main` is green. A **live browser rerun has not yet been documented in the release artifacts**. Until the rerun is completed and recorded, the manual QA section below remains unverified. Keep this checklist as the wider regression/public-release matrix.
+> **Status (2026-06-20)**: Initial QA run found core runtime blockers. ITER-017..021 addressed the defects, GitHub Actions `Quality` on `main` is green, and the follow-up Chrome + Edge rerun for the current Phase 1 core scope was reported as successful. See `docs/development/manual-qa-run-2026-06-20.md` § Phase 1 Closeout Rerun. Keep this checklist as the wider regression/public-release matrix rather than treating it as fully exhausted by the closeout gate.
 
 ### Browser Compatibility (spec 22.4)
 
@@ -120,5 +120,5 @@ The following checks are NOT automated and require manual verification:
 - [x] `pnpm test:release` passes (277 release-safety tests, 0 failures)
 - [x] No secrets committed
 - [x] Manifest permissions are minimal
-- [ ] Manual QA rerun completed in at least 2 browsers (see `docs/development/manual-qa-run-2026-06-20.md` § Recommended Rerun Steps)
+- [x] Manual QA rerun completed in at least 2 browsers for the current Phase 1 core scope (see `docs/development/manual-qa-run-2026-06-20.md` § Phase 1 Closeout Rerun)
 - [ ] Release notes drafted

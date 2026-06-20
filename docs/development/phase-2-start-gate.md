@@ -14,23 +14,22 @@ The code-side hardening is complete through `ITER-031`, but Phase 2 implementati
 - GitHub checks are green, or a specific accepted exception is documented
 - No newly discovered runtime blockers from the rerun
 
-## Current Gate Status (ITER-032, 2026-06-20)
+## Current Gate Status (ITER-032 closeout, 2026-06-20)
 
 | Check | Status | Evidence |
 | --- | --- | --- |
-| Chrome manual rerun | ⚠️ PENDING | Initial QA run (build `a602b81`) found blockers. ITER-017..021 fixes are "LIKELY FIXED" per code review analysis, but no live browser rerun has confirmed. See `docs/development/manual-qa-run-2026-06-20.md` § Recommended Rerun Steps. |
-| Edge manual rerun | ⚠️ PENDING | Same as Chrome — pending live rerun. |
+| Chrome manual rerun | ✅ PASS | User-reported follow-up rerun on 2026-06-20 passed for the current Phase 1 core scope. See `docs/development/manual-qa-run-2026-06-20.md` § Phase 1 Closeout Rerun. |
+| Edge manual rerun | ✅ PASS | Same closeout rerun evidence as Chrome. |
 | GitHub checks green | ✅ PASS | Verified on `main` via GitHub Actions run `27872910748` (`Quality`, push, 2026-06-20). Local validation also passes: 903 tests, typecheck, lint, build, test:release. A non-blocking Node.js 20 deprecation annotation remains in GitHub Actions logs. |
-| No new runtime blockers | ⚠️ UNKNOWN | Cannot assess without live rerun. |
+| No new runtime blockers | ✅ PASS | Closeout rerun was reported as successful and did not surface a new blocker for the current Phase 1 core scope. |
 
-## Decision: NO-GO
+## Decision: GO
 
-**Phase 2 implementation (ITER-033) must NOT start until the manual rerun is completed and documented.**
+**Phase 2 implementation may start. `ITER-033` is open.**
 
-Required action:
-1. Run the recommended rerun steps from `docs/development/manual-qa-run-2026-06-20.md` in Chrome and Edge
-2. Update checkboxes in `docs/development/qa-checklist.md` and `docs/development/release-checklist.md`
-3. Re-evaluate this gate — if the rerun passes without new blockers, switch to GO
+Next action:
+1. Start `ITER-033`
+2. Keep wider regression/public-release verification in the release checklist as a separate later track
 
 ## Required Evidence
 

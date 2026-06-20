@@ -18,18 +18,18 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-031 complete
-phase 1 code and hardening complete on 2026-06-20
+ITER-032 complete
+phase 1 code, hardening, and closeout gate complete on 2026-06-20
 phase 2 pack prepared on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-Phase 1 closeout gate:
-1. Run docs/development/phase-2-start-gate.md
-2. Then run ITER-032
-3. Then start ITER-033
+Phase 2 start:
+1. Review docs/development/phase-2-start-gate.md
+2. Start ITER-033
+3. Continue ITER-034..036 one row at a time
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
@@ -60,4 +60,4 @@ docs/development/phase-2-start-gate.md
 
 ## Status
 
-The first post-signoff hardening pack is complete. The second audit follow-up fix pack (`ITER-028`..`ITER-031`) is also complete. A full Phase 2 pack is now prepared, but the start gate remains explicit: manual Chrome/Edge verification plus GitHub checks review before implementation opens with `ITER-033`. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
+The first post-signoff hardening pack is complete. The second audit follow-up fix pack (`ITER-028`..`ITER-031`) is also complete. `ITER-032` closed the manual/infrastructure gate, so Phase 2 implementation is now open starting with `ITER-033`. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
