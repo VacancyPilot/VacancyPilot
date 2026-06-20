@@ -19,6 +19,7 @@ This file is the working map from the master specification to implementation epi
 | EPIC-10 | Release Hardening and QA | 1 | ready | all Phase 1 epics |
 | EPIC-11 | Runtime Workflow Completion | 1 | ready | EPIC-03, EPIC-04, EPIC-05, EPIC-07, EPIC-10 |
 | EPIC-12 | Post-Signoff Audit Hardening | 1.5 | ready | EPIC-01, EPIC-02, EPIC-03, EPIC-04, EPIC-06, EPIC-08, EPIC-10, EPIC-11 |
+| EPIC-13 | Confirmed Audit Fixes | 1.6 | ready | EPIC-12 |
 
 ## Later Epics
 

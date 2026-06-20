@@ -22,5 +22,5 @@ When recommendations conflict, use the priority order from the final specificati
 
 Recommended next action:
 
-- run [development/prompts/ITER-022.md](development/prompts/ITER-022.md) to confirm or refute the external deep audit before any hardening fixes
+- implement [development/prompts/ITER-023.md](development/prompts/ITER-023.md) to start the confirmed audit hardening fixes
 - keep [development/prompts/ITER-014.md](development/prompts/ITER-014.md) deferred until webhook automation returns to active scope

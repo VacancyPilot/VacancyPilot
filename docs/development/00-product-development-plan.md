@@ -1,6 +1,6 @@
 # VacancyPilot Product Development Plan
 
-Status: Phase 1 core complete; post-signoff hardening active  
+Status: Phase 1 core complete; confirmed audit hardening active  
 Source of truth: `docs/Техническое заданиеV.1.md` v1.1 FINAL
 
 ## Decision
@@ -111,6 +111,6 @@ Required:
 3. ~~Close `ITER-021` after successful live rerun evidence and sync the release-status docs.~~ Done — live browser rerun passed and Phase 1 core runtime is closed.
 4. ~~Decide whether `ITER-014` remains deferred or is still required for current Phase 1 scope.~~ **Resolved (PHASE-1-SIGNOFF)**: ITER-014 (n8n) is deferred from current Phase 1 completion path.
 5. ~~If `ITER-014` is not required now, run `docs/development/prompts/PHASE-1-SIGNOFF.md`.~~ Done — this document is the result.
-6. **Next**: run `ITER-022` to confirm or reject findings from the external deep repository audit before starting any hardening fixes.
-7. Only after `ITER-022`, split confirmed issues into narrow implementation iterations.
+6. **Next**: execute `ITER-023` through `ITER-026` one row at a time.
+7. After `ITER-026`, run another focused Chrome + Edge rerun for the hardened core loop.
 8. Revisit `ITER-014` only when webhook automation is brought back into active scope.

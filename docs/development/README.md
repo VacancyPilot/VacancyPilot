@@ -18,15 +18,15 @@ Read in order:
 Current implementation status:
 
 ```text
-ITER-021 complete
-Phase 1 core runtime closed on 2026-06-20
+ITER-022 triage complete
+confirmed hardening backlog prepared on 2026-06-20
 ```
 
 Recommended next action:
 
 ```text
-ITER-022: Audit Confirmation And Triage
-Prompt: docs/development/prompts/ITER-022.md
+ITER-023: Storage And Data Integrity Hardening
+Prompt: docs/development/prompts/ITER-023.md
 ```
 
 For Zed, paste `docs/development/prompts/ZED-SESSION-START.md` once before the first iteration prompt.
@@ -46,12 +46,13 @@ ITER-014: n8n Events
 Prompt: docs/development/prompts/ITER-014.md
 ```
 
-Manual QA findings driving the next pack:
+Manual QA and audit inputs driving the next pack:
 
 ```text
 docs/development/manual-qa-run-2026-06-20.md
+docs/development/ITER-022-triage-report.md
 ```
 
 ## Status
 
-The decomposition pack is active for Phase 1 release hardening and follow-up implementation. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
+The decomposition pack is active for post-signoff hardening before Phase 2 feature work. The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.

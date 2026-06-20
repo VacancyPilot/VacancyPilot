@@ -46,13 +46,22 @@ Status values:
 
 > **ITER-021 note**: Closed after live browser rerun confirmation for the current Phase 1 core flow. Keep `docs/development/manual-qa-run-2026-06-20.md` as the regression reference for future hardening passes.
 >
-> **ITER-014 decision**: n8n deferred from current Phase 1 completion path (PHASE-1-SIGNOFF). n8n is opt-in Labs, not Core; the spec lists n8n permission model as an open decision (spec 26.5). Will be re-evaluated post live-rerun confirmation.
+> **ITER-014 decision**: n8n deferred from current Phase 1 completion path (PHASE-1-SIGNOFF). n8n is opt-in Labs, not Core; the spec lists n8n permission model as an open decision (spec 26.5). Will be re-evaluated only if webhook automation returns to active scope.
 
 ## Post-Phase-1: Audit Hardening
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-022 | EPIC-12 | Confirm or refute external audit findings and produce a triaged hardening report | planned | `docs: triage external audit findings` |
+| ITER-022 | EPIC-12 | Confirm or refute external audit findings and produce a triaged hardening report | done | `docs: triage external audit findings` |
+
+## Post-Phase-1: Confirmed Audit Fixes
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-023 | EPIC-13 | Harden vacancy storage, badge cleanup, and ID integrity | planned | `fix: harden vacancy storage and badge cleanup` |
+| ITER-024 | EPIC-13 | Align save semantics and recompute score on profile changes | planned | `fix: align save semantics and score recompute` |
+| ITER-025 | EPIC-13 | Close cover-letter privacy gap and profile lifecycle leaks | planned | `fix: close privacy gap and clean profile lifecycle refs` |
+| ITER-026 | EPIC-13 | Harden HH parser, dashboard refresh, and generated-manifest safety | planned | `fix: harden parser and release safety` |
 
 ## Cursor/Codex Rule
 
