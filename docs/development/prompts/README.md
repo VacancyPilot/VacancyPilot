@@ -52,6 +52,10 @@ Available prompts:
 - `ITER-036.md`
 - `ITER-037.md`
 - `ITER-038.md`
+- `ITER-039.md`
+- `ITER-040.md`
+- `ITER-041.md`
+- `ITER-042.md`
 - `PHASE-1-SIGNOFF.md`
 
 Recommended use after `ITER-016`:
@@ -64,7 +68,7 @@ Recommended use after `ITER-016`:
 6. Run `ITER-023.md` through `ITER-026.md` one row at a time for confirmed hardening fixes
 7. Run `ITER-027.md` if a new external audit is produced after `ITER-026`
 8. Run `ITER-028.md` through `ITER-031.md` one row at a time for the second-audit fix pack
-9. `ITER-032.md` is complete; the Phase 2 gate is now open
-10. Run `ITER-033.md` through `ITER-036.md` one row at a time for the Phase 2 search-triage core
-11. Run `ITER-037.md` and `ITER-038.md` only after the search-surface core is stable
-12. Use `ITER-014.md` only if Phase 1 still needs opt-in webhook automation before release
+9. `ITER-032.md` is complete; the Phase 2 gate was opened and completed through `ITER-038`
+10. Start the enlarged Phase 3 pack with `ITER-039.md`
+11. Continue `ITER-040.md` through `ITER-042.md` one row at a time
+12. Keep `ITER-014.md` deferred until the n8n permission model is explicitly reopened
