@@ -21,22 +21,30 @@ This file is the working map from the master specification to implementation epi
 | EPIC-12 | Post-Signoff Audit Hardening | 1.5 | ready | EPIC-01, EPIC-02, EPIC-03, EPIC-04, EPIC-06, EPIC-08, EPIC-10, EPIC-11 |
 | EPIC-13 | Confirmed Audit Fixes | 1.6 | ready | EPIC-12 |
 | EPIC-14 | Second Audit Confirmation And Closure | 1.7 | done | EPIC-13 |
-| EPIC-15 | Phase 1 Closeout And Phase 2 Readiness | 1.9 | ready | EPIC-14 |
+| EPIC-15 | Phase 1 Closeout And Phase 2 Readiness | 1.9 | done | EPIC-14 |
 
 ## Phase 2 Epics
 
 | Epic | Name | Phase | Status |
 | --- | --- | --- | --- |
-| EPIC-20 | Search Triage Core | 2 | ready |
-| EPIC-21 | Queue And Dashboard Follow-Up | 2 | ready |
+| EPIC-20 | Search Triage Core | 2 | done |
+| EPIC-21 | Queue And Dashboard Follow-Up | 2 | done |
+
+## Phase 3 Epics
+
+| Epic | Name | Phase | Status |
+| --- | --- | --- | --- |
+| EPIC-22 | Guided Apply Labs | 3 | ready |
+| EPIC-25 | Workflow Automation And Reminders | 3 | ready |
 
 ## Later Epics
 
 | Epic | Name | Phase | Status |
 | --- | --- | --- | --- |
-| EPIC-22 | Guided Apply Labs | 4 | backlog |
-| EPIC-23 | HR Communication Hub | 5 | backlog |
-| EPIC-24 | Multi-Site Adapter Expansion | 6 | backlog |
+| EPIC-09 | n8n And Telegram Webhook Events (re-open only after permission decision) | 4 | deferred |
+| EPIC-23 | HR Communication Hub | 4 | backlog |
+| EPIC-24 | Multi-Site Adapter Expansion | 5 | backlog |
+| EPIC-26 | Public Release And Store Readiness | 6 | backlog |
 
 ## Non-Negotiable Constraints
 

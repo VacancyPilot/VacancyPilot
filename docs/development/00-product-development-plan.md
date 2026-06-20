@@ -1,7 +1,12 @@
 # VacancyPilot Product Development Plan
 
-Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack open  
+Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; Phase 3 pack open  
 Source of truth: `docs/Техническое заданиеV.1.md` v1.1 FINAL
+
+Implementation note:
+
+- spec-level `Phase 3 — Workflow Queue` was partially absorbed into the enlarged implementation Phase 2 pack (`ITER-037` / `ITER-038`);
+- the next development pack therefore starts from the remaining workflow-assist and Labs items rather than reopening a tiny queue-only phase.
 
 ## Decision
 
@@ -106,7 +111,7 @@ Required:
 
 ## Immediate Next Actions
 
-1. Start Phase 2 implementation with `ITER-033`.
-2. Continue `ITER-034` through `ITER-036`, one row at a time.
-3. Start `ITER-037` and `ITER-038` only after the search-surface core is stable.
-4. Revisit `ITER-014` only when webhook automation is brought back into active scope.
+1. Start the enlarged Phase 3 pack with `ITER-039`.
+2. Continue `ITER-040` through `ITER-042`, one row at a time.
+3. Keep `ITER-014` deferred until the n8n permission model decision is explicitly reopened.
+4. Leave HR hub, external notifications, and multi-site work out of the next 4-iteration pack.
