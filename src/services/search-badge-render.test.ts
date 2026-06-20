@@ -181,6 +181,22 @@ describe("buildSearchBadgeHTML", () => {
     expect(html).toMatch(/^<span class="vp-sb-container">/);
     expect(html).toMatch(/<\/span>$/);
   });
+
+  it("escapes status and work mode text before injecting HTML", () => {
+    const card = makeCard({
+      workMode: '"><img src=x onerror=alert(1)>' as unknown as "remote",
+    });
+    const state = makeState({
+      status: 'saved" onclick="alert(1)',
+    });
+
+    const html = buildSearchBadgeHTML(card, state);
+
+    expect(html).not.toContain("<img");
+    expect(html).not.toContain('onclick="alert(1)"');
+    expect(html).toContain("&quot;&gt;&lt;img");
+    expect(html).toContain('saved&quot; onclick=&quot;alert(1)');
+  });
 });
 
 // ── injectSearchBadgeStyles ─────────────────────────────────────────

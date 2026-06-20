@@ -45,9 +45,47 @@ describe("shouldRefreshSearchBadges", () => {
     expect(shouldRefreshSearchBadges([record])).toBe(true);
   });
 
+  it("returns false for VacancyPilot badge host mutations", () => {
+    const win = new Window();
+    const host = win.document.createElement("span");
+    host.className = "vp-sb-host";
+
+    const child = win.document.createElement("span");
+    child.textContent = "saved";
+    host.appendChild(child);
+
+    const record = {
+      type: "childList",
+      target: host,
+      addedNodes: host.childNodes,
+      removedNodes: win.document.createDocumentFragment().childNodes,
+    } as unknown as MutationRecord;
+
+    expect(shouldRefreshSearchBadges([record])).toBe(false);
+  });
+
+  it("returns false for text-node updates inside VacancyPilot badge UI", () => {
+    const win = new Window();
+    const host = win.document.createElement("span");
+    host.className = "vp-sb-host";
+
+    const textNode = win.document.createTextNode("updated");
+    host.appendChild(textNode);
+
+    const record = {
+      type: "childList",
+      target: host,
+      addedNodes: host.childNodes,
+      removedNodes: win.document.createDocumentFragment().childNodes,
+    } as unknown as MutationRecord;
+
+    expect(shouldRefreshSearchBadges([record])).toBe(false);
+  });
+
   it("returns false for non-structural mutations", () => {
     const record = {
       type: "attributes",
+      target: null,
       addedNodes: [] as unknown as NodeList,
       removedNodes: [] as unknown as NodeList,
     } as unknown as MutationRecord;

@@ -61,6 +61,15 @@ const STATUS_LABELS: Record<string, string> = {
   blacklist: "блк",
 };
 
+function escapeHTML(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 // ── Score color classes ───────────────────────────────────────────────────
 
 function scoreClass(score: number): string {
@@ -84,21 +93,22 @@ export function buildSearchBadgeHTML(
   // Score (from local badge state)
   if (state?.score !== undefined && state.score !== null) {
     const cls = `vp-sb-score ${scoreClass(state.score)}`;
-    parts.push(`<span class="${cls}">${state.score}</span>`);
+    parts.push(`<span class="${cls}">${escapeHTML(String(state.score))}</span>`);
   }
 
   // Status icon + short label (from local badge state)
   if (state?.status) {
     const icon = STATUS_ICONS[state.status] ?? "";
-    const label = STATUS_LABELS[state.status] ?? state.status;
+    const label = escapeHTML(STATUS_LABELS[state.status] ?? state.status);
+    const title = escapeHTML(state.status);
     parts.push(
-      `<span class="vp-sb-status" title="${state.status}">${icon}${label}</span>`,
+      `<span class="vp-sb-status" title="${title}">${icon}${label}</span>`,
     );
   }
 
   // Work mode (from visible card data)
   if (card.workMode && card.workMode !== "unknown" && card.workMode !== null) {
-    const label = WORK_MODE_LABELS[card.workMode] ?? card.workMode;
+    const label = escapeHTML(WORK_MODE_LABELS[card.workMode] ?? card.workMode);
     const cls = WORK_MODE_CSS[card.workMode] ?? "";
     parts.push(`<span class="vp-sb-wm ${cls}">${label}</span>`);
   }

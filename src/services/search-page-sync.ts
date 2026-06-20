@@ -7,6 +7,28 @@
 
 export type RenderSearchBadgesFn = () => void | Promise<void>;
 
+function isVacancyPilotNode(node: Node | null): boolean {
+  if (!node) {
+    return false;
+  }
+
+  const element =
+    node.nodeType === 1
+      ? (node as Element)
+      : node.parentElement;
+
+  if (!element) {
+    return false;
+  }
+
+  return Boolean(
+    element.closest("#vp-search-badge-styles") ??
+      element.closest(".vp-sb-host") ??
+      element.closest(".vp-sb-container") ??
+      element.closest(".vp-sb-actions"),
+  );
+}
+
 /**
  * Create a debounced render scheduler so repeated DOM mutations collapse
  * into a single refresh pass.
@@ -37,9 +59,22 @@ export function shouldRefreshSearchBadges(
   mutations: MutationRecord[],
 ): boolean {
   return mutations.some(
-    (mutation) =>
-      mutation.type === "childList" &&
-      (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0),
+    (mutation) => {
+      if (mutation.type !== "childList") {
+        return false;
+      }
+
+      const structuralNodes = [
+        ...Array.from(mutation.addedNodes),
+        ...Array.from(mutation.removedNodes),
+      ].filter((node) => !isVacancyPilotNode(node));
+
+      if (structuralNodes.length > 0) {
+        return true;
+      }
+
+      return !isVacancyPilotNode(mutation.target);
+    },
   );
 }
 
