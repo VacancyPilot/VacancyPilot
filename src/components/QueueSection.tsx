@@ -1,9 +1,9 @@
 /**
- * Queue Section component — ITER-037.
+ * Queue Section component — ITER-037, extended in ITER-038.
  *
  * Dashboard section that shows saved vacancies as a task-list queue,
- * grouped by workflow stage. Includes filtering, sorting, and
- * duplicate detection integration.
+ * grouped by workflow stage. Includes filtering (including company
+ * greylist status), sorting, and duplicate detection integration.
  */
 
 import React, { useState, useCallback, useEffect, type ReactNode } from "react";
@@ -24,6 +24,7 @@ import {
   type TaskGroup,
 } from "@/services/queue-service";
 import { detectDuplicates } from "@/services/duplicate-detection";
+import { bulkLookupCompanies } from "@/services/company-greylist";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -100,6 +101,9 @@ function daysLabel(days: number): string {
 
 export function QueueSection(): ReactNode {
   const [jobs, setJobs] = useState<Job[] | null>(null);
+  const [companyMap, setCompanyMap] = useState<
+    Map<string, { status: "normal" | "greylist" | "blacklist" }>
+  >(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -120,6 +124,10 @@ export function QueueSection(): ReactNode {
       const data = await jobRepo.list();
       data.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
       setJobs(data);
+
+      // Load company statuses for greylist/blacklist enrichment.
+      const companies = await bulkLookupCompanies(data);
+      setCompanyMap(companies);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load queue");
     } finally {
@@ -182,7 +190,7 @@ export function QueueSection(): ReactNode {
     );
 
   // ── Build queue tasks ──
-  const allTasks = buildQueueTasks(jobs);
+  const allTasks = buildQueueTasks(jobs, { companyMap });
   const filteredTasks = filterQueueTasks(allTasks, filter);
   const sortedTasks = sortQueueTasks(filteredTasks, sort);
   const stats = computeQueueStats(allTasks);
@@ -346,6 +354,32 @@ export function QueueSection(): ReactNode {
           />
           Actionable only
         </label>
+
+        {/* Company status filter (greylist/blacklist) */}
+        <select
+          value={filter.companyStatus ?? ""}
+          onChange={(e) =>
+            setFilter((prev) => ({
+              ...prev,
+              companyStatus: (e.target.value || undefined) as
+                | "greylist"
+                | "blacklist"
+                | "normal"
+                | undefined,
+            }))
+          }
+          style={{
+            padding: "4px 8px",
+            fontSize: 12,
+            border: "1px solid #ccc",
+            borderRadius: 4,
+          }}
+        >
+          <option value="">All companies</option>
+          <option value="normal">Normal companies</option>
+          <option value="greylist">Greylisted</option>
+          <option value="blacklist">Blacklisted</option>
+        </select>
 
         {/* Sort */}
         <select
@@ -642,6 +676,42 @@ function QueueTaskRow({
       >
         {task.job.companyName || "—"}
       </span>
+
+      {/* Company greylist/blacklist indicator */}
+      {task.companyStatus === "greylist" && (
+        <span
+          title="Company is greylisted"
+          style={{
+            display: "inline-block",
+            padding: "1px 6px",
+            borderRadius: 8,
+            fontSize: 9,
+            fontWeight: 600,
+            background: "#fcf8e3",
+            color: "#8a6d3b",
+            whiteSpace: "nowrap",
+          }}
+        >
+          ⚠ GREY
+        </span>
+      )}
+      {task.companyStatus === "blacklist" && (
+        <span
+          title="Company is blacklisted"
+          style={{
+            display: "inline-block",
+            padding: "1px 6px",
+            borderRadius: 8,
+            fontSize: 9,
+            fontWeight: 600,
+            background: "#212121",
+            color: "#fff",
+            whiteSpace: "nowrap",
+          }}
+        >
+          🚫 BLK
+        </span>
+      )}
 
       {/* Score */}
       <span

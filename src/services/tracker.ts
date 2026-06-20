@@ -4,6 +4,7 @@ import { db } from "@/db/database";
 import { jobRepo } from "@/db/repositories";
 import { createStatusChange } from "./status-transitions";
 import { createEventLogEntry } from "./event-log-helper";
+import { ensureCompanyRecord } from "./company-greylist";
 
 const SOURCE_HH = "hh" as const;
 
@@ -247,6 +248,11 @@ export const tracker = {
         action: "updated",
       });
 
+      // Ensure a company record exists (does not override existing greylist/blacklist).
+      ensureCompanyRecord(updated.companyId, updated.companyName).catch(
+        console.error,
+      );
+
       return updated;
     }
 
@@ -258,6 +264,9 @@ export const tracker = {
       companyName: job.companyName,
       action: "created",
     });
+
+    // Ensure a company record exists (does not override existing greylist/blacklist).
+    ensureCompanyRecord(job.companyId, job.companyName).catch(console.error);
 
     return job;
   },

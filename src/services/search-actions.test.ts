@@ -57,6 +57,10 @@ vi.mock("@/db/repositories", () => ({
     getById: async (id: string) => mockProfileStore.get(id) ?? undefined,
     list: async () => Array.from(mockProfileStore.values()),
   },
+  companyRepo: {
+    getById: async () => undefined,
+    save: async () => {},
+  },
 }));
 
 // ── Mock badge-state ───────────────────────────────────────────────────────

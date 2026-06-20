@@ -17,6 +17,7 @@ export {
   profileRepo,
   resumeRepo,
   coverLetterRepo,
+  companyRepo,
 } from "./repositories";
 
 export { defaultSettings, loadSettings, saveSettings } from "./settings-bridge";

@@ -1,5 +1,6 @@
 import { db } from "./database";
 import type { Job } from "@/models/job";
+import type { Company } from "@/models/company";
 import type { Profile } from "@/models/profile";
 import type { Resume } from "@/models/resume";
 import type { CoverLetter } from "@/models/cover-letter";
@@ -89,4 +90,32 @@ export const coverLetterRepo = {
 
   /** Delete a letter by id. */
   delete: (id: string) => db.coverLetters.delete(id as CoverLetter["id"]),
+};
+
+// ---- Company repository ----
+
+export const companyRepo = {
+  /** List all companies, sorted by name. */
+  list: () => db.companies.orderBy("name").toArray(),
+
+  /** Get a single company by id. */
+  getById: (id: string) => db.companies.get(id as Company["id"]),
+
+  /** Insert or update a company (upsert by id). */
+  save: (company: Company) => db.companies.put(company),
+
+  /** Delete a company by id. */
+  delete: (id: string) => db.companies.delete(id as Company["id"]),
+
+  /** Find a company by sourceCompanyId. */
+  findBySourceCompanyId: (source: string, sourceCompanyId: string) =>
+    db.companies
+      .where("sourceCompanyId")
+      .equals(sourceCompanyId)
+      .filter((c) => c.source === source)
+      .first(),
+
+  /** List companies with a given status (greylist / blacklist / normal). */
+  listByStatus: (status: Company["status"]) =>
+    db.companies.where("status").equals(status).toArray(),
 };

@@ -185,6 +185,23 @@ describe("buildQueueTasks", () => {
     const tasks = buildQueueTasks(jobs, { includeArchived: true });
     expect(tasks).toHaveLength(2);
   });
+
+  it("enriches tasks with company status from companyMap", () => {
+    const jobs = [
+      makeJob({ id: "hh_1", companyId: "hh_co_a" }),
+      makeJob({ id: "hh_2", companyId: "hh_co_b" }),
+      makeJob({ id: "hh_3", companyId: "hh_co_c" }),
+    ];
+    const companyMap = new Map([
+      ["hh_co_a", { status: "greylist" as const }],
+      ["hh_co_b", { status: "blacklist" as const }],
+    ]);
+    const tasks = buildQueueTasks(jobs, { companyMap });
+    expect(tasks).toHaveLength(3);
+    expect(tasks[0].companyStatus).toBe("greylist");
+    expect(tasks[1].companyStatus).toBe("blacklist");
+    expect(tasks[2].companyStatus).toBeUndefined();
+  });
 });
 
 // ── groupByStage ─────────────────────────────────────────────────────────────
@@ -229,6 +246,7 @@ describe("filterQueueTasks", () => {
       score?: number;
       company?: string;
       title?: string;
+      companyStatus?: "normal" | "greylist" | "blacklist";
     } = {},
   ): QueueTask {
     const job = makeJob({
@@ -259,7 +277,7 @@ describe("filterQueueTasks", () => {
       ...(overrides.company ? { companyName: overrides.company } : {}),
       ...(overrides.title ? { title: overrides.title } : {}),
     });
-    return jobToQueueTask(job);
+    return jobToQueueTask(job, overrides.companyStatus);
   }
 
   it("filters by priority", () => {
@@ -353,6 +371,23 @@ describe("filterQueueTasks", () => {
 
     const result = filterQueueTasks(tasks, {});
     expect(result).toHaveLength(2);
+  });
+
+  it("filters by company status", () => {
+    const tasks = [
+      makeTask("hh_1", { companyStatus: "greylist" }),
+      makeTask("hh_2", { companyStatus: "normal" }),
+      makeTask("hh_3", { companyStatus: "blacklist" }),
+      makeTask("hh_4", { companyStatus: undefined }),
+    ];
+
+    const greylisted = filterQueueTasks(tasks, { companyStatus: "greylist" });
+    expect(greylisted).toHaveLength(1);
+    expect(greylisted[0].jobId).toBe("hh_1");
+
+    const blacklisted = filterQueueTasks(tasks, { companyStatus: "blacklist" });
+    expect(blacklisted).toHaveLength(1);
+    expect(blacklisted[0].jobId).toBe("hh_3");
   });
 });
 

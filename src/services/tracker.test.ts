@@ -239,6 +239,10 @@ vi.mock("@/db/repositories", () => ({
       return undefined;
     },
   },
+  companyRepo: {
+    getById: async () => undefined,
+    save: async () => {},
+  },
 }));
 
 import { tracker } from "./tracker";

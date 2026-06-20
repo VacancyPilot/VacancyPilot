@@ -22,7 +22,10 @@ import {
 /**
  * Convert a job into a queue task with derived fields.
  */
-export function jobToQueueTask(job: Job): QueueTask {
+export function jobToQueueTask(
+  job: Job,
+  companyStatus?: "normal" | "greylist" | "blacklist",
+): QueueTask {
   const now = Date.now();
   const updatedAt = new Date(job.updatedAt).getTime();
   const daysSinceUpdate = Math.floor((now - updatedAt) / (1000 * 60 * 60 * 24));
@@ -36,22 +39,33 @@ export function jobToQueueTask(job: Job): QueueTask {
     daysSinceUpdate,
     hasCoverLetter: job.coverLetterId !== undefined,
     hasProfile: job.selectedProfileId !== undefined,
+    companyStatus,
   };
 }
 
 /**
  * Build queue tasks from an array of jobs.
  * Excludes blacklisted jobs by default.
+ *
+ * @param jobs     - Array of Job domain objects.
+ * @param options  - includeArchived: include blacklisted jobs.
+ *                   companyMap: Map of companyId to Company for status enrichment.
  */
 export function buildQueueTasks(
   jobs: Job[],
-  options?: { includeArchived?: boolean },
+  options?: {
+    includeArchived?: boolean;
+    companyMap?: Map<string, { status: "normal" | "greylist" | "blacklist" }>;
+  },
 ): QueueTask[] {
   const filtered = options?.includeArchived
     ? jobs
     : jobs.filter((j) => j.status !== "blacklist");
 
-  return filtered.map(jobToQueueTask);
+  return filtered.map((job) => {
+    const companyStatus = options?.companyMap?.get(job.companyId)?.status;
+    return jobToQueueTask(job, companyStatus);
+  });
 }
 
 // ── Grouping ─────────────────────────────────────────────────────────────────
@@ -112,6 +126,8 @@ export interface QueueFilter {
   titleSearch?: string;
   /** Only show tasks that need the user's attention (next action pending). */
   actionableOnly?: boolean;
+  /** Only show tasks for companies with this status (greylist/blacklist/normal). */
+  companyStatus?: "greylist" | "blacklist" | "normal";
 }
 
 /**
@@ -145,6 +161,10 @@ export function filterQueueTasks(
     result = result.filter(
       (t) => t.stage === "todo" || t.stage === "in_progress",
     );
+  }
+
+  if (filter.companyStatus) {
+    result = result.filter((t) => t.companyStatus === filter.companyStatus);
   }
 
   return result;

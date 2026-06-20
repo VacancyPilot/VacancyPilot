@@ -3,7 +3,12 @@
 import type { Job, JobStatus } from "./job";
 
 /** Workflow stage derived from job status. */
-export type QueueStage = "todo" | "in_progress" | "waiting" | "done" | "archived";
+export type QueueStage =
+  | "todo"
+  | "in_progress"
+  | "waiting"
+  | "done"
+  | "archived";
 
 /** Task priority derived from scoring. */
 export type TaskPriority = "high" | "medium" | "low";
@@ -37,6 +42,9 @@ export interface QueueTask {
 
   /** Whether the user has selected a profile for this job. */
   hasProfile: boolean;
+
+  /** Company status if known (from company repo). */
+  companyStatus?: "normal" | "greylist" | "blacklist";
 }
 
 /** Map JobStatus to QueueStage. */

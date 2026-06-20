@@ -5,6 +5,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { ProfileManager } from "@/components/ProfileManager";
 import { ResumeManager } from "@/components/ResumeManager";
 import { QueueSection } from "@/components/QueueSection";
+import { CompanyGreylistSection } from "@/components/CompanyGreylist";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import {
   exportAllJson,
@@ -465,13 +466,7 @@ function SectionContent({ section }: { section: SectionId }): ReactNode {
         />
       );
     case "companies":
-      return (
-        <EmptyState
-          icon="🏢"
-          message="No companies yet"
-          description="Companies are created automatically from saved vacancies."
-        />
-      );
+      return <CompanyGreylistSection />;
     case "profiles":
       return <ProfileManager />;
     case "resumes":

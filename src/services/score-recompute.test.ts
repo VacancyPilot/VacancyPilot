@@ -105,6 +105,10 @@ vi.mock("@/db/repositories", () => ({
     getById: async (id: string) => mockProfileStore.get(id),
     list: async () => Array.from(mockProfileStore.values()),
   },
+  companyRepo: {
+    getById: async () => undefined, // no company records by default
+    findBySourceCompanyId: async () => undefined,
+  },
 }));
 
 vi.mock("@/db/settings-bridge", () => ({

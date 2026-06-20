@@ -5,6 +5,17 @@ export { createEventLogEntry } from "./event-log-helper";
 export { tracker } from "./tracker";
 export { scoreJob, DEFAULT_WEIGHTS } from "./scoring";
 
+// Company greylist
+export {
+  lookupCompanyForJob,
+  setCompanyStatus,
+  clearCompanyStatus,
+  listRestrictedCompanies,
+  listAllCompanies,
+  ensureCompanyRecord,
+  bulkLookupCompanies,
+} from "./company-greylist";
+
 export {
   redactText,
   redactContacts,

@@ -4,6 +4,7 @@ import { scoreJob } from "./scoring";
 import { jobRepo, profileRepo } from "@/db/repositories";
 import { loadSettings } from "@/db/settings-bridge";
 import { persistBadgeState } from "./badge-state";
+import { lookupCompanyForJob } from "./company-greylist";
 
 /**
  * Find the best matching profile for a job.
@@ -43,6 +44,7 @@ async function resolveProfile(
  *
  * - Loads the job from Dexie.
  * - Resolves the best profile (explicit > selected > default > first).
+ * - Looks up the company record to apply greylist/blacklist influence.
  * - Computes the deterministic `ruleScore` via `scoreJob()`.
  * - Persists the updated job and badge state to chrome.storage.local.
  * - Returns the updated Job, or null if the job was not found.
@@ -67,7 +69,10 @@ export async function recomputeScoreForJob(
     return job;
   }
 
-  const scoreResult = scoreJob(job, profile);
+  // Look up company to apply greylist/blacklist influence.
+  const company = await lookupCompanyForJob(job);
+
+  const scoreResult = scoreJob(job, profile, company);
   const updated: Job = {
     ...job,
     ruleScore: scoreResult,
