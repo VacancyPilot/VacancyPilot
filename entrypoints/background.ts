@@ -25,6 +25,22 @@ interface SidePanelContext {
 export default defineBackground(async () => {
   console.log("[VacancyPilot] background service worker started");
 
+  // ── First-install onboarding ──
+  chrome.runtime.onInstalled.addListener(async (details) => {
+    if (details.reason === "install") {
+      console.log("[VacancyPilot] first install detected — opening onboarding");
+      try {
+        // Open the dashboard/options page with the onboarding section active.
+        // We use a hash fragment so the dashboard can detect it.
+        await chrome.tabs.create({
+          url: chrome.runtime.getURL("options.html#onboarding"),
+        });
+      } catch (err) {
+        console.error("[VacancyPilot] failed to open onboarding tab:", err);
+      }
+    }
+  });
+
   // ── Migration boot ──
   // Run pending schema migrations before any data access.
   // First-run: storedVersion=0 → write CURRENT_VERSION.

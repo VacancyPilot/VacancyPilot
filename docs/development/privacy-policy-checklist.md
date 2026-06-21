@@ -88,7 +88,7 @@ Use this checklist when drafting the public privacy policy. Each item must be ad
 - [ ] **AI disable**: AI features can be fully disabled (no key configured = no AI requests possible).
 - [ ] **n8n disable**: n8n integration is off by default and can be toggled off (Labs).
 - [ ] **Labs kill switch**: All experimental features can be disabled with a single toggle.
-- [ ] **Permission management**: Optional host permissions (AI provider, n8n) can be granted or revoked individually.
+- [ ] **Permission management**: User can inspect the installed permissions in the browser extension settings and revoke all access by disabling or removing the extension. If future builds add optional permissions, disclose their grant/revoke flow explicitly.
 - [ ] **Page badge toggle**: The content badge on HH.ru pages can be hidden.
 
 ---

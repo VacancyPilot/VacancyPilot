@@ -11,6 +11,7 @@ const mockChromeStorage = new Map<string, unknown>();
 
 let mockSettings: AppSettings = {
   schemaVersion: 1,
+  onboardingCompleted: false,
   general: {
     defaultProfileId: undefined,
     showPageBadge: true,
@@ -55,6 +56,7 @@ function resetMocks() {
   mockChromeStorage.clear();
   mockSettings = {
     schemaVersion: 1,
+    onboardingCompleted: false,
     general: {
       defaultProfileId: undefined,
       showPageBadge: true,

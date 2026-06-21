@@ -15,6 +15,7 @@ function makeSettings(
 ): AppSettings {
   return {
     schemaVersion: 1,
+    onboardingCompleted: false,
     general: {
       language: "ru",
       theme: "system",

@@ -1,10 +1,13 @@
 export interface AppSettings {
   schemaVersion: number;
 
+  /** True after the user completes the first-run onboarding flow. */
+  onboardingCompleted: boolean;
+
   general: {
     defaultProfileId?: string;
-    language: 'ru' | 'en';
-    theme: 'system' | 'light' | 'dark';
+    language: "ru" | "en";
+    theme: "system" | "light" | "dark";
     showPageBadge: boolean;
     autosaveViewedJobs: boolean;
   };
@@ -22,7 +25,7 @@ export interface AppSettings {
   };
 
   ai: {
-    provider?: 'openai' | 'deepseek' | 'openrouter' | 'mock';
+    provider?: "openai" | "deepseek" | "openrouter" | "mock";
     model?: string;
     dailyRequestLimit: number;
     maxInputChars: number;

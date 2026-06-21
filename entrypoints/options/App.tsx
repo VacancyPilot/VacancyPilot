@@ -6,6 +6,10 @@ import { LoadingState } from "@/components/LoadingState";
 import { ProfileManager } from "@/components/ProfileManager";
 import { ResumeManager } from "@/components/ResumeManager";
 import { AISettingsSection } from "@/components/AISettingsSection";
+import { AboutSection } from "@/components/AboutSection";
+import { OnboardingSection } from "@/components/OnboardingSection";
+import { PermissionsSection } from "@/components/PermissionsSection";
+import { PrivacyDisclosureSection } from "@/components/PrivacyDisclosureSection";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import {
   exportAllJson,
@@ -43,6 +47,9 @@ type SectionId =
   | "export"
   | "settings"
   | "privacy"
+  | "permissions"
+  | "about"
+  | "onboarding"
   | "debug";
 
 interface SectionDef {
@@ -64,11 +71,25 @@ const SECTIONS: SectionDef[] = [
   { id: "export", label: "Export", icon: "📦" },
   { id: "settings", label: "Settings", icon: "⚙️" },
   { id: "privacy", label: "Privacy", icon: "🔒" },
+  { id: "permissions", label: "Permissions", icon: "🔑" },
+  { id: "about", label: "About", icon: "ℹ️" },
+  { id: "onboarding", label: "Onboarding", icon: "🚀" },
   { id: "debug", label: "Debug", icon: "🛠️" },
 ];
 
 function DashboardContent(): ReactNode {
-  const [activeSection, setActiveSection] = useState<SectionId>("vacancies");
+  const [activeSection, setActiveSection] = useState<SectionId>(() => {
+    // If opened via onInstalled or with #onboarding hash, show onboarding first.
+    if (
+      typeof window !== "undefined" &&
+      window.location.hash === "#onboarding"
+    ) {
+      // Clear the hash so back/forward navigation works normally.
+      window.history.replaceState(null, "", window.location.pathname);
+      return "onboarding";
+    }
+    return "vacancies";
+  });
 
   const handleSectionClick = useCallback((section: SectionId) => {
     setActiveSection(section);
@@ -280,7 +301,19 @@ function SectionContent({ section }: { section: SectionId }): ReactNode {
     case "settings":
       return <AISettingsSection />;
     case "privacy":
-      return <PrivacySection />;
+      return (
+        <>
+          <PrivacyDisclosureSection />
+          <div style={{ height: 24 }} />
+          <PrivacySection />
+        </>
+      );
+    case "permissions":
+      return <PermissionsSection />;
+    case "about":
+      return <AboutSection />;
+    case "onboarding":
+      return <OnboardingSection />;
     case "debug":
       return (
         <EmptyState

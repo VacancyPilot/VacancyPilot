@@ -1,4 +1,4 @@
-import type { AppSettings } from '@/models/settings';
+import type { AppSettings } from "@/models/settings";
 
 /**
  * chrome.storage.local bridge for application settings.
@@ -11,16 +11,17 @@ import type { AppSettings } from '@/models/settings';
  * chrome.storage.local directly for settings.
  */
 
-const SETTINGS_KEY = 'app_settings_v1';
+const SETTINGS_KEY = "app_settings_v1";
 
 /** Factory for default settings used on first launch. */
 export function defaultSettings(): AppSettings {
   return {
     schemaVersion: 1,
+    onboardingCompleted: false,
 
     general: {
-      language: 'ru',
-      theme: 'system',
+      language: "ru",
+      theme: "system",
       showPageBadge: true,
       autosaveViewedJobs: true,
     },
@@ -59,14 +60,45 @@ export function defaultSettings(): AppSettings {
   };
 }
 
+function normalizeSettings(
+  stored: Partial<AppSettings> | undefined,
+): AppSettings {
+  const defaults = defaultSettings();
+
+  return {
+    ...defaults,
+    ...stored,
+    general: {
+      ...defaults.general,
+      ...stored?.general,
+    },
+    privacy: {
+      ...defaults.privacy,
+      ...stored?.privacy,
+    },
+    ai: {
+      ...defaults.ai,
+      ...stored?.ai,
+    },
+    n8n: {
+      ...defaults.n8n,
+      ...stored?.n8n,
+    },
+    labs: {
+      ...defaults.labs,
+      ...stored?.labs,
+    },
+  };
+}
+
 /**
  * Load settings from chrome.storage.local.
  * Returns default settings if none have been saved yet.
  */
 export async function loadSettings(): Promise<AppSettings> {
   const result = await chrome.storage.local.get(SETTINGS_KEY);
-  const stored = result[SETTINGS_KEY] as AppSettings | undefined;
-  return stored ?? defaultSettings();
+  const stored = result[SETTINGS_KEY] as Partial<AppSettings> | undefined;
+  return normalizeSettings(stored);
 }
 
 /**
