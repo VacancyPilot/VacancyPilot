@@ -61,6 +61,22 @@ const STATUS_LABELS: Record<string, string> = {
   blacklist: "блк",
 };
 
+/** Full human-readable status labels for accessibility title/aria-label. */
+const STATUS_LABELS_FULL: Record<string, string> = {
+  saved: "Saved",
+  viewed: "Viewed",
+  letter_ready: "Letter ready",
+  applied: "Applied",
+  rejected_by_me: "Rejected by me",
+  rejected_by_company: "Rejected by company",
+  interview: "Interview",
+  offer: "Offer",
+  hr_replied: "HR replied",
+  test_task: "Test task",
+  new: "New",
+  blacklist: "Blacklisted",
+};
+
 // ── Score color classes ───────────────────────────────────────────────────
 
 function scoreClass(score: number): string {
@@ -84,23 +100,28 @@ export function buildSearchBadgeHTML(
   // Score (from local badge state)
   if (state?.score !== undefined && state.score !== null) {
     const cls = `vp-sb-score ${scoreClass(state.score)}`;
-    parts.push(`<span class="${cls}">${state.score}</span>`);
+    parts.push(
+      `<span class="${cls}" role="status" aria-label="Score ${state.score}">${state.score}</span>`,
+    );
   }
 
   // Status icon + short label (from local badge state)
   if (state?.status) {
     const icon = STATUS_ICONS[state.status] ?? "";
     const label = STATUS_LABELS[state.status] ?? state.status;
+    const fullLabel = STATUS_LABELS_FULL[state.status] ?? state.status;
     parts.push(
-      `<span class="vp-sb-status" title="${state.status}">${icon}${label}</span>`,
+      `<span class="vp-sb-status" title="${fullLabel}" aria-label="${fullLabel}">${icon}${label}</span>`,
     );
   }
 
   // Work mode (from visible card data)
   if (card.workMode && card.workMode !== "unknown" && card.workMode !== null) {
-    const label = WORK_MODE_LABELS[card.workMode] ?? card.workMode;
+    const wmLabel = WORK_MODE_LABELS[card.workMode] ?? card.workMode;
     const cls = WORK_MODE_CSS[card.workMode] ?? "";
-    parts.push(`<span class="vp-sb-wm ${cls}">${label}</span>`);
+    parts.push(
+      `<span class="vp-sb-wm ${cls}" aria-label="Work mode: ${card.workMode}">${wmLabel}</span>`,
+    );
   }
 
   if (parts.length === 0) return "";
@@ -213,6 +234,13 @@ export function injectSearchBadgeStyles(doc: Document): void {
     .vp-sb-action--reject:hover {
       color: #c44;
       border-color: #c44;
+    }
+
+    /* Keyboard focus — visible outline for accessibility */
+    .vp-sb-action:focus-visible {
+      opacity: 1;
+      outline: 2px solid #4a90d9;
+      outline-offset: 1px;
     }
   `;
   doc.head.appendChild(style);
@@ -330,6 +358,7 @@ export function createSaveButton(doc: Document = document): HTMLButtonElement {
   btn.textContent = "⊕";
   btn.title = "Save vacancy";
   btn.setAttribute("type", "button");
+  btn.setAttribute("aria-label", "Save vacancy");
   return btn;
 }
 
@@ -345,6 +374,7 @@ export function createRejectButton(
   btn.textContent = "⊗";
   btn.title = "Reject vacancy";
   btn.setAttribute("type", "button");
+  btn.setAttribute("aria-label", "Reject vacancy");
   return btn;
 }
 

@@ -137,7 +137,7 @@ describe("buildSearchBadgeHTML", () => {
     const state = makeState({ status: "saved" });
     const html = buildSearchBadgeHTML(card, state);
     expect(html).toContain("сохр");
-    expect(html).toContain('title="saved"');
+    expect(html).toContain('title="Saved"');
   });
 
   it("shows status with icon for applied", () => {
@@ -180,6 +180,38 @@ describe("buildSearchBadgeHTML", () => {
     const html = buildSearchBadgeHTML(card, undefined);
     expect(html).toMatch(/^<span class="vp-sb-container">/);
     expect(html).toMatch(/<\/span>$/);
+  });
+
+  // ── Accessibility attributes (ITER-068) ──────────────────────────────
+
+  it("includes aria-label on score span", () => {
+    const card = makeCard();
+    const state = makeState({ score: 78 });
+    const html = buildSearchBadgeHTML(card, state);
+    expect(html).toContain('aria-label="Score 78"');
+    expect(html).toContain('role="status"');
+  });
+
+  it("includes full status label in aria-label and title", () => {
+    const card = makeCard();
+    const state = makeState({ status: "applied" });
+    const html = buildSearchBadgeHTML(card, state);
+    expect(html).toContain('aria-label="Applied"');
+    expect(html).toContain('title="Applied"');
+  });
+
+  it("includes work mode in aria-label", () => {
+    const card = makeCard({ workMode: "remote" });
+    const html = buildSearchBadgeHTML(card, undefined);
+    expect(html).toContain('aria-label="Work mode: remote"');
+  });
+
+  it("uses correct full label for rejected_by_me", () => {
+    const card = makeCard();
+    const state = makeState({ status: "rejected_by_me" });
+    const html = buildSearchBadgeHTML(card, state);
+    expect(html).toContain('aria-label="Rejected by me"');
+    expect(html).toContain('title="Rejected by me"');
   });
 });
 
@@ -452,6 +484,7 @@ describe("createSaveButton", () => {
     expect(btn.textContent).toBe("\u2295");
     expect(btn.title).toBe("Save vacancy");
     expect(btn.getAttribute("type")).toBe("button");
+    expect(btn.getAttribute("aria-label")).toBe("Save vacancy");
   });
 });
 
@@ -467,6 +500,7 @@ describe("createRejectButton", () => {
     expect(btn.textContent).toBe("\u2297");
     expect(btn.title).toBe("Reject vacancy");
     expect(btn.getAttribute("type")).toBe("button");
+    expect(btn.getAttribute("aria-label")).toBe("Reject vacancy");
   });
 });
 

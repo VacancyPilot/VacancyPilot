@@ -342,7 +342,8 @@ function SidePanelContent(): ReactNode {
         <button
           type="button"
           onClick={handleRefresh}
-          title="Refresh"
+          title="Refresh vacancy data"
+          aria-label="Refresh vacancy data"
           style={smallButton}
         >
           ↻
@@ -352,6 +353,7 @@ function SidePanelContent(): ReactNode {
       {/* Tab bar */}
       <div
         role="tablist"
+        aria-label="Vacancy detail tabs"
         style={{
           display: "flex",
           borderBottom: `1px solid ${colors.border}`,
@@ -359,41 +361,51 @@ function SidePanelContent(): ReactNode {
           flexShrink: 0,
         }}
       >
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            role="tab"
-            type="button"
-            aria-selected={activeTab === tab.id}
-            onClick={() => handleTabClick(tab.id)}
-            style={{
-              flex: 1,
-              padding: "8px 4px",
-              fontSize: fontSizes.md,
-              cursor: "pointer",
-              border: "none",
-              borderBottom:
-                activeTab === tab.id
+        {TABS.map((tab) => {
+          const selected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              id={`tab-${tab.id}`}
+              role="tab"
+              type="button"
+              aria-selected={selected}
+              aria-controls={`panel-${tab.id}`}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => handleTabClick(tab.id)}
+              style={{
+                flex: 1,
+                padding: "8px 4px",
+                fontSize: fontSizes.md,
+                cursor: "pointer",
+                border: "none",
+                borderBottom: selected
                   ? `2px solid ${colors.blue}`
                   : "2px solid transparent",
-              background:
-                activeTab === tab.id ? colors.activeBg : "transparent",
-              color: activeTab === tab.id ? colors.blue : colors.textMuted,
-              fontWeight:
-                activeTab === tab.id
+                background: selected ? colors.activeBg : "transparent",
+                color: selected ? colors.blue : colors.textMuted,
+                fontWeight: selected
                   ? fontWeights.semibold
                   : fontWeights.normal,
-              transition: "background 0.15s",
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+                transition: "background 0.15s",
+              }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab content */}
       <div style={scrollArea}>
-        <TabContent tab={activeTab} ctx={ctx} onRefresh={handleRefresh} />
+        <div
+          role="tabpanel"
+          id={`panel-${activeTab}`}
+          aria-labelledby={`tab-${activeTab}`}
+          tabIndex={0}
+        >
+          <TabContent tab={activeTab} ctx={ctx} onRefresh={handleRefresh} />
+        </div>
       </div>
     </div>
   );
@@ -492,7 +504,11 @@ function OverviewTab({ ctx }: { ctx: VacancyContext }): ReactNode {
 
       {/* Passive HH status hint (informational, read-only) */}
       {ctx.passiveStatus && passiveStatusLabel(ctx.passiveStatus) && (
-        <div style={{ ...warningChip, marginBottom: spacing.xxl }}>
+        <div
+          role="status"
+          aria-live="polite"
+          style={{ ...warningChip, marginBottom: spacing.xxl }}
+        >
           {passiveStatusLabel(ctx.passiveStatus)}
         </div>
       )}

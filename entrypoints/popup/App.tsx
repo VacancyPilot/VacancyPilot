@@ -311,13 +311,17 @@ function PopupContent(): ReactNode {
       </div>
 
       {/* Page status */}
-      <div style={{ ...infoChip, marginBottom: spacing.lg }}>
+      <div role="status" style={{ ...infoChip, marginBottom: spacing.lg }}>
         <PageStatus info={pageInfo} />
       </div>
 
       {/* Passive HH status hint (informational, read-only) */}
       {passiveStatus && passiveStatusLabel(passiveStatus) && (
-        <div style={{ ...warningChip, marginBottom: spacing.lg }}>
+        <div
+          role="status"
+          aria-live="polite"
+          style={{ ...warningChip, marginBottom: spacing.lg }}
+        >
           {passiveStatusLabel(passiveStatus)}
         </div>
       )}
@@ -376,11 +380,17 @@ function PopupContent(): ReactNode {
               <button
                 type="button"
                 onClick={() => setShowBreakdown(!showBreakdown)}
+                aria-expanded={showBreakdown}
+                aria-controls="popup-score-breakdown"
                 style={expandToggle}
               >
                 {showBreakdown ? "▾ Hide breakdown" : "▸ Show breakdown"}
               </button>
-              {showBreakdown && <ScoreBreakdown score={savedJob.ruleScore} />}
+              {showBreakdown && (
+                <div id="popup-score-breakdown">
+                  <ScoreBreakdown score={savedJob.ruleScore} />
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -395,8 +405,11 @@ function PopupContent(): ReactNode {
       {/* Profile selector */}
       {isVacancy && profiles.length > 1 && (
         <div style={{ marginBottom: spacing.lg }}>
-          <label style={labelStyle}>Profile</label>
+          <label htmlFor="popup-profile-select" style={labelStyle}>
+            Profile
+          </label>
           <select
+            id="popup-profile-select"
             value={selectedProfileId ?? ""}
             onChange={(e) => setSelectedProfileId(e.target.value || undefined)}
             style={selectStyle}
@@ -412,7 +425,11 @@ function PopupContent(): ReactNode {
 
       {/* Error message */}
       {actionError && (
-        <div style={{ ...errorChip, marginBottom: spacing.lg }}>
+        <div
+          role="alert"
+          aria-live="assertive"
+          style={{ ...errorChip, marginBottom: spacing.lg }}
+        >
           {actionError}
         </div>
       )}
@@ -428,16 +445,18 @@ function PopupContent(): ReactNode {
         {isVacancy && (
           <>
             <ActionButton
-              label="Save"
+              label={isSaving ? "Saving…" : "Save"}
               color="#2a8"
               onClick={handleSave}
               disabled={isSaving}
+              busy={isSaving}
             />
             <ActionButton
-              label="Reject"
+              label={isSaving ? "Rejecting…" : "Reject"}
               color="#c44"
               onClick={handleReject}
               disabled={isSaving}
+              busy={isSaving}
             />
           </>
         )}
@@ -650,6 +669,7 @@ function ActionButton({
   primary,
   wide,
   disabled,
+  busy,
 }: {
   label: string;
   onClick: () => void;
@@ -657,12 +677,16 @@ function ActionButton({
   primary?: boolean;
   wide?: boolean;
   disabled?: boolean;
+  busy?: boolean;
 }): ReactNode {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
+      aria-label={label}
+      aria-busy={busy === true ? true : undefined}
+      aria-disabled={disabled === true ? true : undefined}
       style={{
         flex: wide ? 1 : undefined,
         padding: "4px 8px",
