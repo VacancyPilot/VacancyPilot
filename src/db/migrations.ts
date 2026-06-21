@@ -17,6 +17,8 @@ const META_KEY_VERSION = "schemaVersion";
 /** Current schema version as defined in schema.ts */
 export const CURRENT_VERSION = SCHEMA_VERSION;
 
+let migrationBootstrapPromise: Promise<void> | null = null;
+
 /**
  * Read the stored schema version from the meta table.
  * Returns 0 if no version has been written yet.
@@ -47,4 +49,21 @@ export async function runMigrations(): Promise<void> {
     // if (stored < 2) { ... }
     await writeCurrentVersion();
   }
+}
+
+/**
+ * Ensure migration bookkeeping has been executed for the current extension
+ * surface. Safe to call from multiple entrypoints; work is memoized.
+ */
+export function ensureMigrationsBootstrapped(): Promise<void> {
+  if (!migrationBootstrapPromise) {
+    migrationBootstrapPromise = (async () => {
+      await runMigrations();
+    })().catch((error) => {
+      migrationBootstrapPromise = null;
+      throw error;
+    });
+  }
+
+  return migrationBootstrapPromise;
 }

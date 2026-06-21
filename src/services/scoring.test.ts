@@ -305,18 +305,20 @@ describe("scoreJob — skills matching", () => {
 // ---- Experience fit ----
 
 describe("scoreJob — experience fit", () => {
-  it("returns neutral score when experience data is missing", () => {
+  it("returns neutral score when experience data is missing from vacancy", () => {
     const job = makeJob({ experienceMinYears: undefined });
-    const profile = makeProfile();
+    const profile = makeProfile({ experienceYears: 5 });
 
     const result = scoreJob(job, profile);
     expect(result.breakdown.experienceFit).toBeGreaterThan(0);
-    expect(result.breakdown.experienceFit).toBeLessThanOrEqual(
-      DEFAULT_WEIGHTS.experienceFit,
+    expect(result.fitReasons).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("Experience requirement not parsed"),
+      ]),
     );
   });
 
-  it("returns neutral score when experience exists but profile has no experience config", () => {
+  it("returns neutral score when profile has no experience config", () => {
     const job = makeJob({ experienceMinYears: 3 });
     const profile = makeProfile();
 
@@ -326,6 +328,183 @@ describe("scoreJob — experience fit", () => {
       expect.arrayContaining([
         expect.stringContaining("Profile experience not configured"),
       ]),
+    );
+  });
+
+  it("gives full points when candidate meets experience requirement", () => {
+    const job = makeJob({ experienceMinYears: 3 });
+    const profile = makeProfile({ experienceYears: 5 });
+
+    const result = scoreJob(job, profile);
+    expect(result.breakdown.experienceFit).toBe(DEFAULT_WEIGHTS.experienceFit);
+    expect(result.fitReasons).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("Experience meets or exceeds"),
+      ]),
+    );
+  });
+
+  it("gives full points when candidate exactly matches requirement", () => {
+    const job = makeJob({ experienceMinYears: 4 });
+    const profile = makeProfile({ experienceYears: 4 });
+
+    const result = scoreJob(job, profile);
+    expect(result.breakdown.experienceFit).toBe(DEFAULT_WEIGHTS.experienceFit);
+  });
+
+  it("gives partial score when candidate is slightly below (gap ≤ 2)", () => {
+    const job = makeJob({ experienceMinYears: 5 });
+    const profile = makeProfile({ experienceYears: 3 });
+
+    const result = scoreJob(job, profile);
+    expect(result.breakdown.experienceFit).toBe(
+      Math.round(DEFAULT_WEIGHTS.experienceFit * 0.7),
+    );
+    expect(result.fitReasons).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("slightly below requirement"),
+      ]),
+    );
+    // No underqualified flag for small gap
+    expect(result.riskFlags).toEqual(
+      expect.not.arrayContaining([
+        expect.objectContaining({ code: "underqualified" }),
+      ]),
+    );
+  });
+
+  it("gives low score and underqualified flag when gap > 2", () => {
+    const job = makeJob({ experienceMinYears: 7 });
+    const profile = makeProfile({ experienceYears: 2 });
+
+    const result = scoreJob(job, profile);
+    expect(result.breakdown.experienceFit).toBeLessThan(
+      Math.round(DEFAULT_WEIGHTS.experienceFit * 0.5),
+    );
+    expect(result.fitReasons).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("significantly below requirement"),
+      ]),
+    );
+    expect(result.riskFlags).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "underqualified", severity: "high" }),
+      ]),
+    );
+  });
+
+  it("flags medium underqualified for gap 3", () => {
+    const job = makeJob({ experienceMinYears: 5 });
+    const profile = makeProfile({ experienceYears: 2 });
+
+    const result = scoreJob(job, profile);
+    expect(result.riskFlags).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "underqualified",
+          severity: "medium",
+        }),
+      ]),
+    );
+  });
+
+  it("flags overqualified when candidate has 2×+ the requirement", () => {
+    const job = makeJob({ experienceMinYears: 3 });
+    const profile = makeProfile({ experienceYears: 10 });
+
+    const result = scoreJob(job, profile);
+    expect(result.breakdown.experienceFit).toBe(DEFAULT_WEIGHTS.experienceFit);
+    expect(result.riskFlags).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "overqualified", severity: "low" }),
+      ]),
+    );
+    expect(result.fitReasons).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("possible overqualification"),
+      ]),
+    );
+  });
+
+  it("does not flag overqualified for 1 year requirement (low-severity only)", () => {
+    const job = makeJob({ experienceMinYears: 1 });
+    const profile = makeProfile({ experienceYears: 3 });
+
+    const result = scoreJob(job, profile);
+    expect(result.breakdown.experienceFit).toBe(DEFAULT_WEIGHTS.experienceFit);
+    expect(result.riskFlags).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "overqualified", severity: "low" }),
+      ]),
+    );
+  });
+
+  it("uses seniority proxy when experienceYears is not set", () => {
+    const job = makeJob({ experienceMinYears: 5 });
+    const profile = makeProfile({ seniority: "senior" });
+
+    const result = scoreJob(job, profile);
+    // senior ≈ 6 years, meets 5-year requirement
+    expect(result.breakdown.experienceFit).toBe(DEFAULT_WEIGHTS.experienceFit);
+    expect(result.fitReasons).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('seniority "senior"'),
+        expect.stringContaining("Experience meets or exceeds"),
+      ]),
+    );
+  });
+
+  it("prefers explicit experienceYears over seniority", () => {
+    const job = makeJob({ experienceMinYears: 8 });
+    const profile = makeProfile({ experienceYears: 4, seniority: "lead" });
+
+    const result = scoreJob(job, profile);
+    // lead would be 9 years, but explicit 4 is used → gap 4 → underqualified
+    expect(result.fitReasons).toEqual(
+      expect.arrayContaining([expect.stringContaining("4 years")]),
+    );
+    expect(result.riskFlags).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "underqualified" }),
+      ]),
+    );
+  });
+
+  it("seniority proxy: junior maps to 1 year", () => {
+    const job = makeJob({ experienceMinYears: 3 });
+    const profile = makeProfile({ seniority: "junior" });
+
+    const result = scoreJob(job, profile);
+    // junior=1, need 3, gap=2 → slightly below, no underqualified flag
+    expect(result.breakdown.experienceFit).toBe(
+      Math.round(DEFAULT_WEIGHTS.experienceFit * 0.7),
+    );
+  });
+
+  it("seniority proxy: principal maps to 12 years", () => {
+    const job = makeJob({ experienceMinYears: 10 });
+    const profile = makeProfile({ seniority: "principal" });
+
+    const result = scoreJob(job, profile);
+    // principal=12 >= 10 → full score, 12 < 20 (2×10) → no overqualified
+    expect(result.breakdown.experienceFit).toBe(DEFAULT_WEIGHTS.experienceFit);
+    expect(result.riskFlags).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "underqualified" }),
+      ]),
+    );
+  });
+
+  it("returns neutral when both experienceYears and seniority are absent", () => {
+    const job = makeJob({ experienceMinYears: 3 });
+    const profile = makeProfile({
+      experienceYears: undefined,
+      seniority: undefined,
+    });
+
+    const result = scoreJob(job, profile);
+    expect(result.breakdown.experienceFit).toBe(
+      Math.round(DEFAULT_WEIGHTS.experienceFit * 0.5),
     );
   });
 });

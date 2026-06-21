@@ -1,15 +1,13 @@
-# Manual QA Checklist — VacancyPilot Phase 1
+# Manual QA Checklist — VacancyPilot
 
-Status: ITER-032 complete (Phase 2 gate GO)  
-Source: spec section 22.4, EPIC-10, EPIC-15
+Status: ITER-056 refresh (post-audit runtime QA)  
+Source: spec section 22.4, EPIC-10, EPIC-15, EPIC-29
 
-> **Gate status (2026-06-20)**: Automated checks are green (903 tests, typecheck, lint, build, release safety), GitHub Actions `Quality` on `main` is green, and the follow-up Chrome + Edge rerun for the current Phase 1 core scope was reported as successful. Phase 2 implementation is now **GO**. See `docs/development/manual-qa-run-2026-06-20.md` § Phase 1 Closeout Rerun.
+> **Current surface**: vacancy popup, side panel, search quick actions, HR timeline extraction, export/delete, Edge rerun. This checklist was refreshed after `ITER-056` to reflect the post-audit product surface. The earlier Phase 1 closeout gate is documented in `docs/development/manual-qa-run-2026-06-20.md`.
 
-Run this checklist manually in at least **two Chromium browsers** (Chrome + one of Edge, Brave, Яндекс Браузер) before declaring Phase 1 release-candidate ready.
+Run this checklist manually in at least **two Chromium browsers** (Chrome + one of Edge, Brave, Яндекс Браузер) before declaring a release candidate ready.
 
 Record results in the checkboxes below. Re-run after each breaking change to the parser or content script.
-
-The detailed matrix below remains the wider manual regression checklist. The Phase 2 start gate is already closed separately by the documented closeout rerun above.
 
 ---
 
@@ -47,10 +45,10 @@ Test each state on a real HH.ru vacancy page.
 |---|-------|------|-------|
 | 1 | Extension installs without requesting unexpected permissions | ☐ | |
 | 2 | Only `storage`, `sidePanel`, `activeTab` listed at install time | ☐ | |
-| 3 | Optional host permissions (AI provider, n8n) can be granted individually | ☐ | |
-| 4 | Optional host permissions can be denied without breaking Core features | ☐ | |
-| 5 | Permission status is visible in extension settings | ☐ | |
-| 6 | Revoke instructions are accessible from settings | ☐ | |
+| 3 | No optional host permissions are requested in the current manifest | ☐ | |
+| 4 | Core features work with only `storage`, `sidePanel`, and `activeTab` | ☐ | |
+| 5 | Permission status is visible in extension settings/docs where applicable | ☐ | |
+| 6 | Revoke instructions are accessible from settings/docs | ☐ | |
 
 ---
 
@@ -74,7 +72,46 @@ Test each state on a real HH.ru vacancy page.
 
 ---
 
-## 5. AI Features (opt-in)
+## 5. Side Panel Context & Open Flow
+
+| # | Feature | Expected behavior | Pass | Notes |
+|---|---------|-------------------|------|-------|
+| 1 | Open from popup | Popup "Side Panel" button opens side panel with correct vacancy context | ☐ | |
+| 2 | Open from badge | Clicking content badge opens side panel with vacancy context | ☐ | |
+| 3 | Side panel refresh | Side panel re-reads context on refresh, does not lose vacancy | ☐ | |
+| 4 | Background stores context | `GET_SIDE_PANEL_CONTEXT` returns correct tabId + vacancyId | ☐ | |
+| 5 | Multiple tabs | Each tab opens side panel with its own vacancy context | ☐ | |
+| 6 | No tab context | Side panel opens gracefully without a vacancy (empty state) | ☐ | |
+
+---
+
+## 6. Search Quick Actions (Phase 2)
+
+| # | Feature | Expected behavior | Pass | Notes |
+|---|---------|-------------------|------|-------|
+| 1 | Search page badge | Badge appears on HH search result cards | ☐ | |
+| 2 | Quick Save | Clicking Save on a search card creates a local job entry | ☐ | |
+| 3 | Quick Reject | Clicking Reject on a search card marks it as rejected | ☐ | |
+| 4 | Quick Save → side panel | Saved search card opens in side panel with full details | ☐ | |
+| 5 | Already saved card | Badge reflects already-saved state (no duplicate save) | ☐ | |
+| 6 | Search page refresh | Badges persist or reappear after page refresh | ☐ | |
+
+---
+
+## 7. HR Timeline Extraction
+
+| # | Feature | Expected behavior | Pass | Notes |
+|---|---------|-------------------|------|-------|
+| 1 | Timeline visible on vacancy page | HR communication timeline extracted and displayed | ☐ | |
+| 2 | Invitation detected | Employer invitation extracted as timeline entry | ☐ | |
+| 3 | Rejection detected | Employer rejection extracted as timeline entry | ☐ | |
+| 4 | Discussion detected | Employer discussion/message detected | ☐ | |
+| 5 | Timeline data survives page reload | Extracted entries are stored locally | ☐ | |
+| 6 | Timeline linked to application | Entries reference the correct job/application | ☐ | |
+
+---
+
+## 8. AI Features (opt-in)
 
 | # | Feature | Expected behavior | Pass | Notes |
 |---|---------|-------------------|------|-------|
@@ -89,7 +126,7 @@ Test each state on a real HH.ru vacancy page.
 
 ---
 
-## 6. Cover Letter Studio
+## 9. Cover Letter Studio
 
 | # | Feature | Expected behavior | Pass | Notes |
 |---|---------|-------------------|------|-------|
@@ -102,7 +139,7 @@ Test each state on a real HH.ru vacancy page.
 
 ---
 
-## 7. Export & Delete
+## 10. Export & Delete
 
 | # | Feature | Expected behavior | Pass | Notes |
 |---|---------|-------------------|------|-------|
@@ -114,7 +151,7 @@ Test each state on a real HH.ru vacancy page.
 
 ---
 
-## 8. Labs & Kill Switch
+## 11. Labs & Kill Switch
 
 | # | Feature | Expected behavior | Pass | Notes |
 |---|---------|-------------------|------|-------|
@@ -125,7 +162,7 @@ Test each state on a real HH.ru vacancy page.
 
 ---
 
-## 9. n8n Readiness (deferred — ITER-014, Labs)
+## 12. n8n Readiness (deferred — ITER-014, Labs)
 
 | # | Feature | Expected behavior | Pass | Notes |
 |---|---------|-------------------|------|-------|
@@ -139,7 +176,7 @@ Known open: runtime `optional_host_permissions` behavior for user webhook host �
 
 ---
 
-## 10. Error & Edge Cases
+## 13. Error & Edge Cases
 
 | # | Scenario | Expected behavior | Pass | Notes |
 |---|----------|-------------------|------|-------|
@@ -152,7 +189,7 @@ Known open: runtime `optional_host_permissions` behavior for user webhook host �
 
 ---
 
-## 11. Safety Boundaries (MUST PASS)
+## 14. Safety Boundaries (MUST PASS)
 
 These are non-negotiable for Phase 1 release. Any failure is a release blocker.
 
@@ -166,6 +203,33 @@ These are non-negotiable for Phase 1 release. Any failure is a release blocker.
 | 6 | No CAPTCHA bypass | Verify no antibot logic | ☐ | |
 | 7 | No telemetry | Verify no analytics/tracking calls | ☐ | |
 | 8 | No cookies/session handling | Verify extension does not access HH cookies | ☐ | |
+
+---
+
+## 15. Edge Browser Rerun
+
+After the post-audit product surface expansion (search + HR timeline), re-verify core flows in Microsoft Edge alongside Chrome.
+
+| # | Check | Expected behavior | Pass | Notes |
+|---|-------|-------------------|------|-------|
+| 1 | Extension loads in Edge | Unpacked extension from `.output/chrome-mv3` loads without errors | ☐ | |
+| 2 | Vacancy page detection | Badge appears on HH vacancy pages in Edge | ☐ | |
+| 3 | Side panel opens | Side panel opens with correct vacancy context | ☐ | |
+| 4 | Search quick actions | Save/Reject badges appear on search result cards | ☐ | |
+| 5 | HR timeline extraction | HR communication entries extracted and displayed | ☐ | |
+| 6 | Export/delete | CSV and JSON export work, delete all works | ☐ | |
+| 7 | No permission surprises | Extension does not request unexpected permissions in Edge | ☐ | |
+
+---
+
+## Runtime Permission Decision (ITER-056)
+
+This checklist operates under an explicit runtime decision:
+
+- **`tabs` permission is NOT included** in the extension manifest.
+- The current `activeTab` + explicit side-panel context pattern (`OPEN_SIDE_PANEL` / `GET_SIDE_PANEL_CONTEXT`) is sufficient for all implemented flows.
+- `tabs` will only be reconsidered if a **reproducible runtime failure** is documented that cannot be resolved without it.
+- This decision is recorded here as the repository's runtime permission posture and is enforced by `src/release-safety/manifest-safety.test.ts`.
 
 ---
 

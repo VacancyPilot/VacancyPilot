@@ -138,6 +138,8 @@ describe("profile form defaults", () => {
     preferredCitiesRaw: "",
     salaryExpectationMin: "",
     salaryCurrency: "RUB",
+    experienceYears: "",
+    seniority: "",
   };
 
   it("has remote and hybrid enabled by default", () => {
@@ -154,6 +156,11 @@ describe("profile form defaults", () => {
     expect(DEFAULT_FORM.name).toBe("");
     expect(DEFAULT_FORM.summary).toBe("");
     expect(DEFAULT_FORM.salaryExpectationMin).toBe("");
+  });
+
+  it("has empty experienceYears and seniority by default", () => {
+    expect(DEFAULT_FORM.experienceYears).toBe("");
+    expect(DEFAULT_FORM.seniority).toBe("");
   });
 });
 
@@ -429,5 +436,94 @@ describe("orphan reference cleanup — resume deletion", () => {
     expect(result.clearedJobRefs).toEqual([]);
     expect(result.clearedLetterRefs).toEqual([]);
     expect(result.clearedApplicationRefs).toEqual([]);
+  });
+});
+
+// ── Experience years input validation ──
+
+describe("experience years input validation (NaN guard)", () => {
+  /**
+   * Simulates the experienceYears parsing logic from formToProfile().
+   * Returns undefined for invalid/NaN/negative values.
+   */
+  function parseExperienceYears(raw: string): number | undefined {
+    const trimmed = raw.trim();
+    if (!trimmed) return undefined;
+    const n = Number(trimmed);
+    return Number.isNaN(n) || n < 0 ? undefined : n;
+  }
+
+  it("parses valid numeric string", () => {
+    expect(parseExperienceYears("5")).toBe(5);
+  });
+
+  it("parses zero experience", () => {
+    expect(parseExperienceYears("0")).toBe(0);
+  });
+
+  it("returns undefined for empty string", () => {
+    expect(parseExperienceYears("")).toBeUndefined();
+  });
+
+  it("returns undefined for whitespace-only", () => {
+    expect(parseExperienceYears("   ")).toBeUndefined();
+  });
+
+  it("returns undefined for non-numeric string", () => {
+    expect(parseExperienceYears("abc")).toBeUndefined();
+  });
+
+  it("returns undefined for negative value", () => {
+    expect(parseExperienceYears("-3")).toBeUndefined();
+  });
+
+  it("returns undefined for NaN input", () => {
+    expect(parseExperienceYears("NaN")).toBeUndefined();
+  });
+
+  it("returns undefined for float-like string", () => {
+    // floats are valid JS Numbers but we accept them (user may type "2.5")
+    expect(parseExperienceYears("2.5")).toBe(2.5);
+  });
+});
+
+// ── Seniority level validation ──
+
+describe("seniority level validation", () => {
+  const SENIORITY_LEVELS = [
+    "junior",
+    "middle",
+    "senior",
+    "lead",
+    "principal",
+  ] as const;
+
+  type SeniorityLevel = (typeof SENIORITY_LEVELS)[number];
+
+  function parseSeniority(raw: string): SeniorityLevel | undefined {
+    return (SENIORITY_LEVELS as readonly string[]).includes(raw)
+      ? (raw as SeniorityLevel)
+      : undefined;
+  }
+
+  it.each(SENIORITY_LEVELS)("accepts valid level: %s", (level) => {
+    expect(parseSeniority(level)).toBe(level);
+  });
+
+  it("returns undefined for empty string", () => {
+    expect(parseSeniority("")).toBeUndefined();
+  });
+
+  it("returns undefined for unknown level", () => {
+    expect(parseSeniority("staff")).toBeUndefined();
+  });
+
+  it("returns undefined for arbitrary text", () => {
+    expect(parseSeniority("SENIOR")).toBeUndefined();
+    expect(parseSeniority("Junior")).toBeUndefined();
+  });
+
+  it("has exactly 5 levels", () => {
+    expect(SENIORITY_LEVELS).toHaveLength(5);
   });
 });

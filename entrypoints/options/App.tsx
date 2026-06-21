@@ -25,7 +25,7 @@ import type {
   DailySummary as DailySummaryType,
 } from "@/services/reminders";
 import { loadSettings, saveSettings } from "@/db/settings-bridge";
-import { db } from "@/db";
+import { db, ensureMigrationsBootstrapped } from "@/db";
 import type { JobStatus } from "@/models/job";
 import type { LabsActionLog } from "@/models/labs-action-log";
 
@@ -1649,9 +1649,41 @@ function LabsSection(): ReactNode {
 }
 
 export default function App(): ReactNode {
+  const [dbReady, setDbReady] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void ensureMigrationsBootstrapped().then(
+      () => {
+        if (!cancelled) setDbReady(true);
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          setDbError(error instanceof Error ? error.message : String(error));
+        }
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <ErrorBoundary rootLabel="Dashboard">
-      <DashboardContent />
+      {dbError ? (
+        <div style={{ padding: 16, fontSize: 12, color: "#c44" }}>
+          Failed to initialize local data: {dbError}
+        </div>
+      ) : dbReady ? (
+        <DashboardContent />
+      ) : (
+        <div style={{ padding: 16, fontSize: 12, color: "#666" }}>
+          Initializing local data…
+        </div>
+      )}
     </ErrorBoundary>
   );
 }

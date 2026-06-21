@@ -17,6 +17,7 @@ export {
   getStoredVersion,
   writeCurrentVersion,
   runMigrations,
+  ensureMigrationsBootstrapped,
 } from "./migrations";
 
 export {

@@ -13,7 +13,8 @@ import {
 } from "@/db/repositories";
 import { db } from "@/db/database";
 import { loadSettings, saveSettings } from "@/db/settings-bridge";
-import type { Profile } from "@/models/profile";
+import type { Profile, SeniorityLevel } from "@/models/profile";
+import { SENIORITY_LEVELS } from "@/models/profile";
 import type { AppSettings } from "@/models/settings";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
@@ -39,6 +40,8 @@ interface ProfileFormData {
   preferredCitiesRaw: string;
   salaryExpectationMin: string;
   salaryCurrency: string;
+  experienceYears: string;
+  seniority: SeniorityLevel | "";
 }
 
 const EMPTY_FORM: ProfileFormData = {
@@ -54,6 +57,8 @@ const EMPTY_FORM: ProfileFormData = {
   preferredCitiesRaw: "",
   salaryExpectationMin: "",
   salaryCurrency: "RUB",
+  experienceYears: "",
+  seniority: "",
 };
 
 function profileToForm(p: Profile): ProfileFormData {
@@ -70,6 +75,8 @@ function profileToForm(p: Profile): ProfileFormData {
     preferredCitiesRaw: (p.preferredCities ?? []).join(", "),
     salaryExpectationMin: p.salaryExpectationMin?.toString() ?? "",
     salaryCurrency: p.salaryCurrency ?? "RUB",
+    experienceYears: p.experienceYears?.toString() ?? "",
+    seniority: p.seniority ?? "",
   };
 }
 
@@ -103,6 +110,15 @@ function formToProfile(form: ProfileFormData, existing?: Profile): Profile {
         })()
       : undefined,
     salaryCurrency: form.salaryCurrency || undefined,
+    experienceYears: form.experienceYears.trim()
+      ? (() => {
+          const n = Number(form.experienceYears.trim());
+          return Number.isNaN(n) || n < 0 ? undefined : n;
+        })()
+      : undefined,
+    seniority: (SENIORITY_LEVELS as readonly string[]).includes(form.seniority)
+      ? (form.seniority as SeniorityLevel)
+      : undefined,
     defaultResumeId: existing?.defaultResumeId,
     letterPrefs: existing?.letterPrefs ?? {
       defaultMode: "tg_short",
@@ -607,6 +623,36 @@ export function ProfileManager(): ReactNode {
                 <option value="RUB">RUB</option>
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 16 }}>
+            <div style={{ ...formGroup, flex: 1 }}>
+              <label style={labelStyle}>Years of experience</label>
+              <input
+                style={inputStyle}
+                type="number"
+                min="0"
+                step="1"
+                value={form.experienceYears}
+                onChange={(e) => updateField("experienceYears", e.target.value)}
+                placeholder="e.g. 5"
+              />
+            </div>
+            <div style={{ ...formGroup, flex: 1 }}>
+              <label style={labelStyle}>Seniority level</label>
+              <select
+                style={inputStyle}
+                value={form.seniority}
+                onChange={(e) => updateField("seniority", e.target.value)}
+              >
+                <option value="">— Not set —</option>
+                {SENIORITY_LEVELS.map((level) => (
+                  <option key={level} value={level}>
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

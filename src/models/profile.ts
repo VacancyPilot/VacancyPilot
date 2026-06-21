@@ -1,5 +1,5 @@
-import type { CoverLetterMode } from './cover-letter';
-import type { ScoringWeights } from './scoring';
+import type { CoverLetterMode } from "./cover-letter";
+import type { ScoringWeights } from "./scoring";
 
 export interface CoverLetterConstraints {
   noEmoji: boolean;
@@ -23,11 +23,16 @@ export interface Profile {
   niceToHaveSkills: string[];
   avoidKeywords: string[];
 
-  preferredWorkModes: ('remote' | 'hybrid' | 'office')[];
+  preferredWorkModes: ("remote" | "hybrid" | "office")[];
   preferredCities?: string[];
 
   salaryExpectationMin?: number;
   salaryCurrency?: string;
+
+  /** Candidate's total years of professional experience. Used by scoring. */
+  experienceYears?: number;
+  /** Candidate's self-assessed seniority level. Used by scoring. */
+  seniority?: SeniorityLevel;
 
   defaultResumeId?: string;
   letterPrefs: LetterPrefs;
@@ -37,3 +42,13 @@ export interface Profile {
   createdAt: string;
   updatedAt: string;
 }
+
+export const SENIORITY_LEVELS = [
+  "junior",
+  "middle",
+  "senior",
+  "lead",
+  "principal",
+] as const;
+
+export type SeniorityLevel = (typeof SENIORITY_LEVELS)[number];

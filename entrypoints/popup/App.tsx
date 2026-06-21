@@ -7,6 +7,7 @@ import { recomputeScoreForJob } from "@/services/score-recompute";
 import { persistBadgeState } from "@/services/badge-state";
 import { jobRepo, profileRepo } from "@/db/repositories";
 import { loadSettings } from "@/db/settings-bridge";
+import { ensureMigrationsBootstrapped } from "@/db";
 import type { Job, JobStatus } from "@/models/job";
 import type { Profile } from "@/models/profile";
 import type { ApplicationStatusSync } from "@/adapters/types";
@@ -714,9 +715,41 @@ function ActionButton({
 // ── App Root ──
 
 export default function App(): ReactNode {
+  const [dbReady, setDbReady] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void ensureMigrationsBootstrapped().then(
+      () => {
+        if (!cancelled) setDbReady(true);
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          setDbError(error instanceof Error ? error.message : String(error));
+        }
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <ErrorBoundary rootLabel="Popup">
-      <PopupContent />
+      {dbError ? (
+        <div style={{ padding: 12, fontSize: 12, color: "#c44" }}>
+          Failed to initialize local data: {dbError}
+        </div>
+      ) : dbReady ? (
+        <PopupContent />
+      ) : (
+        <div style={{ padding: 12, fontSize: 12, color: "#666" }}>
+          Initializing local data…
+        </div>
+      )}
     </ErrorBoundary>
   );
 }

@@ -5,6 +5,7 @@ import { GuidedApplyWorkspace } from "@/components/GuidedApplyWorkspace";
 import { HrWorkspace } from "@/components/HrWorkspace";
 import { ProfileTab } from "@/components/ProfileTab";
 import { jobRepo } from "@/db/repositories";
+import { ensureMigrationsBootstrapped } from "@/db";
 import type { Job } from "@/models/job";
 import type { RiskFlag } from "@/models/risk";
 import type { ApplicationStatusSync } from "@/adapters/types";
@@ -1156,9 +1157,41 @@ function ProfileTabWrapper({
 // ── App Root ───────────────────────────────────────────────────────────────
 
 export default function App(): ReactNode {
+  const [dbReady, setDbReady] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void ensureMigrationsBootstrapped().then(
+      () => {
+        if (!cancelled) setDbReady(true);
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          setDbError(error instanceof Error ? error.message : String(error));
+        }
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <ErrorBoundary rootLabel="Side Panel">
-      <SidePanelContent />
+      {dbError ? (
+        <div style={{ padding: 12, fontSize: 12, color: "#c44" }}>
+          Failed to initialize local data: {dbError}
+        </div>
+      ) : dbReady ? (
+        <SidePanelContent />
+      ) : (
+        <div style={{ padding: 12, fontSize: 12, color: "#666" }}>
+          Initializing local data…
+        </div>
+      )}
     </ErrorBoundary>
   );
 }

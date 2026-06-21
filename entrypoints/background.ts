@@ -5,17 +5,44 @@ import {
 } from "@/services/search-actions";
 import { jobRepo } from "@/db/repositories";
 import { createStatusChange } from "@/services/status-transitions";
-import { checkGuidedApplyGate, recordLabsAction } from "@/services/labs-control";
+import {
+  checkGuidedApplyGate,
+  recordLabsAction,
+} from "@/services/labs-control";
 import type { RawSearchItemDTO } from "@/adapters/types";
 import { upsertApplicationFromJob } from "@/services/hr-timeline-sync";
+import {
+  ensureMigrationsBootstrapped,
+  getStoredVersion,
+  CURRENT_VERSION,
+} from "@/db";
 
 interface SidePanelContext {
   tabId: number;
   vacancyId: string | null;
 }
 
-export default defineBackground(() => {
+export default defineBackground(async () => {
   console.log("[VacancyPilot] background service worker started");
+
+  // ── Migration boot ──
+  // Run pending schema migrations before any data access.
+  // First-run: storedVersion=0 → write CURRENT_VERSION.
+  // Subsequent: no-op when storedVersion === CURRENT_VERSION.
+  try {
+    const storedVersion = await getStoredVersion();
+    console.log(
+      `[VacancyPilot] schema version: stored=${storedVersion}, current=${CURRENT_VERSION}`,
+    );
+    await ensureMigrationsBootstrapped();
+    if (storedVersion < CURRENT_VERSION) {
+      console.log(
+        `[VacancyPilot] migration applied: v${storedVersion} → v${CURRENT_VERSION}`,
+      );
+    }
+  } catch (error) {
+    console.error("[VacancyPilot] migration boot failed:", error);
+  }
 
   // ── Side panel explicit context ──
   // Instead of the side panel guessing the active tab, the background

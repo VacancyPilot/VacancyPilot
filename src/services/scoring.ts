@@ -238,12 +238,16 @@ function scoreNiceToHaveSkills(
 /**
  * Experience fit (max weight = DEFAULT_WEIGHTS.experienceFit)
  *
- * Profile currently lacks experienceYears field, so scoring is neutral
- * when data is unavailable. Provides fit reasons when experience data exists.
+ * Uses profile.experienceYears and profile.seniority to produce
+ * candidate-specific fit signals. Falls back to neutral scoring
+ * when neither field is configured.
+ *
+ * Seniority-to-years mapping (rough proxy):
+ *   junior=1, middle=3, senior=6, lead=9, principal=12
  */
 function scoreExperienceFit(
   job: Job,
-  _profile: Profile,
+  profile: Profile,
   weight: number,
 ): ComponentResult {
   const reasons: string[] = [];
@@ -254,10 +258,90 @@ function scoreExperienceFit(
     return { score: Math.round(weight * 0.5), max: weight, reasons, riskFlags };
   }
 
-  // Profile has no experienceYears yet — neutral score with informational note
-  reasons.push(`Vacancy requires ~${job.experienceMinYears}+ years experience`);
-  reasons.push("Profile experience not configured — scored neutrally");
-  return { score: Math.round(weight * 0.5), max: weight, reasons, riskFlags };
+  const jobReq = job.experienceMinYears;
+
+  // Resolve candidate experience — explicit years first, then seniority proxy
+  const profileYears = resolveExperienceYears(profile);
+
+  if (profileYears == null) {
+    reasons.push(`Vacancy requires ~${jobReq}+ years experience`);
+    reasons.push("Profile experience not configured — scored neutrally");
+    return { score: Math.round(weight * 0.5), max: weight, reasons, riskFlags };
+  }
+
+  const source =
+    profile.experienceYears != null
+      ? `${profileYears} years`
+      : `seniority "${profile.seniority}" (~${profileYears} years estimated)`;
+  reasons.push(`Vacancy requires ~${jobReq}+ years, candidate has ${source}`);
+
+  // ── Scoring ──
+  if (profileYears >= jobReq) {
+    // Meets or exceeds requirement
+    reasons.push("Experience meets or exceeds vacancy requirement");
+  } else {
+    const gap = jobReq - profileYears;
+    if (gap <= 2) {
+      const score = Math.round(weight * 0.7);
+      reasons.push(
+        `Experience slightly below requirement (gap: ${gap} year(s))`,
+      );
+      return { score, max: weight, reasons, riskFlags };
+    }
+    // Significant gap
+    const ratio = profileYears / Math.max(1, jobReq);
+    const score = Math.round(weight * clamp(ratio, 0.1, 0.5));
+    reasons.push(
+      `Experience significantly below requirement (have ${profileYears}, need ${jobReq}+)`,
+    );
+    riskFlags.push(
+      makeFlag(
+        "underqualified",
+        gap >= 4 ? "high" : "medium",
+        `Candidate has ${profileYears} years, vacancy requires ${jobReq}+`,
+      ),
+    );
+    return { score, max: weight, reasons, riskFlags };
+  }
+
+  // ── Overqualification check ──
+  if (profileYears >= jobReq * 2 && jobReq > 0) {
+    // Candidate has 2×+ the required experience — may be overqualified
+    riskFlags.push(
+      makeFlag(
+        "overqualified",
+        "low",
+        `Candidate has ${profileYears} years — significantly above ${jobReq}+ requirement`,
+      ),
+    );
+    reasons.push(
+      "Experience significantly above requirement (possible overqualification)",
+    );
+  }
+
+  return { score: weight, max: weight, reasons, riskFlags };
+}
+
+/**
+ * Resolve a numeric experience estimate from profile fields.
+ * Prefers explicit experienceYears; falls back to seniority-based proxy.
+ * Returns undefined if neither is configured.
+ */
+function resolveExperienceYears(profile: Profile): number | undefined {
+  if (profile.experienceYears != null) return profile.experienceYears;
+
+  if (profile.seniority) {
+    const map: Record<string, number> = {
+      junior: 1,
+      middle: 3,
+      senior: 6,
+      lead: 9,
+      principal: 12,
+    };
+    return map[profile.seniority];
+  }
+
+  return undefined;
 }
 
 /**
