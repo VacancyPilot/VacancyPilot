@@ -88,3 +88,17 @@ All remaining alerts are transitive through WXT (tar, esbuild) and require WXT u
 3. Wait for GitHub Security alert refresh to confirm remediation
 4. After merge: proceed with high alert triage (tar, esbuild overrides)
 5. After high alerts: review low-risk Dependabot PRs
+
+## 2026-06-21 follow-up: final moderate alert disposition
+
+- GitHub Dependabot alert `#10` (`uuid`, moderate) was reviewed after the larger toolchain/security waves.
+- Path: `wxt -> web-ext-run -> node-notifier -> uuid@8.3.2`
+- Scope: `development`, `transitive`, not part of the shipped VacancyPilot runtime bundle.
+- Result: dismissed on GitHub as `tolerable_risk`.
+
+Reason:
+
+- the affected `uuid` buffer-write API is not called by VacancyPilot runtime code;
+- the package is reachable only through dev-time extension tooling;
+- a narrow local override did not apply cleanly without pulling broad toolchain churn into the repository;
+- the remaining risk is bounded upstream tooling risk rather than a product/runtime exposure.

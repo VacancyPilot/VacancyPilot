@@ -148,7 +148,7 @@ Status values:
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-059 | EPIC-30 | Close the remaining moderate transitive dependency alert with the smallest safe lockfile/toolchain move | planned | `fix: close final moderate dependency alert` |
+| ITER-059 | EPIC-30 | Close the remaining moderate transitive dependency alert with the smallest safe lockfile/toolchain move | done | `fix: close final moderate dependency alert` |
 
 ## Phase 5: AI Assist Quality And Trust
 
