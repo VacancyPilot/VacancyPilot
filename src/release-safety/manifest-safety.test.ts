@@ -86,6 +86,17 @@ describe("manifest permission safety", () => {
     });
   });
 
+  describe("optional_host_permissions", () => {
+    const optionalHostPerms = extractArrayValue(
+      config,
+      "optional_host_permissions",
+    );
+
+    it("allows only the narrow OpenAI runtime origin", () => {
+      expect(optionalHostPerms).toEqual(["https://api.openai.com/*"]);
+    });
+  });
+
   // ── Forbidden permissions ──────────────────────────────────────────
 
   describe("forbidden permissions are not present anywhere in config", () => {
@@ -108,6 +119,7 @@ describe("manifest permission safety", () => {
         "permissions",
         "host_permissions",
         "optional_permissions",
+        "optional_host_permissions",
       ];
       for (const key of allArrays) {
         const values = extractArrayValue(config, key);
@@ -160,13 +172,11 @@ describe("content script safety boundaries", () => {
     expect(broadPatterns).toEqual([]);
   });
 
-  it("wxt.config does not contain forbidden permissions in optional_permissions", () => {
-    const optional = extractArrayValue(config, "optional_permissions");
-    // Optional permissions are allowed for AI/n8n providers in later phases,
-    // but must not include broad host permissions or HH domains.
-    const hhPatterns = optional.filter(
+  it("wxt.config optional host access stays narrow", () => {
+    const optionalHosts = extractArrayValue(config, "optional_host_permissions");
+    const unsafePatterns = optionalHosts.filter(
       (p) => p.includes("hh.ru") || p.includes("*://*"),
     );
-    expect(hhPatterns).toEqual([]);
+    expect(unsafePatterns).toEqual([]);
   });
 });

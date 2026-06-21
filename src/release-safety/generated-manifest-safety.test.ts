@@ -120,6 +120,13 @@ describe("generated manifest audit", () => {
       }
     });
 
+    it("optional_host_permissions contains only the narrow OpenAI runtime origin", () => {
+      if (!hasManifest) return;
+      const manifest = readManifest();
+      const optionalHostPerms = manifest.optional_host_permissions;
+      expect(optionalHostPerms).toEqual(["https://api.openai.com/*"]);
+    });
+
     it("does not contain any forbidden permissions", () => {
       if (!hasManifest) return;
       const manifest = readManifest();

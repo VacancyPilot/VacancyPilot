@@ -9,6 +9,16 @@ import type {
 import { coverLetterRepo } from "@/db/repositories";
 import { validateCoverLetter } from "@/services/ai-validation";
 import type { LetterValidationResult } from "@/services/ai-validation";
+import type { CoverLetterVersion as CoverLetterVersionModel } from "@/models";
+import type {
+  PreparedCoverLetterAiRequest,
+  CoverLetterAiGenerationResult,
+} from "@/services";
+import {
+  prepareCoverLetterAiRequest,
+  buildCoverLetterAiCostSummary,
+  generateCoverLetterAiDraft,
+} from "@/services";
 import { EmptyState } from "./EmptyState";
 import { LoadingState } from "./LoadingState";
 
@@ -72,12 +82,20 @@ export function defaultConstraintsForMode(
 
 export function buildLetterVersion(
   bodyText: string,
-  options?: { source?: CoverLetterVersion["source"] },
+  options?: {
+    source?: CoverLetterVersion["source"];
+    aiProvider?: string;
+    aiModel?: string;
+    promptVersion?: string;
+  },
 ): CoverLetterVersion {
   return {
     bodyText,
     createdAt: new Date().toISOString(),
     source: options?.source ?? "manual_edit",
+    aiProvider: options?.aiProvider,
+    aiModel: options?.aiModel,
+    promptVersion: options?.promptVersion,
   };
 }
 
@@ -155,6 +173,18 @@ export function CoverLetterStudio({
   const [loaded, setLoaded] = useState(false);
   const [provenance, setProvenance] = useState<DraftProvenance>("edited");
   const [showReviewGate, setShowReviewGate] = useState(false);
+  const [draftSource, setDraftSource] =
+    useState<CoverLetterVersionModel["source"]>("manual_edit");
+  const [draftAiProvider, setDraftAiProvider] = useState<string | undefined>();
+  const [draftAiModel, setDraftAiModel] = useState<string | undefined>();
+  const [draftPromptVersion, setDraftPromptVersion] = useState<
+    string | undefined
+  >();
+  const [aiPreparing, setAiPreparing] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
+  const [aiPrepared, setAiPrepared] =
+    useState<PreparedCoverLetterAiRequest | null>(null);
   // Track whether user has edited the text since loading (for provenance)
   const [userEdited, setUserEdited] = useState(false);
 
@@ -179,6 +209,10 @@ export function CoverLetterStudio({
           setConstraints(match.constraints);
           setBodyText(match.bodyText);
           setProvenance(match.provenance ?? "edited");
+          setDraftSource(match.source);
+          setDraftAiProvider(match.aiProvider);
+          setDraftAiModel(match.aiModel);
+          setDraftPromptVersion(match.promptVersion);
           setUserEdited(false);
         }
       } catch {
@@ -211,12 +245,16 @@ export function CoverLetterStudio({
   const handleModeChange = useCallback((newMode: CoverLetterMode) => {
     setMode(newMode);
     setConstraints(defaultConstraintsForMode(newMode));
+    setAiPrepared(null);
+    setAiFeedback(null);
   }, []);
 
   // ── Constraint toggle (boolean constraints only; maxChars has its own handler) ──
   const handleConstraintToggle = useCallback(
     (key: "noEmoji" | "noMarkdown" | "noSpecialChars") => {
       setConstraints((prev) => ({ ...prev, [key]: !prev[key] }));
+      setAiPrepared(null);
+      setAiFeedback(null);
     },
     [],
   );
@@ -224,6 +262,8 @@ export function CoverLetterStudio({
   // ── Max chars selector ──
   const handleMaxCharsChange = useCallback((value: 500 | 1000 | undefined) => {
     setConstraints((prev) => ({ ...prev, maxChars: value }));
+    setAiPrepared(null);
+    setAiFeedback(null);
   }, []);
 
   // ── Text change ──
@@ -235,9 +275,67 @@ export function CoverLetterStudio({
       if (copyStatus !== "idle") setCopyStatus("idle");
       // Close review gate when user continues editing
       if (showReviewGate) setShowReviewGate(false);
+      if (aiFeedback) setAiFeedback(null);
     },
-    [copyStatus, showReviewGate],
+    [aiFeedback, copyStatus, showReviewGate],
   );
+
+  const handlePrepareAi = useCallback(async () => {
+    if (!jobId || !profileId) return;
+
+    setAiPreparing(true);
+    setAiFeedback(null);
+
+    try {
+      const prepared = await prepareCoverLetterAiRequest({
+        jobId,
+        profileId,
+        resumeId,
+        mode,
+        constraints,
+      });
+      setAiPrepared(prepared);
+    } catch (err: unknown) {
+      setAiPrepared(null);
+      setAiFeedback(
+        err instanceof Error ? err.message : "Failed to prepare AI request.",
+      );
+    } finally {
+      setAiPreparing(false);
+    }
+  }, [constraints, jobId, mode, profileId, resumeId]);
+
+  const handleGenerateAi = useCallback(async () => {
+    if (!jobId || !aiPrepared) return;
+
+    setAiGenerating(true);
+    setAiFeedback(null);
+
+    try {
+      const generated: CoverLetterAiGenerationResult =
+        await generateCoverLetterAiDraft(aiPrepared, jobId);
+
+      setBodyText(generated.bodyText);
+      setDraftSource("ai");
+      setDraftAiProvider(generated.provider);
+      setDraftAiModel(generated.model);
+      setDraftPromptVersion(generated.promptVersion);
+      setProvenance("ai_generated");
+      setUserEdited(false);
+      setAiPrepared(null);
+      setAiFeedback(
+        generated.fromCache
+          ? "AI draft loaded from local cache."
+          : "AI draft generated. Review the text before saving or copying.",
+      );
+    } catch (err: unknown) {
+      setAiFeedback(
+        err instanceof Error ? err.message : "Failed to generate AI draft.",
+      );
+    } finally {
+      setAiGenerating(false);
+    }
+  }, [aiPrepared, jobId]);
 
   // ── Save ──
   const handleSave = useCallback(
@@ -249,7 +347,15 @@ export function CoverLetterStudio({
 
       try {
         const now = new Date().toISOString();
-        const version = buildLetterVersion(bodyText);
+        const versionSource: CoverLetterVersion["source"] = userEdited
+          ? "manual_edit"
+          : draftSource;
+        const version = buildLetterVersion(bodyText, {
+          source: versionSource,
+          aiProvider: draftSource === "ai" ? draftAiProvider : undefined,
+          aiModel: draftSource === "ai" ? draftAiModel : undefined,
+          promptVersion: draftSource === "ai" ? draftPromptVersion : undefined,
+        });
 
         const base = existingLetter ?? {
           id: buildLetterId(jobId, profileId),
@@ -269,15 +375,19 @@ export function CoverLetterStudio({
           constraints,
           bodyText,
           isFinal,
-          source: "manual_edit" as const,
-          provenance: isFinal ? "final" : "edited",
+          source: draftSource,
+          aiProvider: draftSource === "ai" ? draftAiProvider : undefined,
+          aiModel: draftSource === "ai" ? draftAiModel : undefined,
+          promptVersion:
+            draftSource === "ai" ? draftPromptVersion : undefined,
+          provenance: computeProvenance(draftSource, isFinal, userEdited),
           versions: [...base.versions, version],
           updatedAt: now,
         };
 
         await coverLetterRepo.save(letter);
         setExistingLetter(letter);
-        setProvenance(isFinal ? "final" : "edited");
+        setProvenance(letter.provenance);
         setSaveStatus("saved");
 
         // Reset status after delay
@@ -291,7 +401,20 @@ export function CoverLetterStudio({
         );
       }
     },
-    [jobId, profileId, resumeId, mode, constraints, bodyText, existingLetter],
+    [
+      bodyText,
+      constraints,
+      draftAiModel,
+      draftAiProvider,
+      draftPromptVersion,
+      draftSource,
+      existingLetter,
+      jobId,
+      mode,
+      profileId,
+      resumeId,
+      userEdited,
+    ],
   );
 
   // ── Copy ──
@@ -312,6 +435,9 @@ export function CoverLetterStudio({
   const hasWarningsOrNotes =
     validation.warnings.length > 0 || validation.infoNotes.length > 0;
   const hasBlockers = validation.blockers.length > 0;
+  const aiCostSummary = aiPrepared
+    ? buildCoverLetterAiCostSummary(aiPrepared)
+    : null;
 
   const handleSaveFinalWithReview = useCallback(() => {
     if (hasWarningsOrNotes && !showReviewGate) {
@@ -501,6 +627,170 @@ export function CoverLetterStudio({
           </span>
         </div>
       )}
+
+      <fieldset
+        style={{
+          border: "1px solid #e0e0e0",
+          borderRadius: 4,
+          padding: "8px 10px",
+          margin: 0,
+        }}
+      >
+        <legend
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#888",
+            padding: "0 4px",
+          }}
+        >
+          AI Draft
+        </legend>
+
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={() => void handlePrepareAi()}
+            disabled={aiPreparing || aiGenerating}
+            style={{
+              padding: "5px 12px",
+              fontSize: 12,
+              cursor:
+                aiPreparing || aiGenerating ? "not-allowed" : "pointer",
+              border: "1px solid #7b4dff",
+              borderRadius: 4,
+              background: "#7b4dff",
+              color: "#fff",
+              fontWeight: 600,
+              opacity: aiPreparing || aiGenerating ? 0.6 : 1,
+            }}
+          >
+            {aiPreparing ? "Preparing…" : "Preview AI Payload"}
+          </button>
+
+          {aiPrepared && (
+            <>
+              <button
+                type="button"
+                onClick={() => void handleGenerateAi()}
+                disabled={aiGenerating}
+                style={{
+                  padding: "5px 12px",
+                  fontSize: 12,
+                  cursor: aiGenerating ? "not-allowed" : "pointer",
+                  border: "1px solid #2a8",
+                  borderRadius: 4,
+                  background: "#2a8",
+                  color: "#fff",
+                  fontWeight: 600,
+                  opacity: aiGenerating ? 0.6 : 1,
+                }}
+              >
+                {aiGenerating ? "Generating…" : "Generate Draft"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAiPrepared(null)}
+                disabled={aiGenerating}
+                style={{
+                  padding: "5px 12px",
+                  fontSize: 12,
+                  cursor: aiGenerating ? "not-allowed" : "pointer",
+                  border: "1px solid #ccc",
+                  borderRadius: 4,
+                  background: "#fff",
+                  color: "#555",
+                }}
+              >
+                Cancel Preview
+              </button>
+            </>
+          )}
+        </div>
+
+        <p style={{ margin: "8px 0 0", fontSize: 11, color: "#666" }}>
+          AI stays opt-in. VacancyPilot shows the payload summary before any
+          external request and never writes into HH forms.
+        </p>
+
+        {aiFeedback && (
+          <div
+            style={{
+              marginTop: 8,
+              padding: "8px 10px",
+              borderRadius: 4,
+              background: aiFeedback.includes("failed") ? "#fff5f5" : "#f5f8ff",
+              color: aiFeedback.includes("failed") ? "#c44" : "#345",
+              fontSize: 11,
+            }}
+          >
+            {aiFeedback}
+          </div>
+        )}
+
+        {aiPrepared && (
+          <div
+            style={{
+              marginTop: 10,
+              border: "1px solid #d9e3f0",
+              borderRadius: 4,
+              padding: "8px 10px",
+              background: "#f8fbff",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              fontSize: 11,
+            }}
+          >
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <span>
+                <strong>Provider:</strong> {aiPrepared.providerLabel}
+              </span>
+              <span>
+                <strong>Model:</strong> {aiPrepared.model}
+              </span>
+              <span>
+                <strong>Cache:</strong>{" "}
+                {aiPrepared.cacheEnabled ? "enabled" : "disabled"}
+              </span>
+            </div>
+
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <span>
+                <strong>Estimated tokens:</strong>{" "}
+                {aiPrepared.preview.estimatedTokens}
+              </span>
+              <span>
+                <strong>Estimated chars:</strong> {aiPrepared.preview.totalChars}
+              </span>
+              <span>
+                <strong>Optional API access:</strong>{" "}
+                {aiPrepared.optionalOriginGranted
+                  ? "already granted"
+                  : "browser may ask on confirm"}
+              </span>
+            </div>
+
+            <div>
+              <strong>Included:</strong>{" "}
+              {aiPrepared.preview.includedFields
+                .map((field) => field.label)
+                .join(", ")}
+            </div>
+            <div>
+              <strong>Excluded:</strong>{" "}
+              {aiPrepared.preview.excludedFields.join(", ")}
+            </div>
+            <div>
+              <strong>Estimated cost:</strong>{" "}
+              {aiCostSummary?.costAvailable
+                ? `$${aiCostSummary.totalCostUsd?.toFixed(4)}`
+                : "not available for this provider/model"}
+            </div>
+          </div>
+        )}
+      </fieldset>
 
       {/* Text editor */}
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>

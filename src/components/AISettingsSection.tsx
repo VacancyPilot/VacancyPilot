@@ -9,16 +9,24 @@ import {
 import type { AppSettings } from "@/models/settings";
 import { getBudgetStatus } from "@/services/ai-budget";
 import type { BudgetStatus } from "@/services/ai-budget";
+import {
+  isProviderImplemented,
+  providerLabel,
+} from "@/services/ai-provider-factory";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 
 type AIProvider = NonNullable<AppSettings["ai"]["provider"]>;
 
-const PROVIDERS: { id: AIProvider; label: string }[] = [
-  { id: "openai", label: "OpenAI" },
-  { id: "deepseek", label: "DeepSeek" },
-  { id: "openrouter", label: "OpenRouter" },
-  { id: "mock", label: "Mock (no API key)" },
+const PROVIDERS: { id: AIProvider; label: string; implemented: boolean }[] = [
+  { id: "openai", label: "OpenAI", implemented: true },
+  { id: "deepseek", label: "DeepSeek (coming later)", implemented: false },
+  {
+    id: "openrouter",
+    label: "OpenRouter (coming later)",
+    implemented: false,
+  },
+  { id: "mock", label: "Mock (no API key)", implemented: true },
 ];
 
 // ── Shared styles ──────────────────────────────────────────────────────────
@@ -169,7 +177,15 @@ export function AISettingsSection(): ReactNode {
       const settings = await loadSettings();
 
       setAiEnabled(settings.privacy.aiEnabled);
-      setProvider(settings.ai.provider);
+      setProvider(
+        settings.ai.provider && isProviderImplemented(settings.ai.provider)
+          ? settings.ai.provider
+          : settings.ai.provider === "mock"
+            ? "mock"
+            : settings.ai.provider === "openai"
+              ? "openai"
+              : undefined,
+      );
       setModel(settings.ai.model ?? "");
       setDailyLimit(settings.ai.dailyRequestLimit);
       setMaxInputChars(settings.ai.maxInputChars);
@@ -227,6 +243,12 @@ export function AISettingsSection(): ReactNode {
     async (e: React.ChangeEvent<HTMLSelectElement>) => {
       const newProvider = e.target.value as AIProvider | "";
       if (newProvider === "") return;
+      if (!isProviderImplemented(newProvider)) {
+        setError(
+          `${providerLabel(newProvider)} is not implemented yet. Use OpenAI or Mock for now.`,
+        );
+        return;
+      }
 
       setSaving(true);
       try {
@@ -458,11 +480,20 @@ export function AISettingsSection(): ReactNode {
             Select provider…
           </option>
           {PROVIDERS.map((p) => (
-            <option key={p.id} value={p.id}>
+            <option
+              key={p.id}
+              value={p.id}
+              disabled={!p.implemented}
+            >
               {p.label}
             </option>
           ))}
         </select>
+      </div>
+
+      <div style={{ ...hintStyle, marginTop: -6, marginBottom: 12 }}>
+        Current build supports <strong>OpenAI</strong> and <strong>Mock</strong>
+        . DeepSeek and OpenRouter stay visible as roadmap placeholders.
       </div>
 
       {/* ── Model ─────────────────────────────────────────────────────── */}

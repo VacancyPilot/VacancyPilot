@@ -45,6 +45,7 @@ describe("OnboardingSection — content disclosure", () => {
     expect(source).toMatch(/opt-in/);
     expect(source).toMatch(/payload preview/);
     expect(source).toMatch(/Strict Privacy mode/);
+    expect(source).toMatch(/currently supports\s+OpenAI and Mock/i);
   });
 
   it("explains how n8n works (spec §18.1.6)", () => {

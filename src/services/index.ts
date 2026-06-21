@@ -73,6 +73,32 @@ export type { PayloadPreview, IncludedField } from "./payload-preview";
 
 // AI provider
 export { MockLLMProvider } from "./ai-provider";
+export {
+  OpenAILLMProvider,
+  estimateCost as estimateOpenAICost,
+} from "./ai-provider-openai";
+export {
+  getLLMProvider,
+  isProviderImplemented,
+  providerLabel,
+  checkAIReadiness,
+} from "./ai-provider-factory";
+export {
+  getProviderOptionalOrigin,
+  hasProviderOriginAccess,
+  ensureProviderOriginAccess,
+} from "./ai-provider-permissions";
+export type { ProviderOriginAccess } from "./ai-provider-permissions";
+export {
+  prepareCoverLetterAiRequest,
+  buildCoverLetterAiCostSummary,
+  generateCoverLetterAiDraft,
+} from "./cover-letter-ai";
+export type {
+  CoverLetterAiRequest,
+  PreparedCoverLetterAiRequest,
+  CoverLetterAiGenerationResult,
+} from "./cover-letter-ai";
 
 // AI validation
 export {

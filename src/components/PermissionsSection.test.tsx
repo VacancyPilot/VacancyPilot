@@ -24,8 +24,10 @@ describe("PermissionsSection — manifest alignment", () => {
     expect(source).toMatch(/https:\/\/hh\.ru\/\*/);
   });
 
-  it("states that no optional runtime permissions are declared", () => {
-    expect(source).toMatch(/no optional runtime permissions/i);
+  it("discloses the narrow optional OpenAI runtime host access", () => {
+    expect(source).toMatch(/Optional Runtime Host Access/);
+    expect(source).toMatch(/https:\/\/api\.openai\.com\/\*/);
+    expect(source).toMatch(/requested only when you confirm an AI action/i);
     expect(source).toMatch(/clipboardWrite/);
     expect(source).toMatch(/alarms/);
   });
@@ -59,7 +61,7 @@ describe("PermissionsSection — manifest alignment", () => {
     expect(source).toMatch(/DeepSeek/);
     expect(source).toMatch(/OpenRouter/);
     expect(source).toMatch(/n8n/);
-    expect(source).toMatch(/opt-in product features/i);
+    expect(source).toMatch(/opt-in/i);
   });
 });
 

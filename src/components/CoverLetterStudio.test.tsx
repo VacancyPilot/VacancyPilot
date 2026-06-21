@@ -105,6 +105,18 @@ describe("buildLetterVersion", () => {
     expect(version.source).toBe("ai");
   });
 
+  it("preserves AI metadata when provided", () => {
+    const version = buildLetterVersion("AI text", {
+      source: "ai",
+      aiProvider: "openai",
+      aiModel: "gpt-4o",
+      promptVersion: "1.0.0",
+    });
+    expect(version.aiProvider).toBe("openai");
+    expect(version.aiModel).toBe("gpt-4o");
+    expect(version.promptVersion).toBe("1.0.0");
+  });
+
   it("generates ISO-8601 timestamps", () => {
     const version = buildLetterVersion("Test");
     expect(version.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);

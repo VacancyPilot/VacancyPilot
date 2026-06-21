@@ -167,8 +167,8 @@ export function OnboardingSection(): ReactNode {
         >
           This build declares only <strong>storage</strong>,{" "}
           <strong>sidePanel</strong>, and <strong>activeTab</strong>. It does
-          not declare install-time host permissions or optional runtime
-          permissions in the manifest.
+          not declare install-time host permissions. OpenAI host access is
+          optional and requested only when you confirm an AI request.
         </p>
       </div>
 
@@ -198,7 +198,8 @@ export function OnboardingSection(): ReactNode {
             API key
           </li>
           <li>
-            AI is powered by your chosen provider (OpenAI, DeepSeek, OpenRouter)
+            AI is powered by your chosen provider. This build currently supports
+            OpenAI and Mock
           </li>
           <li>
             Every AI request shows a <strong>payload preview</strong> before

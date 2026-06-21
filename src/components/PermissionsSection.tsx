@@ -57,7 +57,7 @@ const grantedBadge: React.CSSProperties = {
 
 interface PermissionInfo {
   permission: string;
-  status: "granted";
+  status: "granted" | "optional";
   feature: string;
   reason: string;
 }
@@ -92,6 +92,7 @@ export function PermissionsSection(): ReactNode {
   const [permissions, setPermissions] = useState<PermissionInfo[]>(
     buildDeclaredPermissions(),
   );
+  const [optionalOriginGranted, setOptionalOriginGranted] = useState(false);
 
   useEffect(() => {
     try {
@@ -104,6 +105,14 @@ export function PermissionsSection(): ReactNode {
 
       if (visible.length > 0) {
         setPermissions(visible);
+      }
+
+      const permissionsApi = chrome.permissions;
+      if (permissionsApi?.contains) {
+        void permissionsApi
+          .contains({ origins: ["https://api.openai.com/*"] })
+          .then(setOptionalOriginGranted)
+          .catch(() => setOptionalOriginGranted(false));
       }
     } catch {
       setPermissions(buildDeclaredPermissions());
@@ -122,8 +131,7 @@ export function PermissionsSection(): ReactNode {
         <h3 style={cardHeading}>Declared Manifest Permissions</h3>
         <p style={{ fontSize: 11, color: "#888", margin: "0 0 4px" }}>
           These permissions are part of the installed extension package. There
-          are no declared host permissions and no optional runtime permissions
-          in the current build.
+          are no declared host permissions in the current build.
         </p>
         <table style={permTable}>
           <thead>
@@ -152,6 +160,41 @@ export function PermissionsSection(): ReactNode {
       </div>
 
       <div style={card}>
+        <h3 style={cardHeading}>Optional Runtime Host Access</h3>
+        <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
+          OpenAI access is declared as an optional host permission and is
+          requested only when you confirm an AI action that needs it.
+        </p>
+        <table style={permTable}>
+          <thead>
+            <tr>
+              <th style={thStyle}>Origin</th>
+              <th style={thStyle}>Status</th>
+              <th style={thStyle}>Used for</th>
+              <th style={thStyle}>Why</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={tdStyle}>
+                <code style={{ fontSize: 11 }}>https://api.openai.com/*</code>
+              </td>
+              <td style={tdStyle}>
+                <span style={grantedBadge}>
+                  {optionalOriginGranted ? "Granted" : "Not granted"}
+                </span>
+              </td>
+              <td style={tdStyle}>OpenAI requests by explicit user action</td>
+              <td style={{ ...tdStyle, color: "#555" }}>
+                Needed only when you confirm an AI draft or analysis request.
+                VacancyPilot does not request this access at install time.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style={card}>
         <h3 style={cardHeading}>What Is Not Requested</h3>
         <ul
           style={{
@@ -165,14 +208,14 @@ export function PermissionsSection(): ReactNode {
           <li>No install-time host permissions such as `https://hh.ru/*`.</li>
           <li>No optional permissions such as `clipboardWrite` or `alarms`.</li>
           <li>
-            No optional API host permissions for OpenAI, DeepSeek, OpenRouter,
-            or n8n in the current manifest.
+            No install-time API host permissions for OpenAI, DeepSeek,
+            OpenRouter, or n8n.
           </li>
         </ul>
         <p style={{ fontSize: 11, color: "#888", margin: "8px 0 0" }}>
-          AI and n8n remain opt-in product features, but this build does not
-          advertise extra browser permissions for them. If that changes later,
-          the specification and this screen must be updated together.
+          AI and n8n remain opt-in. Today only OpenAI is wired through an
+          optional runtime host request. Other providers stay out of scope until
+          implemented.
         </p>
       </div>
 
