@@ -126,3 +126,21 @@ export {
   normalizeHrTimelineEntry,
   persistHrTimelineForJob,
 } from "./hr-timeline-sync";
+
+// AI budget preview and controls
+export {
+  estimateTokens,
+  getPricing,
+  estimateCost,
+  getBudgetStatus,
+  checkAiBudget,
+  recordAiRequest,
+  eventTypeForKind,
+} from "./ai-budget";
+export type {
+  PricingEntry,
+  CostEstimate,
+  BudgetStatus,
+  BudgetGateResult,
+  AiRequestKind,
+} from "./ai-budget";

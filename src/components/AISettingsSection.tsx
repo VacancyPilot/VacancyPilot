@@ -7,6 +7,8 @@ import {
   maskApiKey,
 } from "@/db/api-key-bridge";
 import type { AppSettings } from "@/models/settings";
+import { getBudgetStatus } from "@/services/ai-budget";
+import type { BudgetStatus } from "@/services/ai-budget";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 
@@ -155,6 +157,9 @@ export function AISettingsSection(): ReactNode {
   // AI master toggle (from privacy.aiEnabled)
   const [aiEnabled, setAiEnabled] = useState(false);
 
+  // Budget status
+  const [budgetStatus, setBudgetStatus] = useState<BudgetStatus | null>(null);
+
   // ── Load ──────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
@@ -177,6 +182,14 @@ export function AISettingsSection(): ReactNode {
         setStoredKeyMasked(key ? maskApiKey(key) : null);
       } else {
         setStoredKeyMasked(null);
+      }
+
+      // Load budget status
+      try {
+        const status = await getBudgetStatus();
+        setBudgetStatus(status);
+      } catch {
+        setBudgetStatus(null);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load settings");
@@ -271,6 +284,9 @@ export function AISettingsSection(): ReactNode {
         const settings = await loadSettings();
         settings.ai.dailyRequestLimit = v;
         await saveSettings(settings);
+        // Refresh budget status after limit change
+        const status = await getBudgetStatus();
+        setBudgetStatus(status);
       } finally {
         setSaving(false);
       }
@@ -607,6 +623,29 @@ export function AISettingsSection(): ReactNode {
           aria-label="Daily request limit"
         />
       </div>
+
+      {/* ── Budget status ─────────────────────────────────────────────── */}
+      {aiEnabled && budgetStatus && (
+        <div style={rowStyle}>
+          <div>
+            <div style={labelStyle}>Today's usage</div>
+            <div style={hintStyle}>
+              {budgetStatus.used} of {budgetStatus.limit} requests used today
+            </div>
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: budgetStatus.isExhausted ? "#d33" : "#2a8",
+            }}
+          >
+            {budgetStatus.isExhausted
+              ? "Limit reached"
+              : `${budgetStatus.remaining} remaining`}
+          </div>
+        </div>
+      )}
 
       {/* ── Max input chars ───────────────────────────────────────────── */}
       <div style={rowStyle}>
