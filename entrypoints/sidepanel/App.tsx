@@ -184,13 +184,31 @@ function SidePanelContent(): ReactNode {
 
   // Detect current vacancy from explicit background-managed context.
   // Falls back to active-tab guessing only when no context is available.
+  // Retries context fetch to handle the short timing race between
+  // the popup storing context and the side panel loading.
   useEffect(() => {
     let cancelled = false;
 
-    async function detect(): Promise<void> {
-      try {
+    /** Retry GET_SIDE_PANEL_CONTEXT up to `maxRetries` times with 100ms delays. */
+    async function fetchContextWithRetry(
+      maxRetries: number,
+    ): Promise<{ tabId: number; vacancyId: string | null } | null> {
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        if (cancelled) return null;
         const context: { tabId: number; vacancyId: string | null } | null =
           await chrome.runtime.sendMessage({ type: "GET_SIDE_PANEL_CONTEXT" });
+        // Valid context has a positive tabId.
+        if (context?.tabId && context.tabId > 0) return context;
+        if (attempt < maxRetries) {
+          await new Promise((r) => setTimeout(r, 100));
+        }
+      }
+      return null;
+    }
+
+    async function detect(): Promise<void> {
+      try {
+        const context = await fetchContextWithRetry(3);
 
         let tab: chrome.tabs.Tab | undefined;
         if (context?.tabId && context.tabId > 0) {

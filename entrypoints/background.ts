@@ -22,29 +22,7 @@ interface SidePanelContext {
   vacancyId: string | null;
 }
 
-export default defineBackground(async () => {
-  console.log("[VacancyPilot] background service worker started");
-
-  // ── First-install onboarding ──
-  chrome.runtime.onInstalled.addListener(async (details) => {
-    if (details.reason === "install") {
-      console.log("[VacancyPilot] first install detected — opening onboarding");
-      try {
-        // Open the dashboard/options page with the onboarding section active.
-        // We use a hash fragment so the dashboard can detect it.
-        await chrome.tabs.create({
-          url: chrome.runtime.getURL("options.html#onboarding"),
-        });
-      } catch (err) {
-        console.error("[VacancyPilot] failed to open onboarding tab:", err);
-      }
-    }
-  });
-
-  // ── Migration boot ──
-  // Run pending schema migrations before any data access.
-  // First-run: storedVersion=0 → write CURRENT_VERSION.
-  // Subsequent: no-op when storedVersion === CURRENT_VERSION.
+async function bootBackground(): Promise<void> {
   try {
     const storedVersion = await getStoredVersion();
     console.log(
@@ -59,13 +37,64 @@ export default defineBackground(async () => {
   } catch (error) {
     console.error("[VacancyPilot] migration boot failed:", error);
   }
+}
+
+export default defineBackground(() => {
+  console.log("[VacancyPilot] background service worker started");
+
+  // ── Async boot (fire-and-forget, outside sync listener registration) ──
+  void bootBackground();
+
+  // ── First-install onboarding ──
+  chrome.runtime.onInstalled.addListener(async (details) => {
+    if (details.reason === "install") {
+      console.log("[VacancyPilot] first install detected — opening onboarding");
+      try {
+        await chrome.tabs.create({
+          url: chrome.runtime.getURL("options.html#onboarding"),
+        });
+      } catch (err) {
+        console.error("[VacancyPilot] failed to open onboarding tab:", err);
+      }
+    }
+  });
 
   // ── Side panel explicit context ──
-  // Instead of the side panel guessing the active tab, the background
-  // stores the vacancy context when OPEN_SIDE_PANEL is received and
-  // the side panel reads it explicitly via GET_SIDE_PANEL_CONTEXT.
+  // Context is set via SET_SIDE_PANEL_CONTEXT (popup) or OPEN_SIDE_PANEL (badge).
+  // Side panel reads it via GET_SIDE_PANEL_CONTEXT.
+  // Popup opens the side panel directly to preserve the user-gesture path.
 
   let activeContext: SidePanelContext | null = null;
+
+  /** Persist the context without opening the side panel (used by popup). */
+  function persistContext(
+    message: { tabId?: number; vacancyId?: string },
+    sender: chrome.runtime.MessageSender,
+  ): void {
+    const nextTabId = message.tabId ?? sender.tab?.id ?? -1;
+    const vacancyId =
+      message.vacancyId ??
+      extractVacancyIdFromUrl(sender.tab?.url) ??
+      (activeContext?.tabId === nextTabId ? activeContext?.vacancyId : null);
+    activeContext = { tabId: nextTabId, vacancyId };
+  }
+
+  /** Open the side panel in the given window. Returns true on success. */
+  async function openPanelInWindow(
+    windowId: number | undefined,
+  ): Promise<boolean> {
+    if (windowId === undefined) {
+      console.error("[VacancyPilot] Could not determine target window");
+      return false;
+    }
+    try {
+      await chrome.sidePanel.open({ windowId });
+      return true;
+    } catch (err: unknown) {
+      console.error("[VacancyPilot] Failed to open side panel:", err);
+      return false;
+    }
+  }
 
   async function resolveWindowId(
     sender: chrome.runtime.MessageSender,
@@ -73,7 +102,6 @@ export default defineBackground(async () => {
     if (sender.tab?.windowId !== undefined) {
       return sender.tab.windowId;
     }
-
     try {
       const [activeTab] = await chrome.tabs.query({
         active: true,
@@ -86,37 +114,27 @@ export default defineBackground(async () => {
     }
   }
 
-  // Handle OPEN_SIDE_PANEL message from popup, content badge, or side panel.
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "OPEN_SIDE_PANEL") {
-      const nextTabId = message.tabId ?? sender.tab?.id ?? -1;
-      // Store explicit context so the side panel can pick it up.
-      // If the sender is a tab (content script), use sender.tab.
-      // Popup messages come without a tab; they include vacancyId in the message.
-      const vacancyId =
-        message.vacancyId ??
-        extractVacancyIdFromUrl(sender.tab?.url) ??
-        (activeContext?.tabId === nextTabId ? activeContext?.vacancyId : null);
-      activeContext = {
-        tabId: nextTabId,
-        vacancyId,
-      };
-
-      void resolveWindowId(sender).then((windowId) => {
-        if (windowId === undefined) {
-          console.error("[VacancyPilot] Could not determine target window");
-          sendResponse();
-          return;
-        }
-
-        chrome.sidePanel.open({ windowId }).catch((err: unknown) => {
-          console.error("[VacancyPilot] Failed to open side panel:", err);
-        });
-        sendResponse();
-      });
-      return true;
+    // ── SET_SIDE_PANEL_CONTEXT (from popup) ──
+    // Popup persists context here and opens the side panel directly.
+    if (message.type === "SET_SIDE_PANEL_CONTEXT") {
+      persistContext(message, sender);
+      sendResponse({ success: true });
+      return false; // sync
     }
 
+    // ── OPEN_SIDE_PANEL (from content badge) ──
+    // Badge click path: store context AND open the side panel from background.
+    if (message.type === "OPEN_SIDE_PANEL") {
+      persistContext(message, sender);
+
+      void resolveWindowId(sender).then((windowId) => {
+        void openPanelInWindow(windowId).finally(() => sendResponse());
+      });
+      return true; // async response
+    }
+
+    // ── GET_SIDE_PANEL_CONTEXT ──
     if (message.type === "GET_SIDE_PANEL_CONTEXT") {
       sendResponse(activeContext);
       // Don't clear — the side panel may re-read on refresh.

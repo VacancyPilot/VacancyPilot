@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 // ── Pure helpers ──
 
@@ -63,6 +63,12 @@ describe("buildBadgePayload", () => {
 import type { RawVacancyDTO } from "@/adapters/hh/types";
 import type { ApplicationStatusSync } from "@/adapters/types";
 import type { PageStatusInfo } from "@/components/PageStatus";
+import {
+  buildSetSidePanelContext,
+  getSidePanelButtonLabel,
+  mapSidePanelOpenError,
+  openSidePanel,
+} from "./App";
 
 // Minimal mock: the content script handler uses HHAdapter.extractVacancy.
 // We test that the handler responds with the correct shape.
@@ -263,25 +269,7 @@ describe("passiveStatusLabel", () => {
   });
 });
 
-// ── OPEN_SIDE_PANEL explicit context payload ──
-
-function buildOpenSidePanelMessage(pageInfo: PageStatusInfo): {
-  type: "OPEN_SIDE_PANEL";
-  tabId?: number;
-  vacancyId?: string;
-} {
-  if (pageInfo.kind === "vacancy") {
-    return {
-      type: "OPEN_SIDE_PANEL",
-      tabId: pageInfo.tabId,
-      vacancyId: pageInfo.vacancyId,
-    };
-  }
-
-  return { type: "OPEN_SIDE_PANEL" };
-}
-
-describe("buildOpenSidePanelMessage", () => {
+describe("buildSetSidePanelContext", () => {
   it("includes tabId and vacancyId for vacancy pages", () => {
     const pageInfo: PageStatusInfo = {
       kind: "vacancy",
@@ -290,8 +278,8 @@ describe("buildOpenSidePanelMessage", () => {
       vacancyId: "12345",
     };
 
-    expect(buildOpenSidePanelMessage(pageInfo)).toEqual({
-      type: "OPEN_SIDE_PANEL",
+    expect(buildSetSidePanelContext(pageInfo)).toEqual({
+      type: "SET_SIDE_PANEL_CONTEXT",
       tabId: 42,
       vacancyId: "12345",
     });
@@ -302,9 +290,127 @@ describe("buildOpenSidePanelMessage", () => {
       kind: "not-detected",
     };
 
-    expect(buildOpenSidePanelMessage(pageInfo)).toEqual({
-      type: "OPEN_SIDE_PANEL",
+    expect(buildSetSidePanelContext(pageInfo)).toEqual({
+      type: "SET_SIDE_PANEL_CONTEXT",
     });
+  });
+});
+
+describe("getSidePanelButtonLabel", () => {
+  it('returns "Opening..." while the side panel is opening', () => {
+    expect(getSidePanelButtonLabel(true)).toBe("Opening…");
+  });
+
+  it('returns "Side Panel" when idle', () => {
+    expect(getSidePanelButtonLabel(false)).toBe("Side Panel");
+  });
+});
+
+describe("mapSidePanelOpenError", () => {
+  it("maps user-gesture failures to a retryable user-facing message", () => {
+    const result = mapSidePanelOpenError(
+      new Error("sidePanel.open() may only be called in response to a user gesture"),
+    );
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("user gesture");
+    }
+  });
+
+  it("maps missing API failures to the Chrome version guidance", () => {
+    const result = mapSidePanelOpenError(
+      new TypeError("Cannot read properties of undefined (reading 'open')"),
+    );
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("Chrome 116+");
+    }
+  });
+
+  it("falls back to a generic user-facing message for other failures", () => {
+    const result = mapSidePanelOpenError(new Error("unexpected failure"));
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("Could not open the Chrome side panel");
+    }
+  });
+});
+
+describe("openSidePanel", () => {
+  const vacancyPage: PageStatusInfo = {
+    kind: "vacancy",
+    url: "https://hh.ru/vacancy/12345",
+    tabId: 42,
+    vacancyId: "12345",
+  };
+
+  it("persists context and resolves success when the panel opens", async () => {
+    const sendContext = vi.fn();
+    const getCurrentWindowId = vi.fn().mockResolvedValue(7);
+    const open = vi.fn().mockResolvedValue(undefined);
+
+    const result = await openSidePanel(vacancyPage, {
+      sendContext,
+      getCurrentWindowId,
+      open,
+      supportsProgrammaticOpen: true,
+    });
+
+    expect(sendContext).toHaveBeenCalledWith(vacancyPage);
+    expect(getCurrentWindowId).toHaveBeenCalledTimes(1);
+    expect(open).toHaveBeenCalledWith(7);
+    expect(result).toEqual({ success: true });
+  });
+
+  it("returns a generic error when no target window is available", async () => {
+    const result = await openSidePanel(vacancyPage, {
+      sendContext: vi.fn(),
+      getCurrentWindowId: vi.fn().mockResolvedValue(undefined),
+      open: vi.fn(),
+      supportsProgrammaticOpen: true,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("Could not open the Chrome side panel");
+    }
+  });
+
+  it("returns a mapped failure when the open call is rejected", async () => {
+    const result = await openSidePanel(vacancyPage, {
+      sendContext: vi.fn(),
+      getCurrentWindowId: vi.fn().mockResolvedValue(7),
+      open: vi
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            "sidePanel.open() may only be called in response to a user gesture",
+          ),
+        ),
+      supportsProgrammaticOpen: true,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("user gesture");
+    }
+  });
+
+  it("returns the API guidance when programmatic open is unavailable", async () => {
+    const result = await openSidePanel(vacancyPage, {
+      sendContext: vi.fn(),
+      getCurrentWindowId: vi.fn(),
+      open: vi.fn(),
+      supportsProgrammaticOpen: false,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("Chrome 116+");
+    }
   });
 });
 

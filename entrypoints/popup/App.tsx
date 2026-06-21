@@ -52,13 +52,98 @@ async function updateBadge(tabId: number, job: Job): Promise<void> {
   }
 }
 
+const SIDE_PANEL_GENERIC_ERROR =
+  "Could not open the Chrome side panel. Try opening the browser side panel manually, then select VacancyPilot.";
+const SIDE_PANEL_USER_GESTURE_ERROR =
+  "Chrome rejected side panel opening because the user gesture was lost. Try clicking the Side Panel button again.";
+const SIDE_PANEL_API_MISSING_ERROR =
+  "Chrome Side Panel API requires Chrome 116+ for programmatic open.";
+
+type SidePanelOpenResult =
+  | { success: true }
+  | { success: false; error: string; hint?: string };
+
+interface SidePanelOpenDeps {
+  getCurrentWindowId: () => Promise<number | undefined>;
+  open: (windowId: number) => Promise<void>;
+  sendContext: (pageInfo: PageStatusInfo) => void;
+  supportsProgrammaticOpen: boolean;
+}
+
+const defaultSidePanelOpenDeps: SidePanelOpenDeps = {
+  async getCurrentWindowId(): Promise<number | undefined> {
+    const window = await chrome.windows.getCurrent({ populate: false });
+    return window.id;
+  },
+  async open(windowId: number): Promise<void> {
+    await chrome.sidePanel.open({ windowId });
+  },
+  sendContext(pageInfo: PageStatusInfo): void {
+    void chrome.runtime.sendMessage(buildSetSidePanelContext(pageInfo)).catch(
+      (err: unknown) => {
+        console.error(
+          "[VacancyPilot] Failed to persist side panel context:",
+          err,
+        );
+      },
+    );
+  },
+  supportsProgrammaticOpen:
+    typeof chrome !== "undefined" && Boolean(chrome.sidePanel?.open),
+};
+
+export function mapSidePanelOpenError(error: unknown): SidePanelOpenResult {
+  const message = error instanceof Error ? error.message : String(error);
+  const normalized = message.toLowerCase();
+
+  if (
+    normalized.includes("may only be called in response to a user gesture") ||
+    normalized.includes("user gesture")
+  ) {
+    return {
+      success: false,
+      error: SIDE_PANEL_USER_GESTURE_ERROR,
+      hint: message,
+    };
+  }
+
+  if (
+    (normalized.includes("sidepanel") ||
+      normalized.includes("reading 'open'") ||
+      normalized.includes('reading "open"')) &&
+    (normalized.includes("undefined") ||
+      normalized.includes("not a function") ||
+      normalized.includes("cannot read") ||
+      normalized.includes("reading 'open'") ||
+      normalized.includes('reading "open"'))
+  ) {
+    return {
+      success: false,
+      error: SIDE_PANEL_API_MISSING_ERROR,
+      hint: message,
+    };
+  }
+
+  return {
+    success: false,
+    error: SIDE_PANEL_GENERIC_ERROR,
+    hint: message,
+  };
+}
+
+export function getSidePanelButtonLabel(isOpeningSidePanel: boolean): string {
+  return isOpeningSidePanel ? "Opening…" : "Side Panel";
+}
+
 // ── Popup Content ──
 
 function PopupContent(): ReactNode {
   const pageInfo = usePageStatus();
   const [savedJob, setSavedJob] = useState<Job | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isOpeningSidePanel, setIsOpeningSidePanel] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [sidePanelError, setSidePanelError] = useState<string | null>(null);
   const [jobLoaded, setJobLoaded] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<
@@ -146,6 +231,7 @@ function PopupContent(): ReactNode {
 
     setJobLoaded(false);
     setActionError(null);
+    setSidePanelError(null);
     setPassiveStatus(undefined);
     void load();
 
@@ -275,6 +361,19 @@ function PopupContent(): ReactNode {
       setIsSaving(false);
     }
   }, [pageInfo, savedJob]);
+
+  const handleOpenSidePanel = useCallback(async () => {
+    setIsOpeningSidePanel(true);
+    setSidePanelError(null);
+
+    const result = await openSidePanel(pageInfo);
+
+    if (!result.success) {
+      setSidePanelError(result.error);
+    }
+
+    setIsOpeningSidePanel(false);
+  }, [pageInfo]);
 
   // ── Derived display values ──
 
@@ -434,10 +533,21 @@ function PopupContent(): ReactNode {
         </div>
       )}
 
+      {sidePanelError && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          style={{ ...errorChip, marginBottom: spacing.lg }}
+        >
+          {sidePanelError}
+        </div>
+      )}
+
       {/* Actions */}
       <div
         style={{
           display: "flex",
+          flexWrap: "wrap",
           gap: spacing.sm,
           marginTop: isVacancy ? spacing.lg : 0,
         }}
@@ -461,10 +571,12 @@ function PopupContent(): ReactNode {
           </>
         )}
         <ActionButton
-          label="Side Panel"
-          onClick={() => openSidePanel(pageInfo)}
+          label={getSidePanelButtonLabel(isOpeningSidePanel)}
+          onClick={() => void handleOpenSidePanel()}
           primary
           wide
+          disabled={isOpeningSidePanel}
+          busy={isOpeningSidePanel}
         />
         <ActionButton label="Dashboard" onClick={openDashboard} wide />
       </div>
@@ -472,34 +584,56 @@ function PopupContent(): ReactNode {
   );
 }
 
-function buildOpenSidePanelMessage(pageInfo: PageStatusInfo): {
-  type: "OPEN_SIDE_PANEL";
+/**
+ * Build the SET_SIDE_PANEL_CONTEXT message payload for persisting
+ * vacancy context before opening the side panel.
+ */
+export function buildSetSidePanelContext(pageInfo: PageStatusInfo): {
+  type: "SET_SIDE_PANEL_CONTEXT";
   tabId?: number;
   vacancyId?: string;
 } {
   if (pageInfo.kind === "vacancy") {
     return {
-      type: "OPEN_SIDE_PANEL",
+      type: "SET_SIDE_PANEL_CONTEXT",
       tabId: pageInfo.tabId,
       vacancyId: pageInfo.vacancyId,
     };
   }
 
-  return { type: "OPEN_SIDE_PANEL" };
+  return { type: "SET_SIDE_PANEL_CONTEXT" };
 }
 
-function openSidePanel(pageInfo: PageStatusInfo): void {
-  if (pageInfo.kind === "vacancy") {
-    chrome.runtime.sendMessage(buildOpenSidePanelMessage(pageInfo));
-    return;
+/**
+ * Open the Chrome side panel from a popup user-gesture path.
+ *
+ * 1. Persist vacancy context to the background (fire-and-forget).
+ * 2. Open the side panel directly via chrome.sidePanel.open().
+ *    This avoids a background hop that can lose the user-gesture context
+ *    and cause the panel to fail to open.
+ */
+export async function openSidePanel(
+  pageInfo: PageStatusInfo,
+  deps: SidePanelOpenDeps = defaultSidePanelOpenDeps,
+): Promise<SidePanelOpenResult> {
+  deps.sendContext(pageInfo);
+
+  if (!deps.supportsProgrammaticOpen) {
+    return { success: false, error: SIDE_PANEL_API_MISSING_ERROR };
   }
 
-  void chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) =>
-    chrome.runtime.sendMessage({
-      type: "OPEN_SIDE_PANEL",
-      tabId: tab?.id,
-    }),
-  );
+  try {
+    const windowId = await deps.getCurrentWindowId();
+    if (windowId === undefined) {
+      return { success: false, error: SIDE_PANEL_GENERIC_ERROR };
+    }
+
+    await deps.open(windowId);
+    return { success: true };
+  } catch (error) {
+    console.error("[VacancyPilot] Failed to open side panel:", error);
+    return mapSidePanelOpenError(error);
+  }
 }
 
 function openDashboard(): void {
