@@ -22,26 +22,31 @@ export function EmptyState({
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        maxWidth: 360,
+        minWidth: 200,
+        margin: "48px auto",
         padding: spacing.emptyLarge,
-        maxWidth: 480,
-        margin: "0 auto",
         fontFamily,
         fontSize: fontSizes.body,
         color: colors.textPlaceholder,
         textAlign: "center",
+        lineHeight: 1.5,
         wordBreak: "break-word",
       }}
     >
-      <span style={{ fontSize: fontSizes.icon, marginBottom: spacing.md }}>
+      <span
+        style={{
+          display: "block",
+          fontSize: fontSizes.icon,
+          marginBottom: spacing.md,
+          lineHeight: 1,
+        }}
+      >
         {icon}
       </span>
       <p
         style={{
-          margin: `0 0 ${spacing.xs}px`,
+          margin: `0 0 ${spacing.sm}px`,
           fontWeight: fontWeights.semibold,
           color: colors.textMuted,
         }}
@@ -49,7 +54,9 @@ export function EmptyState({
         {message}
       </p>
       {description && (
-        <p style={{ margin: 0, fontSize: fontSizes.md }}>{description}</p>
+        <p style={{ margin: 0, fontSize: fontSizes.md, lineHeight: 1.5 }}>
+          {description}
+        </p>
       )}
     </div>
   );

@@ -71,24 +71,51 @@ interface SectionDef {
   icon: string;
 }
 
-const SECTIONS: SectionDef[] = [
-  { id: "vacancies", label: "Vacancies", icon: "📋" },
-  { id: "summary", label: "Summary", icon: "📊" },
-  { id: "applications", label: "Applications", icon: "📨" },
-  { id: "companies", label: "Companies", icon: "🏢" },
-  { id: "profiles", label: "Profiles", icon: "👤" },
-  { id: "resumes", label: "Resumes", icon: "📄" },
-  { id: "letters", label: "Letters", icon: "✉️" },
-  { id: "events", label: "Events", icon: "📜" },
-  { id: "labs", label: "Labs", icon: "🧪" },
-  { id: "export", label: "Export", icon: "📦" },
-  { id: "settings", label: "Settings", icon: "⚙️" },
-  { id: "privacy", label: "Privacy", icon: "🔒" },
-  { id: "permissions", label: "Permissions", icon: "🔑" },
-  { id: "about", label: "About", icon: "ℹ️" },
-  { id: "onboarding", label: "Onboarding", icon: "🚀" },
-  { id: "debug", label: "Debug", icon: "🛠️" },
+interface SectionGroup {
+  label: string;
+  sections: SectionDef[];
+}
+
+const SECTION_GROUPS: SectionGroup[] = [
+  {
+    label: "Work",
+    sections: [
+      { id: "vacancies", label: "Vacancies", icon: "📋" },
+      { id: "summary", label: "Summary", icon: "📊" },
+      { id: "applications", label: "Applications", icon: "📨" },
+      { id: "companies", label: "Companies", icon: "🏢" },
+    ],
+  },
+  {
+    label: "Profile",
+    sections: [
+      { id: "profiles", label: "Profiles", icon: "👤" },
+      { id: "resumes", label: "Resumes", icon: "📄" },
+      { id: "letters", label: "Letters", icon: "✉️" },
+    ],
+  },
+  {
+    label: "System",
+    sections: [
+      { id: "export", label: "Export", icon: "📦" },
+      { id: "settings", label: "Settings", icon: "⚙️" },
+      { id: "privacy", label: "Privacy", icon: "🔒" },
+      { id: "permissions", label: "Permissions", icon: "🔑" },
+      { id: "about", label: "About", icon: "ℹ️" },
+    ],
+  },
+  {
+    label: "Advanced",
+    sections: [
+      { id: "labs", label: "Labs", icon: "🧪" },
+      { id: "events", label: "Events", icon: "📜" },
+      { id: "debug", label: "Debug", icon: "🛠️" },
+      { id: "onboarding", label: "Onboarding", icon: "🚀" },
+    ],
+  },
 ];
+
+// Flattened navigation structure with group labels
 
 function useWindowWidth(): number {
   const [width, setWidth] = useState(
@@ -122,21 +149,40 @@ function DashboardContent(): ReactNode {
     (section: SectionId) => {
       setActiveSection(section);
       // Auto-collapse sidebar on narrow widths after selection
-      if (windowWidth < 640) setSidebarCollapsed(true);
+      if (windowWidth < 760) setSidebarCollapsed(true);
     },
     [windowWidth],
   );
 
-  // Sidebar layout: collapsed < 640px, compact 640-900px, full > 900px
-  const sidebarWide = windowWidth >= 900;
-  const sidebarCollapsible = windowWidth < 640;
-  const sidebarWidth = sidebarCollapsible
+  // Responsive breakpoints (per audit P0-04):
+  //   >= 1000: full sidebar with labels (200px)
+  //   760-999: compact icon-only sidebar (56px)
+  //   < 760:   compact collapsible (56px, can be hidden)
+  const sidebarFull = windowWidth >= 1000;
+  const sidebarNarrow = windowWidth < 760;
+  const showLabels = sidebarFull;
+
+  const FULL_WIDTH = 200;
+  const COMPACT_WIDTH = 56;
+
+  const sidebarWidth = sidebarNarrow
     ? sidebarCollapsed
       ? 0
-      : 180
-    : sidebarWide
-      ? 180
-      : 140;
+      : COMPACT_WIDTH
+    : sidebarFull
+      ? FULL_WIDTH
+      : COMPACT_WIDTH;
+
+  // Group label style (only visible in full mode)
+  const groupLabelStyle: React.CSSProperties = {
+    padding: "10px 14px 4px",
+    fontSize: fontSizes.xs,
+    fontWeight: fontWeights.semibold,
+    color: colors.textFaint,
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    userSelect: "none",
+  };
 
   return (
     <div
@@ -148,7 +194,7 @@ function DashboardContent(): ReactNode {
       }}
     >
       {/* Sidebar toggle for narrow widths */}
-      {sidebarCollapsible && (
+      {sidebarNarrow && (
         <button
           type="button"
           onClick={() => setSidebarCollapsed((v) => !v)}
@@ -156,7 +202,7 @@ function DashboardContent(): ReactNode {
           style={{
             position: "absolute",
             top: 8,
-            left: sidebarCollapsed ? 4 : sidebarWidth + 4,
+            left: sidebarCollapsed ? 4 : COMPACT_WIDTH + 4,
             zIndex: 10,
             padding: "4px 8px",
             fontSize: fontSizes.sm,
@@ -179,32 +225,62 @@ function DashboardContent(): ReactNode {
           flexShrink: 0,
           borderRight: sidebarWidth > 0 ? `1px solid ${colors.border}` : "none",
           background: colors.cardBg,
-          overflow: sidebarWidth > 0 ? "auto" : "hidden",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
           transition: "width 0.2s",
         }}
         aria-hidden={sidebarWidth === 0}
       >
-        {sidebarWidth > 0 && (
-          <>
-            <div style={headerBar}>
+        {/* Fixed header */}
+        <div style={headerBar}>
+          {showLabels ? (
+            <>
               <h1 style={appTitle}>VacancyPilot</h1>
               <p style={appSubtitle}>Dashboard</p>
-            </div>
-            <ul style={{ listStyle: "none", margin: 0, padding: "4px 0" }}>
-              {SECTIONS.map((section) => {
-                const showLabel = sidebarWide || !sidebarCollapsible;
+            </>
+          ) : (
+            <h1 style={{ ...appTitle, fontSize: fontSizes.cardHeading }}>VP</h1>
+          )}
+        </div>
+
+        {/* Scrollable nav list */}
+        <ul
+          style={{
+            listStyle: "none",
+            margin: 0,
+            padding: "4px 0",
+            flex: 1,
+            overflow: "auto",
+          }}
+        >
+          {SECTION_GROUPS.map((group, gi) => (
+            <li key={group.label}>
+              {showLabels && <div style={groupLabelStyle}>{group.label}</div>}
+              {gi > 0 && !showLabels && (
+                <div
+                  style={{
+                    margin: "4px 14px",
+                    borderTop: `1px solid ${colors.borderHairline}`,
+                  }}
+                />
+              )}
+              {group.sections.map((section) => {
+                const buttonPadding = showLabels ? "8px 14px" : "8px 0";
                 return (
                   <li key={section.id}>
                     <button
                       type="button"
                       onClick={() => handleSectionClick(section.id)}
-                      title={section.label}
+                      aria-label={section.label}
+                      title={showLabels ? undefined : section.label}
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 8,
+                        justifyContent: showLabels ? "flex-start" : "center",
+                        gap: showLabels ? 8 : 0,
                         width: "100%",
-                        padding: sidebarWide ? "8px 14px" : "8px 10px",
+                        padding: buttonPadding,
                         fontSize: fontSizes.md,
                         cursor: "pointer",
                         border: "none",
@@ -231,14 +307,14 @@ function DashboardContent(): ReactNode {
                       }}
                     >
                       <span aria-hidden="true">{section.icon}</span>
-                      {showLabel && section.label}
+                      {showLabels && section.label}
                     </button>
                   </li>
                 );
               })}
-            </ul>
-          </>
-        )}
+            </li>
+          ))}
+        </ul>
       </nav>
 
       {/* Main content area */}
@@ -1511,7 +1587,7 @@ function LabsSection(): ReactNode {
           justifyContent: "space-between",
           padding: "10px 0",
           borderBottom: "1px solid #eee",
-          opacity: labsOn ? 1 : 0.4,
+          color: labsOn ? undefined : colors.textFaint,
         }}
       >
         <div>

@@ -3,27 +3,50 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 // ── OnboardingSection safety and content tests ──
-// Verifies required onboarding disclosures from spec §18.1.
+// Verifies that the OnboardingSection is a step-oriented wizard
+// with onboarding-specific disclosures and delegates shared
+// trust/safety content to TrustSafetySummary.
 
 const sourcePath = resolve(__dirname, "OnboardingSection.tsx");
 let source = "";
 
-describe("OnboardingSection — content disclosure", () => {
+describe("OnboardingSection — step wizard structure", () => {
   beforeAll(() => {
     source = readFileSync(sourcePath, "utf-8");
   });
 
-  it("discloses what VacancyPilot does (spec §18.1.1)", () => {
-    expect(source).toMatch(/What VacancyPilot Does/);
-    expect(source).toMatch(/Parses and scores/);
-    expect(source).toMatch(/Tracks your application status/);
+  it("includes a welcome heading and introduction", () => {
+    expect(source).toMatch(/Welcome to VacancyPilot/);
+    expect(source).toMatch(/walks you through setup/);
   });
 
-  it("discloses what VacancyPilot does NOT do (spec §18.1.2)", () => {
-    expect(source).toMatch(/What VacancyPilot Does NOT Do/);
-    expect(source).toMatch(/auto-submit/);
-    expect(source).toMatch(/auto-click/);
-    expect(source).toMatch(/CAPTCHA/);
+  it("has a step-oriented structure", () => {
+    expect(source).toMatch(/Safety & Trust/);
+    expect(source).toMatch(/Create Your Profile/);
+    expect(source).toMatch(/Add Resume Highlights/);
+    expect(source).toMatch(/Save Your First Vacancy/);
+    expect(source).toMatch(/Configure AI/);
+    expect(source).toMatch(/Enable Labs/);
+  });
+
+  it("has step state management (expanded/done)", () => {
+    expect(source).toMatch(/expandedSteps/);
+    expect(source).toMatch(/doneSteps/);
+  });
+
+  it("marks steps done only after collapse and hides the done chip while expanded", () => {
+    expect(source).toMatch(/wasExpanded/);
+    expect(source).toMatch(/isDone && !isExpanded/);
+  });
+
+  it("delegates shared trust/safety content to TrustSafetySummary", () => {
+    expect(source).toMatch(/TrustSafetySummary/);
+  });
+});
+
+describe("OnboardingSection — onboarding-specific disclosures", () => {
+  beforeAll(() => {
+    source = readFileSync(sourcePath, "utf-8");
   });
 
   it("explains permissions used (spec §18.1.3)", () => {
@@ -33,19 +56,13 @@ describe("OnboardingSection — content disclosure", () => {
     expect(source).toMatch(/activeTab/);
   });
 
-  it("explains where data is stored (spec §18.1.4)", () => {
-    expect(source).toMatch(/Where Data Is Stored/);
-    expect(source).toMatch(/IndexedDB/);
-    expect(source).toMatch(/chrome\.storage\.local/);
-    expect(source).toMatch(/only in your browser/);
-  });
-
   it("explains how AI works (spec §18.1.5)", () => {
     expect(source).toMatch(/How AI Works/);
     expect(source).toMatch(/opt-in/);
     expect(source).toMatch(/payload preview/);
     expect(source).toMatch(/Strict Privacy mode/);
-    expect(source).toMatch(/currently supports\s+OpenAI and Mock/i);
+    expect(source).toMatch(/currently/);
+    expect(source).toMatch(/supports.*OpenAI and Mock/);
   });
 
   it("explains how n8n works (spec §18.1.6)", () => {
@@ -65,12 +82,16 @@ describe("OnboardingSection — content disclosure", () => {
     expect(source).toMatch(/not required for core/);
   });
 
-  it("includes setup steps (spec §18.2)", () => {
-    expect(source).toMatch(/Quick Setup/);
-    expect(source).toMatch(/Create a Profile/);
+  it("includes setup action steps", () => {
+    expect(source).toMatch(/Create Your Profile/);
     expect(source).toMatch(/Add Resume Highlights/);
-    expect(source).toMatch(/Configure AI Provider/);
-    expect(source).toMatch(/Configure n8n/);
+    expect(source).toMatch(/Configure AI/);
+    expect(source).toMatch(/Enable Labs/);
+  });
+
+  it("has onboarding completion flow", () => {
+    expect(source).toMatch(/onboardingCompleted/);
+    expect(source).toMatch(/Start Using VacancyPilot/);
   });
 
   it("contains no forbidden patterns", () => {

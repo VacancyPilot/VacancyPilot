@@ -187,6 +187,15 @@ Status values:
 | ITER-070 | EPIC-35 | Polish popup density and HH page badge placement after the side-panel runtime fix | planned | `polish: improve popup and page badge UX` |
 | ITER-071 | EPIC-35 | Improve dashboard/options responsive layout and reduce nested scroll friction in narrow widths | planned | `feat: polish dashboard responsive ergonomics` |
 
+## Phase 5.8: Runtime Visual Consistency Consolidation
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-072 | EPIC-36 | Stabilize popup shell dimensions and finish ambient badge placement/behavior polish | planned | `fix: stabilize popup shell and badge placement` |
+| ITER-073 | EPIC-36 | Separate About and Onboarding roles and introduce a reusable trust/safety summary layer | planned | `refactor: separate onboarding and about surfaces` |
+| ITER-074 | EPIC-36 | Consolidate dashboard navigation, scroll ownership, and narrow-layout shell behavior | planned | `feat: consolidate dashboard shell responsiveness` |
+| ITER-075 | EPIC-36 | Finish forms, disabled-state readability, empty-state polish, and capture the final visual consistency report | planned | `docs: finalize runtime visual consistency pass` |
+
 ## Phase 5: Expansion And Release
 
 | Iteration | Epic | Goal | Status | Commit |

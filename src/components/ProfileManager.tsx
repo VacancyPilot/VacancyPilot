@@ -199,6 +199,7 @@ const labelStyle: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
+  minWidth: 0,
   padding: "5px 8px",
   fontSize: 12,
   border: "1px solid #ddd",
@@ -208,7 +209,7 @@ const inputStyle: React.CSSProperties = {
 
 const textareaStyle: React.CSSProperties = {
   ...inputStyle,
-  minHeight: 60,
+  minHeight: 96,
   resize: "vertical",
 };
 

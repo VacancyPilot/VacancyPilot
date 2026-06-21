@@ -15,6 +15,7 @@ import {
 } from "@/services/ai-provider-factory";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
+import { colors } from "@/styles";
 
 type AIProvider = NonNullable<AppSettings["ai"]["provider"]>;
 
@@ -458,10 +459,7 @@ export function AISettingsSection(): ReactNode {
 
       {/* ── Provider selection ────────────────────────────────────────── */}
       <div
-        style={{
-          ...rowStyle,
-          opacity: aiEnabled ? 1 : 0.4,
-        }}
+        style={aiEnabled ? rowStyle : { ...rowStyle, color: colors.textFaint }}
       >
         <div>
           <div style={labelStyle}>AI Provider</div>
@@ -480,11 +478,7 @@ export function AISettingsSection(): ReactNode {
             Select provider…
           </option>
           {PROVIDERS.map((p) => (
-            <option
-              key={p.id}
-              value={p.id}
-              disabled={!p.implemented}
-            >
+            <option key={p.id} value={p.id} disabled={!p.implemented}>
               {p.label}
             </option>
           ))}
@@ -498,7 +492,11 @@ export function AISettingsSection(): ReactNode {
 
       {/* ── Model ─────────────────────────────────────────────────────── */}
       {provider && provider !== "mock" && (
-        <div style={{ ...rowStyle, opacity: aiEnabled ? 1 : 0.4 }}>
+        <div
+          style={
+            aiEnabled ? rowStyle : { ...rowStyle, color: colors.textFaint }
+          }
+        >
           <div>
             <div style={labelStyle}>Model</div>
             <div style={hintStyle}>Model name (e.g. gpt-4o, deepseek-chat)</div>
@@ -525,7 +523,7 @@ export function AISettingsSection(): ReactNode {
           style={{
             padding: "10px 0",
             borderBottom: "1px solid #eee",
-            opacity: aiEnabled ? 1 : 0.4,
+            color: aiEnabled ? undefined : colors.textFaint,
           }}
         >
           <div style={{ marginBottom: 8 }}>
@@ -624,7 +622,11 @@ export function AISettingsSection(): ReactNode {
 
       {/* ── Mock provider notice ──────────────────────────────────────── */}
       {provider === "mock" && (
-        <div style={{ ...rowStyle, opacity: aiEnabled ? 1 : 0.4 }}>
+        <div
+          style={
+            aiEnabled ? rowStyle : { ...rowStyle, color: colors.textFaint }
+          }
+        >
           <div>
             <div style={labelStyle}>Mock provider</div>
             <div style={hintStyle}>

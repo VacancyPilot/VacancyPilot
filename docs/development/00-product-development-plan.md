@@ -14,6 +14,7 @@ Implementation note:
 - the next active product-scope pack is `EPIC-31 — AI Assist Quality And Trust` (`ITER-060`..`ITER-062`);
 - the next queued follow-up pack after that is the GUI/UI/UX polish sequence (`ITER-065`..`ITER-068`);
 - a post-polish runtime stabilization pack is prepared as `EPIC-35` (`ITER-069`..`ITER-071`) for defects confirmed by manual QA/screenshots;
+- a visual consistency consolidation pack is prepared as `EPIC-36` (`ITER-072`..`ITER-075`) from the 2026-06-21 runtime UX audit;
 - `n8n` remains deferred until its permission model is explicitly reopened.
 
 ## Decision
@@ -125,4 +126,5 @@ Required:
 4. Keep `ITER-043` deferred until the `n8n` permission model decision is explicitly reopened.
 5. Prepare the queued UI/UX follow-up pack (`ITER-065`..`ITER-068`) while `EPIC-31` runs.
 6. After that pack, use `EPIC-35` only for confirmed runtime/UI defects that remain.
-7. Keep multi-site expansion, backend sync, and public store submission out of the next active pack.
+7. After `EPIC-35`, use `EPIC-36` for the remaining visual-consistency/UI-role cleanup that does not change permissions or product boundaries.
+8. Keep multi-site expansion, backend sync, and public store submission out of the next active pack.
