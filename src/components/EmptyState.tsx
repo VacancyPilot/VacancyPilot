@@ -27,10 +27,13 @@ export function EmptyState({
         alignItems: "center",
         justifyContent: "center",
         padding: spacing.emptyLarge,
+        maxWidth: 480,
+        margin: "0 auto",
         fontFamily,
         fontSize: fontSizes.body,
         color: colors.textPlaceholder,
         textAlign: "center",
+        wordBreak: "break-word",
       }}
     >
       <span style={{ fontSize: fontSizes.icon, marginBottom: spacing.md }}>

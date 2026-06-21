@@ -103,6 +103,8 @@ const listItem: React.CSSProperties = {
   borderRadius: 4,
   marginBottom: 6,
   background: "#fafafa",
+  flexWrap: "wrap",
+  gap: 6,
 };
 
 const btnSmall: React.CSSProperties = {
@@ -465,7 +467,7 @@ export function ResumeManager(): ReactNode {
             />
           </div>
 
-          <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             <div style={{ ...formGroup, flex: 1 }}>
               <label style={labelStyle}>Language</label>
               <select

@@ -15,6 +15,8 @@ import {
   colors,
   fontSizes,
   fontWeights,
+  spacing,
+  borderRadius,
   shellBody,
   appTitle,
   appSubtitle,
@@ -88,6 +90,18 @@ const SECTIONS: SectionDef[] = [
   { id: "debug", label: "Debug", icon: "🛠️" },
 ];
 
+function useWindowWidth(): number {
+  const [width, setWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1024,
+  );
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return width;
+}
+
 function DashboardContent(): ReactNode {
   const [activeSection, setActiveSection] = useState<SectionId>(() => {
     // If opened via onInstalled or with #onboarding hash, show onboarding first.
@@ -101,73 +115,130 @@ function DashboardContent(): ReactNode {
     }
     return "vacancies";
   });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const windowWidth = useWindowWidth();
 
-  const handleSectionClick = useCallback((section: SectionId) => {
-    setActiveSection(section);
-  }, []);
+  const handleSectionClick = useCallback(
+    (section: SectionId) => {
+      setActiveSection(section);
+      // Auto-collapse sidebar on narrow widths after selection
+      if (windowWidth < 640) setSidebarCollapsed(true);
+    },
+    [windowWidth],
+  );
+
+  // Sidebar layout: collapsed < 640px, compact 640-900px, full > 900px
+  const sidebarWide = windowWidth >= 900;
+  const sidebarCollapsible = windowWidth < 640;
+  const sidebarWidth = sidebarCollapsible
+    ? sidebarCollapsed
+      ? 0
+      : 180
+    : sidebarWide
+      ? 180
+      : 140;
 
   return (
     <div
       style={{
         ...shellBody,
         display: "flex",
-        height: "100vh",
+        height: "100%",
+        overflow: "hidden",
       }}
     >
+      {/* Sidebar toggle for narrow widths */}
+      {sidebarCollapsible && (
+        <button
+          type="button"
+          onClick={() => setSidebarCollapsed((v) => !v)}
+          aria-label={sidebarCollapsed ? "Open sidebar" : "Close sidebar"}
+          style={{
+            position: "absolute",
+            top: 8,
+            left: sidebarCollapsed ? 4 : sidebarWidth + 4,
+            zIndex: 10,
+            padding: "4px 8px",
+            fontSize: fontSizes.sm,
+            cursor: "pointer",
+            border: `1px solid ${colors.borderLight}`,
+            borderRadius: borderRadius.md,
+            background: colors.white,
+            color: colors.textMuted,
+            transition: "left 0.2s",
+          }}
+        >
+          {sidebarCollapsed ? "☰" : "✕"}
+        </button>
+      )}
+
       {/* Sidebar */}
       <nav
         style={{
-          width: 180,
+          width: sidebarWidth,
           flexShrink: 0,
-          borderRight: `1px solid ${colors.border}`,
+          borderRight: sidebarWidth > 0 ? `1px solid ${colors.border}` : "none",
           background: colors.cardBg,
-          overflow: "auto",
+          overflow: sidebarWidth > 0 ? "auto" : "hidden",
+          transition: "width 0.2s",
         }}
+        aria-hidden={sidebarWidth === 0}
       >
-        <div style={headerBar}>
-          <h1 style={appTitle}>VacancyPilot</h1>
-          <p style={appSubtitle}>Dashboard</p>
-        </div>
-        <ul style={{ listStyle: "none", margin: 0, padding: "4px 0" }}>
-          {SECTIONS.map((section) => (
-            <li key={section.id}>
-              <button
-                type="button"
-                onClick={() => handleSectionClick(section.id)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  width: "100%",
-                  padding: "8px 14px",
-                  fontSize: fontSizes.md,
-                  cursor: "pointer",
-                  border: "none",
-                  borderLeft:
-                    activeSection === section.id
-                      ? `3px solid ${colors.blue}`
-                      : "3px solid transparent",
-                  background:
-                    activeSection === section.id
-                      ? colors.activeBg
-                      : "transparent",
-                  color:
-                    activeSection === section.id
-                      ? colors.blue
-                      : colors.textSecondary,
-                  fontWeight:
-                    activeSection === section.id
-                      ? fontWeights.semibold
-                      : fontWeights.normal,
-                  textAlign: "left",
-                }}
-              >
-                <span>{section.icon}</span>
-                {section.label}
-              </button>
-            </li>
-          ))}
-        </ul>
+        {sidebarWidth > 0 && (
+          <>
+            <div style={headerBar}>
+              <h1 style={appTitle}>VacancyPilot</h1>
+              <p style={appSubtitle}>Dashboard</p>
+            </div>
+            <ul style={{ listStyle: "none", margin: 0, padding: "4px 0" }}>
+              {SECTIONS.map((section) => {
+                const showLabel = sidebarWide || !sidebarCollapsible;
+                return (
+                  <li key={section.id}>
+                    <button
+                      type="button"
+                      onClick={() => handleSectionClick(section.id)}
+                      title={section.label}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        width: "100%",
+                        padding: sidebarWide ? "8px 14px" : "8px 10px",
+                        fontSize: fontSizes.md,
+                        cursor: "pointer",
+                        border: "none",
+                        borderLeft:
+                          activeSection === section.id
+                            ? `3px solid ${colors.blue}`
+                            : "3px solid transparent",
+                        background:
+                          activeSection === section.id
+                            ? colors.activeBg
+                            : "transparent",
+                        color:
+                          activeSection === section.id
+                            ? colors.blue
+                            : colors.textSecondary,
+                        fontWeight:
+                          activeSection === section.id
+                            ? fontWeights.semibold
+                            : fontWeights.normal,
+                        textAlign: "left",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      <span aria-hidden="true">{section.icon}</span>
+                      {showLabel && section.label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
       </nav>
 
       {/* Main content area */}
@@ -175,7 +246,8 @@ function DashboardContent(): ReactNode {
         style={{
           flex: 1,
           ...scrollArea,
-          padding: 20,
+          overflow: "auto",
+          padding: spacing.section,
           background: colors.white,
         }}
       >

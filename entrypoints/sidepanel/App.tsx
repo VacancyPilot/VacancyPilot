@@ -345,7 +345,7 @@ function SidePanelContent(): ReactNode {
   return (
     <div
       style={{
-        height: "100vh",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         ...shellBody,
@@ -393,8 +393,8 @@ function SidePanelContent(): ReactNode {
               onClick={() => handleTabClick(tab.id)}
               style={{
                 flex: 1,
-                padding: "8px 4px",
-                fontSize: fontSizes.md,
+                padding: "8px 2px",
+                fontSize: fontSizes.sm,
                 cursor: "pointer",
                 border: "none",
                 borderBottom: selected
@@ -406,6 +406,9 @@ function SidePanelContent(): ReactNode {
                   ? fontWeights.semibold
                   : fontWeights.normal,
                 transition: "background 0.15s",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
               }}
             >
               {tab.label}

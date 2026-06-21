@@ -136,6 +136,18 @@ function classifyColumn(status: JobStatus): string {
 
 // ── Component ─────────────────────────────────────────────────────────────
 
+function useWindowWidth(): number {
+  const [width, setWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1024,
+  );
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return width;
+}
+
 export function KanbanBoard(): ReactNode {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,6 +158,7 @@ export function KanbanBoard(): ReactNode {
     jobId: string;
     toStatus: JobStatus;
   } | null>(null);
+  const windowWidth = useWindowWidth();
 
   const loadJobs = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -273,6 +286,8 @@ export function KanbanBoard(): ReactNode {
     );
 
   const totalJobs = filteredJobs.length;
+  const isNarrow = windowWidth < 700;
+  const colWidth = isNarrow ? 200 : 240;
 
   return (
     <div>
@@ -283,6 +298,8 @@ export function KanbanBoard(): ReactNode {
           alignItems: "center",
           justifyContent: "space-between",
           marginBottom: 12,
+          flexWrap: "wrap",
+          gap: 8,
         }}
       >
         <h2
@@ -301,7 +318,7 @@ export function KanbanBoard(): ReactNode {
               fontSize: 12,
               border: "1px solid #ccc",
               borderRadius: 4,
-              width: 200,
+              width: isNarrow ? 140 : 200,
             }}
           />
           {search && (
@@ -329,9 +346,11 @@ export function KanbanBoard(): ReactNode {
       <div
         style={{
           display: "flex",
+          alignItems: "flex-start",
           gap: 10,
           overflow: "auto",
           minHeight: 300,
+          paddingBottom: 4,
         }}
       >
         {KANBAN_COLUMNS.map((col) => (
@@ -343,6 +362,7 @@ export function KanbanBoard(): ReactNode {
             lastMoved={lastMoved}
             onMoveJob={handleMoveJob}
             onOpenVacancy={handleOpenVacancy}
+            colWidth={colWidth}
           />
         ))}
 
@@ -361,6 +381,7 @@ export function KanbanBoard(): ReactNode {
             lastMoved={lastMoved}
             onMoveJob={handleMoveJob}
             onOpenVacancy={handleOpenVacancy}
+            colWidth={colWidth}
           />
         )}
       </div>
@@ -377,6 +398,7 @@ function KanbanColumnView({
   lastMoved,
   onMoveJob,
   onOpenVacancy,
+  colWidth = 240,
 }: {
   column: KanbanColumn;
   jobs: Job[];
@@ -384,6 +406,7 @@ function KanbanColumnView({
   lastMoved: { jobId: string; toStatus: JobStatus } | null;
   onMoveJob: (jobId: string, toStatus: JobStatus) => void;
   onOpenVacancy: (url: string) => void;
+  colWidth?: number;
 }): ReactNode {
   const [dropdownJobId, setDropdownJobId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -410,13 +433,12 @@ function KanbanColumnView({
   return (
     <div
       style={{
-        flex: "0 0 240px",
+        flex: `0 0 ${colWidth}px`,
         display: "flex",
         flexDirection: "column",
         background: "#f9f9f9",
         border: `1px solid ${column.color}30`,
         borderRadius: 6,
-        maxHeight: "calc(100vh - 120px)",
       }}
     >
       {/* Column header */}
@@ -457,7 +479,7 @@ function KanbanColumnView({
       </div>
 
       {/* Cards */}
-      <div style={{ overflow: "auto", padding: "6px", flex: 1 }}>
+      <div style={{ padding: "6px", flex: 1 }}>
         {jobs.map((job) => {
           const badge = statusBadgeStyle(job.status);
           const isChanging = changingJobId === job.id;

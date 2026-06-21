@@ -157,6 +157,8 @@ const listItem: React.CSSProperties = {
   borderRadius: 4,
   marginBottom: 6,
   background: "#fafafa",
+  flexWrap: "wrap",
+  gap: 6,
 };
 
 const btnSmall: React.CSSProperties = {
@@ -515,7 +517,7 @@ export function ProfileManager(): ReactNode {
             />
           </div>
 
-          <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             <div style={{ ...formGroup, flex: 1 }}>
               <label style={labelStyle}>
                 Must-have skills (comma-separated)
@@ -600,7 +602,7 @@ export function ProfileManager(): ReactNode {
             />
           </div>
 
-          <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             <div style={{ ...formGroup, flex: 1 }}>
               <label style={labelStyle}>Min salary expectation</label>
               <input
@@ -627,7 +629,7 @@ export function ProfileManager(): ReactNode {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             <div style={{ ...formGroup, flex: 1 }}>
               <label style={labelStyle}>Years of experience</label>
               <input
