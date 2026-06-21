@@ -139,10 +139,31 @@ Status values:
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-055 | EPIC-29 | Align lifecycle utilities with the current live schema and HR data model | planned | `fix: align schema lifecycle utilities` |
-| ITER-056 | EPIC-29 | Wire migrations into boot flow and refresh runtime QA evidence | planned | `fix: wire migrations and refresh runtime qa gate` |
-| ITER-057 | EPIC-29 | Extend profiles with experience and seniority inputs | planned | `feat: add profile experience model` |
-| ITER-058 | EPIC-29 | Upgrade scoring using the new experience/seniority signals | planned | `feat: improve scoring fit signals` |
+| ITER-055 | EPIC-29 | Align lifecycle utilities with the current live schema and HR data model | done | `fix: align schema lifecycle utilities` |
+| ITER-056 | EPIC-29 | Wire migrations into boot flow and refresh runtime QA evidence | done | `fix: wire migrations and refresh runtime qa gate` |
+| ITER-057 | EPIC-29 | Extend profiles with experience and seniority inputs | done | `feat: add profile experience model` |
+| ITER-058 | EPIC-29 | Upgrade scoring using the new experience/seniority signals | done | `feat: improve scoring fit signals` |
+
+## Phase 4.2: Final Security Tail Closure
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-059 | EPIC-30 | Close the remaining moderate transitive dependency alert with the smallest safe lockfile/toolchain move | planned | `fix: close final moderate dependency alert` |
+
+## Phase 5: AI Assist Quality And Trust
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-060 | EPIC-31 | Harden AI settings and API key lifecycle without adding sync or backend storage | planned | `fix: harden ai settings lifecycle` |
+| ITER-061 | EPIC-31 | Add token/cost preview and local request-budget controls to AI execution flows | planned | `feat: add ai budget preview controls` |
+| ITER-062 | EPIC-31 | Add cover-letter quality guardrails and draft provenance markers | planned | `feat: add letter quality guardrails` |
+
+## Phase 5: Private Release Readiness
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-063 | EPIC-32 | Complete onboarding, permission disclosure, and privacy explainer surfaces for real private installs | planned | `feat: complete onboarding and permission disclosure` |
+| ITER-064 | EPIC-32 | Harden private packaging assets, install flow docs, and release verification evidence | planned | `docs: finalize private release readiness pack` |
 
 ## Phase 5: Expansion And Release
 

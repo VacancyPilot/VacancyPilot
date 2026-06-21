@@ -49,7 +49,10 @@ This file is the working map from the master specification to implementation epi
 | Epic | Name | Phase | Status |
 | --- | --- | --- | --- |
 | EPIC-23 | HR Communication Hub | 4 | done |
-| EPIC-29 | Post-Audit Reliability And Scoring | 4.1 | ready |
+| EPIC-29 | Post-Audit Reliability And Scoring | 4.1 | done |
+| EPIC-30 | Final Security Tail Closure | 4.2 | ready |
+| EPIC-31 | AI Assist Quality And Trust | 5 | ready |
+| EPIC-32 | Private Release Readiness | 5 | ready |
 
 ## Later Epics
 

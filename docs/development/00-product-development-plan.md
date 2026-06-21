@@ -1,6 +1,6 @@
 # VacancyPilot Product Development Plan
 
-Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; dependency maintenance pack complete; security-closure pack complete; workflow-assist pack complete; HR communication pack complete; post-audit reliability/scoring pack ready  
+Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; dependency maintenance pack complete; security-closure pack complete; workflow-assist pack complete; HR communication pack complete; post-audit reliability/scoring pack complete; final moderate security tail pending; AI/release-trust pack ready  
 Source of truth: `docs/Техническое заданиеV.1.md` v1.1 FINAL
 
 Implementation note:
@@ -9,7 +9,9 @@ Implementation note:
 - spec-level `Phase 4 — Guided Apply Labs` and the local workflow-assist layer landed through `ITER-039`..`ITER-042`;
 - the dependency/toolchain maintenance and security-closure packs landed after that product work;
 - the HR communication pack landed through `ITER-044` and `ITER-045`;
-- the next active product-scope pack is the post-audit reliability/scoring hardening pack (`ITER-055`..`ITER-058`);
+- the post-audit reliability/scoring hardening pack landed through `ITER-058`;
+- one remaining moderate transitive dependency alert should be closed before the next larger product pack;
+- the next active product-scope pack is the AI/release-trust pack (`ITER-060`..`ITER-064`);
 - `n8n` remains deferred until its permission model is explicitly reopened.
 
 ## Decision
@@ -115,8 +117,8 @@ Required:
 
 ## Immediate Next Actions
 
-1. Start the post-audit hardening pack with `ITER-055`.
-2. Continue one row at a time through `ITER-056`, `ITER-057`, and `ITER-058`.
-3. Keep `ITER-043` deferred until the `n8n` permission model decision is explicitly reopened.
-4. Keep SonarCloud project identity and Dependency Review gate policy out of the product implementation pack.
-5. Leave multi-site expansion and public-release packaging out of the next active pack.
+1. Close the remaining moderate transitive dependency alert with `ITER-059`.
+2. Start the AI/release-trust pack with `ITER-060`.
+3. Continue one row at a time through `ITER-061`, `ITER-062`, `ITER-063`, and `ITER-064`.
+4. Keep `ITER-043` deferred until the `n8n` permission model decision is explicitly reopened.
+5. Keep multi-site expansion, backend sync, and public store submission out of the next active pack.
