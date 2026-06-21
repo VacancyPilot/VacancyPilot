@@ -110,9 +110,10 @@ async function createBadge(): Promise<void> {
 
   const host = document.createElement("div");
   host.id = "vp-badge-host";
-  // Position in top-right corner, below any HH fixed headers.
+  // Position in top-right corner, below the HH fixed header (~52px).
+  // 56px keeps the badge clear of header overlap on real vacancy pages.
   host.style.cssText =
-    "position:fixed;top:8px;right:8px;z-index:9000;pointer-events:auto;";
+    "position:fixed;top:56px;right:12px;z-index:9000;pointer-events:auto;";
 
   const shadow = host.attachShadow({ mode: "open" });
 
@@ -124,16 +125,17 @@ async function createBadge(): Promise<void> {
     }
     .vp-badge {
       display: inline-flex;
-      gap: 4px;
+      gap: 5px;
       align-items: center;
-      padding: 3px 7px;
+      padding: 4px 9px;
       background: #fff;
       border: 1px solid #d0d0d0;
-      border-radius: 6px;
+      border-radius: 8px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
       cursor: pointer;
       user-select: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     .vp-badge:hover {
       border-color: #4a90d9;
@@ -158,7 +160,7 @@ async function createBadge(): Promise<void> {
       color: #333;
     }
     .vp-score--low {
-      background: #c44;
+      background: #b08080;
     }
     .vp-status {
       font-size: 11px;
@@ -167,10 +169,10 @@ async function createBadge(): Promise<void> {
     }
     .vp-label {
       font-size: 10px;
-      color: #999;
+      color: #aaa;
       font-weight: 500;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.4px;
     }
   `;
 
@@ -178,6 +180,9 @@ async function createBadge(): Promise<void> {
   const container = document.createElement("div");
   container.className = "vp-badge";
   container.title = "Open VacancyPilot side panel";
+  container.setAttribute("role", "button");
+  container.setAttribute("tabindex", "0");
+  container.setAttribute("aria-label", "Open VacancyPilot side panel");
   // Placeholder: "VP" label with dash.
   container.innerHTML = `
     <span class="vp-label">VP</span>
@@ -186,12 +191,20 @@ async function createBadge(): Promise<void> {
   `;
 
   // ── Click → Open side panel ──
-  container.addEventListener("click", () => {
+  function openSidePanelFromBadge(): void {
     const vacancyId = extractVacancyIdFromUrl();
     void chrome.runtime.sendMessage({
       type: "OPEN_SIDE_PANEL",
       vacancyId,
     });
+  }
+
+  container.addEventListener("click", openSidePanelFromBadge);
+  container.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openSidePanelFromBadge();
+    }
   });
 
   shadow.appendChild(style);

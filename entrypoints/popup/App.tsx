@@ -20,6 +20,7 @@ import {
   fontWeights,
   spacing,
   scoreColor,
+  popupScoreColor,
   shellBody,
   panelHeader,
   appTitle,
@@ -79,14 +80,14 @@ const defaultSidePanelOpenDeps: SidePanelOpenDeps = {
     await chrome.sidePanel.open({ windowId });
   },
   sendContext(pageInfo: PageStatusInfo): void {
-    void chrome.runtime.sendMessage(buildSetSidePanelContext(pageInfo)).catch(
-      (err: unknown) => {
+    void chrome.runtime
+      .sendMessage(buildSetSidePanelContext(pageInfo))
+      .catch((err: unknown) => {
         console.error(
           "[VacancyPilot] Failed to persist side panel context:",
           err,
         );
-      },
-    );
+      });
   },
   supportsProgrammaticOpen:
     typeof chrome !== "undefined" && Boolean(chrome.sidePanel?.open),
@@ -133,6 +134,20 @@ export function mapSidePanelOpenError(error: unknown): SidePanelOpenResult {
 
 export function getSidePanelButtonLabel(isOpeningSidePanel: boolean): string {
   return isOpeningSidePanel ? "Opening…" : "Side Panel";
+}
+
+export interface PopupContainerStyle {
+  minWidth: number;
+  maxWidth: number;
+  width: string;
+}
+
+export function getPopupContainerStyle(): PopupContainerStyle {
+  return {
+    minWidth: 300,
+    maxWidth: 360,
+    width: "100%",
+  };
 }
 
 // ── Popup Content ──
@@ -386,7 +401,7 @@ function PopupContent(): ReactNode {
 
   const recommendation = savedJob?.ruleScore?.recommendation;
 
-  const scoreDisplayColor = scoreColor(savedJob?.ruleScore?.total);
+  const scoreDisplayColor = popupScoreColor(savedJob?.ruleScore?.total);
 
   const isVacancy = pageInfo.kind === "vacancy";
 
@@ -398,19 +413,19 @@ function PopupContent(): ReactNode {
   return (
     <div
       style={{
-        width: 300,
+        ...getPopupContainerStyle(),
         padding: spacing.xxxl,
         ...shellBody,
       }}
     >
       {/* Header */}
-      <div style={{ ...panelHeader, marginBottom: spacing.section }}>
+      <div style={{ ...panelHeader, marginBottom: spacing.lg }}>
         <h1 style={appTitle}>VacancyPilot</h1>
         <span style={appSubtitle}>v0.1</span>
       </div>
 
       {/* Page status */}
-      <div role="status" style={{ ...infoChip, marginBottom: spacing.lg }}>
+      <div role="status" style={{ ...infoChip, marginBottom: spacing.md }}>
         <PageStatus info={pageInfo} />
       </div>
 
@@ -419,63 +434,78 @@ function PopupContent(): ReactNode {
         <div
           role="status"
           aria-live="polite"
-          style={{ ...warningChip, marginBottom: spacing.lg }}
+          style={{ ...warningChip, marginBottom: spacing.md }}
         >
           {passiveStatusLabel(passiveStatus)}
         </div>
       )}
 
-      {/* Score & Status */}
+      {/* Score & Status — compact summary card */}
       {isVacancy && jobLoaded ? (
-        <div style={{ marginBottom: spacing.lg }}>
+        <div
+          style={{
+            marginBottom: spacing.md,
+            padding: spacing.md,
+            background: colors.cardBg,
+            borderRadius: 6,
+            border: `1px solid ${colors.borderHairline}`,
+          }}
+        >
+          {/* Score row with prominent number and status inline */}
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
-              marginBottom: spacing.xs3,
+              alignItems: "baseline",
+              gap: spacing.sm,
+              marginBottom: recommendation ? spacing.xs3 : 0,
             }}
           >
-            <span style={{ color: colors.textMuted, fontSize: fontSizes.md }}>
-              Score
-            </span>
             <span
               style={{
-                fontWeight: fontWeights.semibold,
+                fontSize: 22,
+                fontWeight: fontWeights.bold,
                 color: scoreDisplayColor,
+                lineHeight: 1,
               }}
             >
               {scoreDisplay}
             </span>
+            <span
+              style={{
+                fontSize: fontSizes.sm,
+                color: colors.textFaint,
+                textTransform: "uppercase",
+                letterSpacing: "0.3px",
+              }}
+            >
+              / 100
+            </span>
+            <span
+              style={{
+                marginLeft: "auto",
+                fontSize: fontSizes.sm,
+                fontWeight: fontWeights.semibold,
+                color: colors.textSecondary,
+              }}
+            >
+              {statusDisplay}
+            </span>
           </div>
+
           {recommendation && (
             <div
               style={{
                 fontSize: fontSizes.sm,
                 color: colors.textPlaceholder,
-                marginBottom: spacing.xs3,
-                textAlign: "right",
               }}
             >
               {recommendation}
             </div>
           )}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <span style={{ color: colors.textMuted, fontSize: fontSizes.md }}>
-              Status
-            </span>
-            <span style={{ fontWeight: fontWeights.semibold }}>
-              {statusDisplay}
-            </span>
-          </div>
 
-          {/* Score breakdown toggle */}
+          {/* Score breakdown toggle — collapsed by default */}
           {savedJob?.ruleScore && (
-            <div style={{ marginTop: spacing.md }}>
+            <div style={{ marginTop: spacing.sm }}>
               <button
                 type="button"
                 onClick={() => setShowBreakdown(!showBreakdown)}
@@ -503,7 +533,7 @@ function PopupContent(): ReactNode {
 
       {/* Profile selector */}
       {isVacancy && profiles.length > 1 && (
-        <div style={{ marginBottom: spacing.lg }}>
+        <div style={{ marginBottom: spacing.md }}>
           <label htmlFor="popup-profile-select" style={labelStyle}>
             Profile
           </label>
@@ -527,7 +557,7 @@ function PopupContent(): ReactNode {
         <div
           role="alert"
           aria-live="assertive"
-          style={{ ...errorChip, marginBottom: spacing.lg }}
+          style={{ ...errorChip, marginBottom: spacing.md }}
         >
           {actionError}
         </div>
@@ -537,39 +567,21 @@ function PopupContent(): ReactNode {
         <div
           role="alert"
           aria-live="assertive"
-          style={{ ...errorChip, marginBottom: spacing.lg }}
+          style={{ ...errorChip, marginBottom: spacing.md }}
         >
           {sidePanelError}
         </div>
       )}
 
-      {/* Actions */}
+      {/* Actions — primary Side Panel first, then quick actions */}
       <div
         style={{
           display: "flex",
-          flexWrap: "wrap",
-          gap: spacing.sm,
-          marginTop: isVacancy ? spacing.lg : 0,
+          flexDirection: "column",
+          gap: spacing.xs,
+          marginTop: isVacancy ? spacing.xs : 0,
         }}
       >
-        {isVacancy && (
-          <>
-            <ActionButton
-              label={isSaving ? "Saving…" : "Save"}
-              color="#2a8"
-              onClick={handleSave}
-              disabled={isSaving}
-              busy={isSaving}
-            />
-            <ActionButton
-              label={isSaving ? "Rejecting…" : "Reject"}
-              color="#c44"
-              onClick={handleReject}
-              disabled={isSaving}
-              busy={isSaving}
-            />
-          </>
-        )}
         <ActionButton
           label={getSidePanelButtonLabel(isOpeningSidePanel)}
           onClick={() => void handleOpenSidePanel()}
@@ -578,6 +590,26 @@ function PopupContent(): ReactNode {
           disabled={isOpeningSidePanel}
           busy={isOpeningSidePanel}
         />
+        {isVacancy && (
+          <div style={{ display: "flex", gap: spacing.xs }}>
+            <ActionButton
+              label={isSaving ? "Saving…" : "Save"}
+              color="#2a8"
+              onClick={handleSave}
+              disabled={isSaving}
+              busy={isSaving}
+              wide
+            />
+            <ActionButton
+              label={isSaving ? "Rejecting…" : "Reject"}
+              color="#c44"
+              onClick={handleReject}
+              disabled={isSaving}
+              busy={isSaving}
+              wide
+            />
+          </div>
+        )}
         <ActionButton label="Dashboard" onClick={openDashboard} wide />
       </div>
     </div>

@@ -295,3 +295,16 @@ export function scoreColor(total: number | undefined): string {
   if (total >= 50) return colors.amber;
   return colors.red;
 }
+
+/**
+ * Softer score color for compact popup display.
+ * Avoids alarm-heavy red for low scores; reserves red for actual risk flags.
+ */
+export function popupScoreColor(total: number | undefined): string {
+  if (total === undefined) return colors.textPlaceholder;
+  if (total >= 85) return colors.green;
+  if (total >= 70) return colors.greenMuted;
+  if (total >= 50) return colors.amber;
+  if (total >= 35) return colors.textMuted;
+  return colors.amber; // soft amber for very low scores, not alarm red
+}
