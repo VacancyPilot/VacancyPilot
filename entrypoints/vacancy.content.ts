@@ -113,7 +113,7 @@ async function createBadge(): Promise<void> {
   // Position in top-right corner, below the HH fixed header (~52px).
   // 56px keeps the badge clear of header overlap on real vacancy pages.
   host.style.cssText =
-    "position:fixed;top:56px;right:12px;z-index:9000;pointer-events:auto;";
+    "position:fixed;top:56px;right:16px;z-index:9000;pointer-events:auto;";
 
   const shadow = host.attachShadow({ mode: "open" });
 
@@ -125,31 +125,35 @@ async function createBadge(): Promise<void> {
     }
     .vp-badge {
       display: inline-flex;
-      gap: 5px;
+      gap: 6px;
       align-items: center;
-      padding: 4px 9px;
+      padding: 5px 10px;
       background: #fff;
       border: 1px solid #d0d0d0;
       border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
       cursor: pointer;
       user-select: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
     }
     .vp-badge:hover {
       border-color: #4a90d9;
-      box-shadow: 0 1px 6px rgba(74,144,217,0.18);
+      box-shadow: 0 2px 8px rgba(74,144,217,0.18), 0 1px 3px rgba(0,0,0,0.06);
+      transform: translateY(-1px);
+    }
+    .vp-badge:active {
+      transform: translateY(0);
     }
     .vp-score {
       background: #4a90d9;
       color: #fff;
       border-radius: 10px;
       padding: 0 6px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
-      line-height: 18px;
-      min-width: 20px;
+      line-height: 20px;
+      min-width: 22px;
       text-align: center;
     }
     .vp-score--high {
@@ -163,12 +167,12 @@ async function createBadge(): Promise<void> {
       background: #b08080;
     }
     .vp-status {
-      font-size: 11px;
+      font-size: 12px;
       color: #555;
-      line-height: 18px;
+      line-height: 20px;
     }
     .vp-label {
-      font-size: 10px;
+      font-size: 11px;
       color: #aaa;
       font-weight: 500;
       text-transform: uppercase;

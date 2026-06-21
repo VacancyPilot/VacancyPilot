@@ -18,7 +18,7 @@ describe("vacancy badge accessibility and placement", () => {
   const source = readVacancyContentSource();
 
   it("positions the badge below the HH header instead of the top edge", () => {
-    expect(source).toContain("top:56px;right:12px");
+    expect(source).toContain("top:56px;right:16px");
   });
 
   it("marks the badge as a keyboard-focusable button", () => {

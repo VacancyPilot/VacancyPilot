@@ -446,6 +446,26 @@ describe("Popup container responsive width", () => {
     const style = getPopupContainerStyle();
     expect(style.maxWidth).toBeGreaterThan(style.minWidth);
   });
+
+  it("has minHeight 360 to prevent collapsed popup", () => {
+    const style = getPopupContainerStyle();
+    expect(style.minHeight).toBe(360);
+  });
+
+  it("has maxHeight 600 to cap popup vertical growth", () => {
+    const style = getPopupContainerStyle();
+    expect(style.maxHeight).toBe(600);
+  });
+
+  it("has overflowY auto for scrollable content", () => {
+    const style = getPopupContainerStyle();
+    expect(style.overflowY).toBe("auto");
+  });
+
+  it("uses border-box sizing for predictable dimensions", () => {
+    const style = getPopupContainerStyle();
+    expect(style.boxSizing).toBe("border-box");
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

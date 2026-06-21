@@ -140,6 +140,10 @@ export interface PopupContainerStyle {
   minWidth: number;
   maxWidth: number;
   width: string;
+  minHeight: number;
+  maxHeight: number;
+  overflowY: "auto" | "hidden";
+  boxSizing: "border-box";
 }
 
 export function getPopupContainerStyle(): PopupContainerStyle {
@@ -147,6 +151,10 @@ export function getPopupContainerStyle(): PopupContainerStyle {
     minWidth: 300,
     maxWidth: 360,
     width: "100%",
+    minHeight: 360,
+    maxHeight: 600,
+    overflowY: "auto",
+    boxSizing: "border-box",
   };
 }
 
@@ -413,8 +421,8 @@ function PopupContent(): ReactNode {
   return (
     <div
       style={{
-        ...getPopupContainerStyle(),
         padding: spacing.xxxl,
+        minHeight: 360,
         ...shellBody,
       }}
     >
@@ -899,17 +907,37 @@ export default function App(): ReactNode {
   }, []);
 
   return (
-    <ErrorBoundary rootLabel="Popup">
-      {dbError ? (
-        <ErrorState
-          message="Failed to initialize local data"
-          details={dbError}
-        />
-      ) : dbReady ? (
-        <PopupContent />
-      ) : (
-        <LoadingState message="Initializing local data…" />
-      )}
-    </ErrorBoundary>
+    <div style={getPopupContainerStyle()}>
+      <ErrorBoundary rootLabel="Popup">
+        {dbError ? (
+          <div
+            style={{
+              minHeight: 360,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ErrorState
+              message="Failed to initialize local data"
+              details={dbError}
+            />
+          </div>
+        ) : dbReady ? (
+          <PopupContent />
+        ) : (
+          <div
+            style={{
+              minHeight: 360,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <LoadingState message="Initializing local data…" />
+          </div>
+        )}
+      </ErrorBoundary>
+    </div>
   );
 }
