@@ -1,11 +1,11 @@
-# Release Checklist — VacancyPilot Phase 1
+# Release Checklist — VacancyPilot
 
-Status: ITER-032 complete — automated gate green, GitHub checks green, core manual rerun passed  
+Status: ITER-064  
 Source: spec sections 19.6, 22.4, 26.5, 26.6; EPIC-11; EPIC-15; PHASE-1-SIGNOFF
 
 ## Automated Checks (CI Gate)
 
-These checks run automatically via `pnpm test` and must all pass before release. Status as of ITER-021 + PHASE-1-SIGNOFF:
+These checks run automatically via `pnpm test` and must all pass before release. Status as of ITER-064:
 
 - [x] **Manifest permission audit** — `src/release-safety/manifest-safety.test.ts`
   - Only `storage`, `sidePanel`, `activeTab` in permissions
@@ -33,7 +33,8 @@ These checks run automatically via `pnpm test` and must all pass before release.
   - Export envelope structure is valid
 
 - [x] **Fixture regression** — `src/release-safety/fixture-regression.test.ts`
-  - All parser fixtures pass (currently 3: `vacancy-normal`, `vacancy-no-salary`, `vacancy-archived`)
+  - All parser fixtures pass (currently 19 vacancy fixtures: `vacancy-normal`, `vacancy-no-salary`, `vacancy-archived`, `vacancy-applied-status`, `vacancy-english`, `vacancy-hybrid`, `vacancy-invitation-status`, `vacancy-minimal`, `vacancy-multiple-cities`, `vacancy-no-company`, `vacancy-no-experience`, `vacancy-no-skills`, `vacancy-office`, `vacancy-part-time`, `vacancy-rejected-status`, `vacancy-remote-description`, `vacancy-salary-from`, `vacancy-salary-to`, `vacancy-viewed-status`)
+  - Search card regression: 3 search fixtures (`search-multiple-cards`, `search-no-salary`, `search-normal`)
   - Aggregate check: zero fixture failures
 
 ## Manual QA Checklist
@@ -113,12 +114,13 @@ The following checks are NOT automated and require manual verification:
 
 ## Release Candidate Sign-off
 
-- [x] All automated CI checks pass (903 tests, 0 failures)
+- [x] All automated CI checks pass (1417 tests, 0 failures)
 - [x] `pnpm typecheck` passes
 - [x] `pnpm lint` passes
 - [x] `pnpm build` succeeds
-- [x] `pnpm test:release` passes (277 release-safety tests, 0 failures)
+- [x] `pnpm test:release` passes (347 release-safety tests, 0 failures)
 - [x] No secrets committed
 - [x] Manifest permissions are minimal
 - [x] Manual QA rerun completed in at least 2 browsers for the current Phase 1 core scope (see `docs/development/manual-qa-run-2026-06-20.md` § Phase 1 Closeout Rerun)
 - [ ] Release notes drafted
+- [ ] Full public-release matrix re-run across all checklist sections

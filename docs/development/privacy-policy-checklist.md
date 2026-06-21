@@ -1,6 +1,6 @@
-# Privacy Policy Draft Checklist — VacancyPilot Phase 1
+# Privacy Policy Draft Checklist — VacancyPilot
 
-Status: ITER-016  
+Status: ITER-064  
 Source: spec sections 20, 22.6, 26.4; EPIC-10
 
 Use this checklist when drafting the public privacy policy. Each item must be addressed in the final policy document. A public privacy policy is **mandatory** for Chrome Web Store submission (spec 26.4).
@@ -164,14 +164,16 @@ The URL must be included in:
 | Section | Status |
 |---------|--------|
 | 1. Policy metadata | Not started |
-| 2. Data collection | Checklist complete |
-| 3. Data sent externally | Checklist complete |
-| 4. Data minimization | Checklist complete |
-| 5. User controls | Checklist complete |
-| 6. Data retention | Checklist complete |
-| 7. Security | Checklist complete |
+| 2. Data collection | Checklist complete — aligned with current codebase as of ITER-064 |
+| 3. Data sent externally | Checklist complete — aligned with current codebase |
+| 4. Data minimization | Checklist complete — redaction, Strict Privacy, HTML stripping all implemented |
+| 5. User controls | Checklist complete — export, delete, AI disable, n8n disable, Labs kill switch all implemented |
+| 6. Data retention | Checklist complete — local-only storage confirmed |
+| 7. Security | Checklist complete — Manifest V3, CSP, no remote code confirmed |
 | 8. Third-party services | Checklist complete |
 | 9. Children's privacy | Not started |
 | 10. Policy changes | Not started |
 | 11. Jurisdiction | Not started |
 | 12. Hosting | Not started |
+
+**Note**: This is a checklist, not a drafted policy. Drafting the actual policy document belongs to the public-release epic (EPIC-26, backlog).

@@ -1,6 +1,6 @@
-# Known Risks — VacancyPilot Phase 1
+# Known Risks — VacancyPilot
 
-Status: ITER-021 (post risk-closure, PHASE-1-SIGNOFF)  
+Status: ITER-064  
 Source: EPIC-10, EPIC-11, release-checklist.md, spec sections 22, 26
 
 This document lists all known risks, open decisions, and unresolved gaps at Phase 1 release-candidate. Risks are classified and must be addressed or explicitly accepted before public release.
@@ -29,17 +29,17 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 - Fixture regression tests catch regressions for known page shapes (currently 3 fixtures).
 - Fixture maintenance process is documented (spec 16.5).
 
-**Residual**: Only 3 fixtures. Spec requires 50+. Fixture coverage is insufficient for release confidence.
+**Residual**: Only 22 fixtures (19 vacancy + 3 search). Spec target was 50+. Fixture coverage is adequate for private use but below public-release confidence.
 
-**Action**: Expand fixture library to 50+ before public release. Accept 3 fixtures for private/development use.
+**Action**: Expand fixture library to 50+ before public release. Accept 22 fixtures for private/development use.
 
 ---
 
 ### R2 — Parser Fixture Coverage Gap (P1)
 
-**Risk**: The fixture library contains 3 vacancies (`vacancy-normal`, `vacancy-no-salary`, `vacancy-archived`). The spec requires 50+ fixtures for Phase 1 readiness (spec 22.5, 23.5). Real-world HH vacancy diversity (salary formats, skill lists, description lengths, remote/office variations) is not covered.
+**Risk**: The fixture library contains 22 fixtures (19 vacancy + 3 search cards). The spec requires 50+ fixtures for Phase 1 readiness (spec 22.5, 23.5). Real-world HH vacancy diversity (salary formats, skill lists, description lengths, remote/office variations) is partially but not fully covered.
 
-**Mitigation**: Fixture harness is built and regression tests run automatically. Adding fixtures is low-effort.
+**Mitigation**: Fixture harness is built and regression tests run automatically (100 tests for vacancy fixtures, 16 for search cards). Adding fixtures is low-effort.
 
 **Residual**: Parser may fail on vacancy types not covered by existing fixtures.
 
@@ -101,13 +101,13 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 
 ### R7 — AI Provider Not Implemented (P2)
 
-**Risk**: The AI provider interface is defined and a mock provider exists for testing, but no real provider implementation (OpenAI, DeepSeek, OpenRouter) is present.
+**Risk**: The AI provider interface is defined and a mock provider exists for testing, but no real provider implementation (OpenAI, DeepSeek, OpenRouter) is present. This is the next active product-scope pack (ITER-060..062, EPIC-31).
 
 **Mitigation**: Provider interface is clean and mock covers testing needs. BYOK architecture means no backend proxy required.
 
 **Residual**: AI analysis and cover letter generation cannot be tested end-to-end without a real API key.
 
-**Action**: Implement at least one provider (OpenRouter or OpenAI as recommended in spec 26.2) before public release.
+**Action**: Implement at least one provider (OpenRouter or OpenAI as recommended in spec 26.2) in ITER-060..062 before public release.
 
 ---
 
@@ -140,15 +140,15 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 
 ## Process Risks
 
-### R10 — Manual QA Partially Executed, Live Rerun Pending (P1)
+### R10 — Manual QA Partially Executed, Full Matrix Pending (P1)
 
-**Risk**: Initial manual QA (2026-06-20) found core runtime blockers (badge, save, status). ITER-017..021 addressed all identified defects at code level. Automated validation passes (507 tests). Live browser rerun has not yet confirmed the fixes.
+**Risk**: Core closeout rerun (Chrome + Edge) passed for Phase 1 scope. The wider public-release regression matrix in `release-checklist.md` and `qa-checklist.md` has not been fully re-run item-by-item. Phase 2 features (search triage, HR timeline, queue, reminders) have not been manually QA'd in live browsers.
 
-**Mitigation**: QA checklist is comprehensive. All automated safety, privacy, and fixture tests pass. RISK-CLOSURE for ITER-021 confirmed no remaining code-level defects.
+**Mitigation**: QA checklists are comprehensive. All automated safety, privacy, and fixture tests pass (1417 unit tests, 347 release-safety tests).
 
-**Residual**: Core runtime flow (save/status/badge/dashboard) not yet verified in real Chrome/Edge with the latest build.
+**Residual**: Full public-release regression QA not yet executed. Some Phase 2+ features untested in real browser runtime.
 
-**Action**: Completed for current Phase 1 core sign-off. Keep the rerun checklist for future regression passes before broader release steps.
+**Action**: Execute full QA checklist across Chrome + Edge before public release. Keep the checklists as the definitive regression matrix.
 
 ---
 
@@ -186,11 +186,11 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 
 For **private/personal use Phase 1 release**, the following risks are explicitly accepted:
 
-- R2 (3 fixtures instead of 50+)
+- R2 (22 fixtures instead of 50+)
 - R6 (n8n deferred — PHASE-1-SIGNOFF)
-- R7 (mock provider only)
+- R7 (mock provider only — real provider in active ITER-060..062)
 - R8 (plaintext key storage)
-- R10 (live browser rerun pending — accepted for code-complete milestone, rerun required before any release)
+- R10 (full matrix not yet run — core closeout passed)
 - R11 (contributor onboarding still thin)
 
-For **public release**, all P1 risks must be resolved. P2 risks must be at minimum documented with mitigation plans.
+For **public release**, all P1 risks must be resolved. P2 risks must be at minimum documented with mitigation plans. Public release prerequisites are documented in `docs/development/public-release-prerequisites.md`.

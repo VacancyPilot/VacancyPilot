@@ -163,7 +163,7 @@ Status values:
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
 | ITER-063 | EPIC-32 | Complete onboarding, permission disclosure, and privacy explainer surfaces for real private installs | planned | `feat: complete onboarding and permission disclosure` |
-| ITER-064 | EPIC-32 | Harden private packaging assets, install flow docs, and release verification evidence | planned | `docs: finalize private release readiness pack` |
+| ITER-064 | EPIC-32 | Harden private packaging assets, install flow docs, and release verification evidence | done | `docs: finalize private release readiness pack` |
 
 ## Phase 5: Expansion And Release
 

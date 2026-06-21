@@ -28,14 +28,16 @@ phase 4 hr communication hub complete on 2026-06-21
 post-audit reliability and scoring pack complete on 2026-06-21
 final security tail closure complete on 2026-06-21
 next active sequence: AI/release-trust
+private release readiness pack complete on 2026-06-21
+next active iteration: ITER-063
 ```
 
 Recommended next action:
 
 ```text
 1. Review docs/development/00-product-development-plan.md
-2. Start ITER-060
-3. Continue through ITER-061, ITER-062, ITER-063, and ITER-064 one row at a time
+2. Start ITER-063 (onboarding, permission disclosure, privacy explainer surfaces)
+3. Continue through ITER-060, ITER-061, and ITER-062 one row at a time for AI assist quality
 4. Keep ITER-043 deferred until the n8n permission model is explicitly reopened
 ```
 
@@ -67,4 +69,4 @@ docs/development/phase-2-start-gate.md
 
 ## Status
 
-The first post-signoff hardening pack is complete. The second audit follow-up fix pack (`ITER-028`..`ITER-031`) is also complete. `ITER-032` closed the manual/infrastructure gate, Phase 2 implementation ran through `ITER-038`, the workflow-assist/Labs pack ran through `ITER-042`, the dependency/toolchain maintenance pack ran through `ITER-050`, the security-alert closure pack ran through `ITER-054`, the HR communication pack ran through `ITER-045`, the post-audit reliability/scoring pack ran through `ITER-058`, and the final security tail closure landed through `ITER-059`. The next active sequence is the AI/release-trust pack (`ITER-060`..`ITER-064`). The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
+The first post-signoff hardening pack is complete. The second audit follow-up fix pack (`ITER-028`..`ITER-031`) is also complete. `ITER-032` closed the manual/infrastructure gate, Phase 2 implementation ran through `ITER-038`, the workflow-assist/Labs pack ran through `ITER-042`, the dependency/toolchain maintenance pack ran through `ITER-050`, the security-alert closure pack ran through `ITER-054`, the HR communication pack ran through `ITER-045`, the post-audit reliability/scoring pack ran through `ITER-058`, the final security tail closure landed through `ITER-059`, and the private release readiness docs pack landed through `ITER-064`. The next active iterations are ITER-063 (onboarding/permission disclosure surfaces) and ITER-060..062 (AI assist quality). The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.

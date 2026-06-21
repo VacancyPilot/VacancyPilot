@@ -1,6 +1,6 @@
-# Private Install & Validation Guide — VacancyPilot Phase 1
+# Private Install & Validation Guide — VacancyPilot
 
-Status: ITER-016  
+Status: ITER-064  
 Target audience: developer or early tester installing from source
 
 This guide covers building and loading the extension for private/personal use. It does NOT cover Chrome Web Store submission.
@@ -39,16 +39,19 @@ pnpm typecheck
 # Lint
 pnpm lint
 
-# Unit and safety tests (451 tests expected)
+# Unit and safety tests (1417 tests expected across 48 test files)
 pnpm test
 
 # Production build
 pnpm build
+
+# Release safety tests (347 tests across 8 files)
+pnpm test:release
 ```
 
-All four commands must pass. The build output is in `.output/chrome-mv3/`.
+All five commands must pass. The build output is in `.output/chrome-mv3/`.
 
-Expected test output: **21 test files, 451 tests passed**.
+Expected test output: **48 test files, 1417 tests passed**. Release safety: **8 test files, 347 tests passed**.
 
 ---
 
@@ -137,13 +140,22 @@ On first install, the extension shows an onboarding flow that explains:
 ## 7. Quick Feature Tour
 
 ### Parse a vacancy
-Navigate to any HH.ru vacancy. The extension automatically extracts title, company, salary, description, and skills.
+Navigate to any HH.ru vacancy. The extension automatically extracts title, company, salary, description, and skills. Passive HH status (applied, invitation, rejection, viewed) is also detected.
 
 ### Score a vacancy
-Open the side panel. A rule-based score (0–100) is displayed with a breakdown of factors.
+Open the side panel. A rule-based score (0–100) is displayed with a breakdown of factors (title match, skills, experience fit, work mode, salary, company preference).
 
 ### Track application status
-From the side panel, change the status: Saved → Applied → Interview → Offer → Rejected → Archived. Status history is recorded.
+From the side panel or popup, change the status: Saved → Applied → Interview → Offer → Rejected → Archived. Status history is recorded with timestamps.
+
+### Search triage (Phase 2)
+On HH.ru search result pages, the extension shows quick-action badges on each vacancy card. Use **Save** or **Reject** directly from the search page without opening each vacancy.
+
+### Queue and workflow
+Use the queue view to manage your application pipeline with kanban stages. Company greylist helps you track organizations you've decided not to engage with.
+
+### HR timeline
+When an employer sends you an invitation, message, or rejection, the extension captures it on the vacancy page. Timeline entries are stored locally and linked to the corresponding job.
 
 ### AI analysis (requires API key)
 1. Go to extension **Settings** → **AI**.
@@ -159,6 +171,9 @@ From the side panel, change the status: Saved → Applied → Interview → Offe
 3. Click **Generate**.
 4. Edit the generated text if needed.
 5. **Save** or **Copy** the letter.
+
+### HR follow-up drafts
+From the HR workspace, draft replies and schedule follow-ups for employer communications. All drafts are stored locally.
 
 ### Export data
 1. Go to extension **Settings** → **Data**.
@@ -187,7 +202,8 @@ To keep data before uninstalling, export first (CSV or JSON).
 
 | Problem | Check |
 |---------|-------|
-| Badge not appearing | Only on `https://*.hh.ru/vacancy/*` pages. Check `showPageBadge` setting. |
+| Badge not appearing | Only on `https://*.hh.ru/vacancy/*` or `https://*.hh.ru/search/*` pages. Check `showPageBadge` setting. |
+| Search badge not appearing | Only on `https://*.hh.ru/search/vacancy*` pages. Ensure Phase 2 features are not disabled in settings. |
 | Side panel not opening | Click the badge or extension icon → "Open side panel". Ensure `sidePanel` permission is granted. |
 | AI request fails | Check API key in Settings. Check network connectivity. Review payload preview for errors. |
 | Parser returns no data | HH page may have changed DOM. Check browser console for parser errors. Report with vacancy URL. |

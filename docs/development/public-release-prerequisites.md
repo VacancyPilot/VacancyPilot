@@ -1,6 +1,6 @@
-# Public Release Prerequisites — VacancyPilot Phase 1
+# Public Release Prerequisites — VacancyPilot
 
-Status: ITER-016  
+Status: ITER-064  
 Source: spec sections 26.1, 26.4, 26.5, 26.6; EPIC-10
 
 This document lists everything that must be completed or resolved before VacancyPilot can be published to the Chrome Web Store or distributed publicly. Most items are **not required** for private/personal use.
@@ -98,7 +98,9 @@ See `docs/development/privacy-policy-checklist.md` for detailed coverage.
 
 ### 5.4 Parser Fixtures (spec 22.5, 23.5)
 - [ ] Expand fixture library to 50+ sanitized vacancy fixtures.
+  - Current: 22 fixtures (19 vacancy + 3 search cards).
 - [ ] Cover diverse vacancy types: with/without salary, remote/office, various skills formats, Cyrillic content, edge cases.
+  - Partially covered: 19 vacancy + 3 search fixtures already include remote, hybrid, office, part-time, no-salary, no-skills, no-company, no-experience, English, Cyrillic, applied/invitation/rejected/viewed statuses.
 
 ### 5.5 CSP Compliance (spec 20.8)
 - [ ] Verify no inline scripts violate Content Security Policy.
@@ -117,8 +119,9 @@ See `docs/development/privacy-policy-checklist.md` for detailed coverage.
 ### 6.2 Release Gate (spec 22.7)
 - [ ] `pnpm typecheck` passes.
 - [ ] `pnpm lint` passes.
-- [ ] `pnpm test` passes (all 451+ tests).
+- [ ] `pnpm test` passes (all 1417 tests).
 - [ ] `pnpm build` succeeds without warnings.
+- [ ] `pnpm test:release` passes (347 release-safety tests).
 - [ ] All P0/P1 risks (`docs/development/known-risks.md`) are resolved or explicitly accepted.
 
 ### 6.3 Privacy/Safety Tests (spec 22.6)
@@ -165,13 +168,13 @@ See `docs/development/privacy-policy-checklist.md` for detailed coverage.
 | 1 | Privacy policy drafted and hosted | **P0** | Checklist exists, policy not drafted |
 | 2 | Store listing assets (icons, screenshots, description) | **P0** | Not started |
 | 3 | Permissions justification text | **P0** | Draft exists in this doc |
-| 4 | At least one real AI provider implemented | **P0** | Mock only |
+| 4 | At least one real AI provider implemented | **P0** | Mock only — see ITER-060..062 for AI/release-trust pack |
 | 5 | Name/trademark clearance | **P0** | Not checked |
-| 6 | 50+ parser fixtures | **P1** | 3 fixtures |
+| 6 | 50+ parser fixtures | **P1** | 22 fixtures (19 vacancy + 3 search); 28 more needed |
 | 7 | API key storage decision | **P1** | Accepted for personal, not for public |
 | 8 | n8n go/no-go decision | **P2** | Resolved — deferred (PHASE-1-SIGNOFF) |
 | 9 | Manual QA in 2+ browsers | **P1** | Core rerun completed; broader public-release QA still pending |
-| 10 | Root README | **P2** | Not started |
+| 10 | Root README | **P2** | Present — may need update before public store listing |
 | 11 | Open source license | **P1** | Not chosen |
 
-**Current state**: ready for private/personal use. Public release requires resolving all P0 blockers.
+**Current state**: ready for private/personal use. Public release requires resolving all P0 blockers. The private release readiness pack (EPIC-32, ITER-063/064) provides the install/docs/QA baseline. Public release work belongs to EPIC-26 (backlog).

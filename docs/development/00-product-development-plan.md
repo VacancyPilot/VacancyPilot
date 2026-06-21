@@ -1,6 +1,6 @@
 # VacancyPilot Product Development Plan
 
-Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; dependency maintenance pack complete; security-closure pack complete; workflow-assist pack complete; HR communication pack complete; post-audit reliability/scoring pack complete; final moderate security tail pending; AI/release-trust pack ready  
+Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; dependency maintenance pack complete; security-closure pack complete; workflow-assist pack complete; HR communication pack complete; post-audit reliability/scoring pack complete; final moderate security tail closed; private release readiness docs pack complete; AI/release-trust pack partially underway (ITER-064 done, ITER-060..063 pending)  
 Source of truth: `docs/Техническое заданиеV.1.md` v1.1 FINAL
 
 Implementation note:
@@ -12,6 +12,7 @@ Implementation note:
 - the post-audit reliability/scoring hardening pack landed through `ITER-058`;
 - one remaining moderate transitive dependency alert should be closed before the next larger product pack;
 - the next active product-scope pack is the AI/release-trust pack (`ITER-060`..`ITER-064`);
+- `ITER-064` (private release readiness docs) landed on 2026-06-21;
 - `n8n` remains deferred until its permission model is explicitly reopened.
 
 ## Decision
@@ -117,8 +118,9 @@ Required:
 
 ## Immediate Next Actions
 
-1. Close the remaining moderate transitive dependency alert with `ITER-059`.
-2. Start the AI/release-trust pack with `ITER-060`.
-3. Continue one row at a time through `ITER-061`, `ITER-062`, `ITER-063`, and `ITER-064`.
-4. Keep `ITER-043` deferred until the `n8n` permission model decision is explicitly reopened.
-5. Keep multi-site expansion, backend sync, and public store submission out of the next active pack.
+1. ~~Close the remaining moderate transitive dependency alert with `ITER-059`.~~ Done.
+2. ~~Start the AI/release-trust pack with `ITER-060`.~~ `ITER-064` (docs) completed first.
+3. Continue with `ITER-063` (onboarding and permission disclosure surfaces).
+4. Continue through `ITER-060`, `ITER-061`, and `ITER-062` one row at a time.
+5. Keep `ITER-043` deferred until the `n8n` permission model decision is explicitly reopened.
+6. Keep multi-site expansion, backend sync, and public store submission out of the next active pack.
