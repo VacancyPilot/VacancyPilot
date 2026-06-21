@@ -6,7 +6,7 @@ export default defineConfig({
   // WXT automatically sets @ -> srcDir, so @/components resolves to src/components.
   srcDir: "src",
   entrypointsDir: "../entrypoints",
-  publicDir: "../public",
+  publicDir: "public",
   manifestVersion: 3,
   manifest: {
     name: "VacancyPilot",
