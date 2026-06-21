@@ -168,7 +168,7 @@ See `docs/development/privacy-policy-checklist.md` for detailed coverage.
 | 1 | Privacy policy drafted and hosted | **P0** | Checklist exists, policy not drafted |
 | 2 | Store listing assets (icons, screenshots, description) | **P0** | Not started |
 | 3 | Permissions justification text | **P0** | Draft exists in this doc |
-| 4 | At least one real AI provider implemented | **P0** | Mock only — see ITER-060..062 for AI/release-trust pack |
+| 4 | At least one real AI provider implemented | **P0** | Mock only — see `ITER-060` for the first real-provider implementation |
 | 5 | Name/trademark clearance | **P0** | Not checked |
 | 6 | 50+ parser fixtures | **P1** | 22 fixtures (19 vacancy + 3 search); 28 more needed |
 | 7 | API key storage decision | **P1** | Accepted for personal, not for public |

@@ -14,6 +14,7 @@ Allowed scope:
 - letter quality warnings and constraint checks;
 - draft provenance markers such as generated/edited/final;
 - focused review-flow UX improvements around copy/save final;
+- compatibility updates required by `ITER-060` and `ITER-061`;
 - focused tests for the new states.
 
 Hard constraints:
@@ -30,6 +31,7 @@ pnpm typecheck
 pnpm lint
 pnpm test
 pnpm build
+pnpm test:release
 ```
 
 Expected commit message: `feat: add letter quality guardrails`

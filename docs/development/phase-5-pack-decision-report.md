@@ -2,14 +2,15 @@
 
 Date: `2026-06-21`
 
-Purpose: define the next implementation sequence after the post-audit reliability/scoring pack without mixing narrow security cleanup, product AI work, and later public-release/multi-site backlog.
+Purpose: record the Phase 5 sequencing decision after the post-audit reliability/scoring pack without mixing narrow security cleanup, product AI work, and later public-release/multi-site backlog.
 
 ## Decision Summary
 
 Proceed in two layers:
 
 1. a one-iteration pre-pack to close the last moderate dependency alert;
-2. a larger product/trust pack centered on AI workflow quality and private release readiness.
+2. a product/trust pack centered on AI workflow quality;
+3. a private release readiness pack that documents and hardens real private installs.
 
 This keeps the repo clean before new feature work, while still moving the product toward real private usage rather than prematurely branching into public-store or multi-site work.
 
@@ -43,7 +44,7 @@ Reason:
 
 - the product already has opt-in AI and letter workflows;
 - the next highest-value improvement is trustworthiness, not breadth;
-- settings lifecycle, budget visibility, and letter-review quality align directly with the specification and local-first posture.
+- settings lifecycle, a first real BYOK provider, budget visibility, and letter-review quality align directly with the specification and local-first posture.
 
 ### 3. Private release readiness
 
@@ -92,11 +93,13 @@ Reason:
 
 Next Zed sequence:
 
-1. `ITER-059`
-2. `ITER-060`
-3. `ITER-061`
-4. `ITER-062`
-5. `ITER-063`
-6. `ITER-064`
+1. `ITER-059` — done
+2. `ITER-063` — done
+3. `ITER-064` — done
+4. `ITER-060`
+5. `ITER-061`
+6. `ITER-062`
+
+Current next active row: `ITER-060`.
 
 Run one row at a time. Keep `ITER-014` and `ITER-043` deferred unless the `n8n` permission decision is explicitly reopened.

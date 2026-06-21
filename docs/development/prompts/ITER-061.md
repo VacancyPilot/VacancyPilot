@@ -11,6 +11,7 @@ Task: add practical token/cost preview and local request-budget controls to the 
 
 Allowed scope:
 
+- provider-local pricing/token metadata;
 - request-size/token preview logic;
 - approximate cost preview or explicit unavailable state;
 - local daily request-budget settings and enforcement;
@@ -30,6 +31,7 @@ pnpm typecheck
 pnpm lint
 pnpm test
 pnpm build
+pnpm test:release
 ```
 
 Expected commit message: `feat: add ai budget preview controls`

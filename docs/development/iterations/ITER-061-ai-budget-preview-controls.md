@@ -9,6 +9,7 @@ Add practical cost and request-budget visibility to AI analysis and letter-gener
 
 ## Scope
 
+- add provider-local metadata needed for token/cost preview;
 - token/input-size preview where possible;
 - approximate cost preview or explicit "not available" state;
 - local daily request-budget controls and enforcement UX;
@@ -34,4 +35,5 @@ pnpm typecheck
 pnpm lint
 pnpm test
 pnpm build
+pnpm test:release
 ```
