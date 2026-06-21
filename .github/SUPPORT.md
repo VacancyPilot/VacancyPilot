@@ -27,7 +27,7 @@ Use the provided templates:
 ### Before Reporting
 
 - Check [existing issues](https://github.com/VacancyPilot/VacancyPilot/issues) to avoid duplicates
-- Read the [README](https://github.com/VacancyPilot/VacancyPilot#readme) and [documentation](docs/)
+- Read the [README](https://github.com/VacancyPilot/VacancyPilot#readme) and [documentation](../docs/)
 - If the parser fails on a specific vacancy, include the page structure (not the page HTML — see privacy note below)
 
 ---
@@ -36,13 +36,13 @@ Use the provided templates:
 
 - **Do not post secrets, API keys, or personal data** in issues or discussions
 - **Do not post full HH.ru page HTML** — it may contain personal information. Describe the vacancy structure instead, or use a sanitized excerpt
-- Security vulnerabilities must be reported privately → [`SECURITY.md`](SECURITY.md)
+- Security vulnerabilities must be reported privately → [`SECURITY.md`](../SECURITY.md)
 
 ---
 
 ## Links
 
 - [README](https://github.com/VacancyPilot/VacancyPilot#readme)
-- [Documentation](docs/)
-- [Security Policy](SECURITY.md)
-- [Contributing Guide](.github/CONTRIBUTING.md)
+- [Documentation](../docs/)
+- [Security Policy](../SECURITY.md)
+- [Contributing Guide](CONTRIBUTING.md)

@@ -136,13 +136,30 @@ PNG export was not possible in the current environment (no `inkscape`, `rsvg-con
 
 ---
 
+## Community Profile Status
+
+| File | Status |
+|------|--------|
+| `README.md` | Present |
+| `SECURITY.md` | Present |
+| `.github/CODEOWNERS` | Present |
+| `.github/CONTRIBUTING.md` | Present |
+| `.github/SUPPORT.md` | Present |
+| `.github/ISSUE_TEMPLATE/bug_report.yml` | Present |
+| `.github/ISSUE_TEMPLATE/feature_request.yml` | Present |
+| `.github/ISSUE_TEMPLATE/config.yml` | Present |
+| `LICENSE` | Deferred |
+| `CODE_OF_CONDUCT.md` | Deferred |
+
+---
+
 ## Remaining Polish
 
-| Area | Note |
-|------|------|
-| License | Not selected yet — all rights reserved by default |
-| CODEOWNERS | Not created — single-maintainer project |
-| CONTRIBUTING.md | Not created — add when community contributions are expected |
-| Issue templates | Not created — add when issues are opened externally |
-| GitHub Pages | Not needed — docs live in README and `docs/` |
-| Sponsorship | Not applicable at this stage |
+| Area | Status | Note |
+|------|--------|------|
+| License | Pending | No license selected yet; all rights reserved by default |
+| Code of Conduct | Deferred | Intentionally deferred until external community forms |
+| Social preview PNG upload | Manual | SVG exists; PNG upload to GitHub Settings still manual unless already completed |
+| Screenshots | Pending | Add real screenshots only after Chrome/Edge manual QA |
+| Required checks | Deferred | Add `ci` as required check after 2+ green main/PR runs |
+| Sonar badge / blocking gate | Deferred | Add only after project key/org are finalized and Sonar is stable |

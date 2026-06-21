@@ -154,7 +154,7 @@ Status values:
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-060 | EPIC-31 | Harden AI settings and API key lifecycle without adding sync or backend storage | planned | `fix: harden ai settings lifecycle` |
+| ITER-060 | EPIC-31 | Harden AI settings lifecycle and land the first real BYOK AI provider without adding sync or backend storage | planned | `feat: harden ai settings and add first real provider` |
 | ITER-061 | EPIC-31 | Add token/cost preview and local request-budget controls to AI execution flows | planned | `feat: add ai budget preview controls` |
 | ITER-062 | EPIC-31 | Add cover-letter quality guardrails and draft provenance markers | planned | `feat: add letter quality guardrails` |
 
@@ -162,7 +162,7 @@ Status values:
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-063 | EPIC-32 | Complete onboarding, permission disclosure, and privacy explainer surfaces for real private installs | planned | `feat: complete onboarding and permission disclosure` |
+| ITER-063 | EPIC-32 | Complete onboarding, permission disclosure, and privacy explainer surfaces for real private installs | done | `feat: complete onboarding and permission disclosure` |
 | ITER-064 | EPIC-32 | Harden private packaging assets, install flow docs, and release verification evidence | done | `docs: finalize private release readiness pack` |
 
 ## Phase 5: Expansion And Release

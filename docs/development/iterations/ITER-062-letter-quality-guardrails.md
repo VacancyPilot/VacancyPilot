@@ -12,6 +12,7 @@ Make generated cover letters easier to trust by surfacing clear quality checks, 
 - detect basic letter issues such as empty/too-short/too-generic or constraint-violating output;
 - add draft provenance markers such as generated/edited/final where needed;
 - improve review workflow around warnings before copy/save final;
+- keep the guardrails compatible with the provider/budget flows landed in `ITER-060` and `ITER-061`;
 - add focused tests for the guardrails.
 
 ## Non-Goals
@@ -34,4 +35,5 @@ pnpm typecheck
 pnpm lint
 pnpm test
 pnpm build
+pnpm test:release
 ```

@@ -94,5 +94,5 @@ Recommended use after `ITER-016`:
 13. The HR communication pack is complete through `ITER-045.md`
 14. The post-audit reliability/scoring pack is complete through `ITER-058.md`
 15. Run `ITER-059.md` to close the remaining moderate dependency alert
-16. Continue with the next active product pack: `ITER-060.md`, then continue one row at a time through `ITER-064.md`
+16. Continue with the next active product pack: `ITER-060.md`, then continue one row at a time through `ITER-062.md`
 17. Keep `ITER-043.md` and `ITER-014.md` deferred until the n8n permission model is explicitly reopened

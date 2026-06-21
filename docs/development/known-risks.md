@@ -101,13 +101,13 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 
 ### R7 — AI Provider Not Implemented (P2)
 
-**Risk**: The AI provider interface is defined and a mock provider exists for testing, but no real provider implementation (OpenAI, DeepSeek, OpenRouter) is present. This is the next active product-scope pack (ITER-060..062, EPIC-31).
+**Risk**: The AI provider interface is defined and a mock provider exists for testing, but no real provider implementation (OpenAI, DeepSeek, OpenRouter) is present. This is the next active product-scope pack (`ITER-060`..`ITER-062`, `EPIC-31`).
 
 **Mitigation**: Provider interface is clean and mock covers testing needs. BYOK architecture means no backend proxy required.
 
 **Residual**: AI analysis and cover letter generation cannot be tested end-to-end without a real API key.
 
-**Action**: Implement at least one provider (OpenRouter or OpenAI as recommended in spec 26.2) in ITER-060..062 before public release.
+**Action**: Implement at least one provider (OpenRouter or OpenAI as recommended in spec 26.2) in `ITER-060` before continuing with the rest of the AI trust pack.
 
 ---
 
@@ -188,7 +188,7 @@ For **private/personal use Phase 1 release**, the following risks are explicitly
 
 - R2 (22 fixtures instead of 50+)
 - R6 (n8n deferred — PHASE-1-SIGNOFF)
-- R7 (mock provider only — real provider in active ITER-060..062)
+- R7 (mock provider only — real provider required in active `ITER-060`)
 - R8 (plaintext key storage)
 - R10 (full matrix not yet run — core closeout passed)
 - R11 (contributor onboarding still thin)
