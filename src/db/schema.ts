@@ -1,10 +1,12 @@
 /**
- * Dexie schema v2 — single source of truth for IndexedDB stores and indexes.
+ * Dexie schema v4 — single source of truth for IndexedDB stores and indexes.
  *
  * Schema follows the master spec section 10.15.
  * Changing this requires a new version() migration.
  *
  * v2 adds [source+sourceVacancyId] compound index on jobs for stable upsert.
+ * v3 adds labsActions store for Labs control plane action log.
+ * v4 adds hrTimeline store for HR communication timeline entries.
  */
 
 export const SCHEMA_V1 = {
@@ -25,10 +27,6 @@ export const SCHEMA_V2 = {
   jobs: "&id, [source+sourceVacancyId], source, sourceVacancyId, companyId, status, selectedProfileId, firstSeenAt, updatedAt, descriptionHash",
 } as const;
 
-export type TableName = keyof typeof SCHEMA_V1;
-
-export const TABLE_NAMES = Object.keys(SCHEMA_V1) as TableName[];
-
 /** v3 adds labsActions store for Labs control plane action log. */
 export const SCHEMA_V3 = {
   ...SCHEMA_V2,
@@ -40,5 +38,10 @@ export const SCHEMA_V4 = {
   ...SCHEMA_V3,
   hrTimeline: "&id, applicationId, type, extractedAt, updatedAt",
 } as const;
+
+/** Table names derived from the current schema version (v4). */
+export type TableName = keyof typeof SCHEMA_V4;
+
+export const TABLE_NAMES = Object.keys(SCHEMA_V4) as TableName[];
 
 export const SCHEMA_VERSION = 4;

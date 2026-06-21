@@ -191,6 +191,7 @@ vi.mock("@/db", () => {
     "events",
     "aiCache",
     "labsActions",
+    "hrTimeline",
     "meta",
   ];
 
@@ -222,6 +223,9 @@ vi.mock("@/db", () => {
     },
     get labsActions() {
       return makeTable("labsActions");
+    },
+    get hrTimeline() {
+      return makeTable("hrTimeline");
     },
     get meta() {
       return makeTable("meta");
@@ -270,6 +274,7 @@ describe("exportAllJson", () => {
     expect(envelope.data).toHaveProperty("events");
     expect(envelope.data).toHaveProperty("aiCache");
     expect(envelope.data).toHaveProperty("labsActions");
+    expect(envelope.data).toHaveProperty("hrTimeline");
     expect(envelope.data).toHaveProperty("meta");
   });
 
@@ -500,20 +505,23 @@ describe("generateJobsCsv", () => {
 // ── Delete All Data Tests ─────────────────────────────────────────────────
 
 describe("deleteAllData", () => {
-  it("clears all Dexie tables", async () => {
+  it("clears all Dexie tables including hrTimeline", async () => {
     seedTable("jobs", [{ id: "hh_1" }]);
     seedTable("events", [{ id: "evt_1" }]);
     seedTable("profiles", [{ id: "prof_1" }]);
+    seedTable("hrTimeline", [{ id: "hrt_1", applicationId: "app_1" }]);
 
     expect(mockTables.jobs).toHaveLength(1);
     expect(mockTables.events).toHaveLength(1);
     expect(mockTables.profiles).toHaveLength(1);
+    expect(mockTables.hrTimeline).toHaveLength(1);
 
     await deleteAllData();
 
     expect(mockTables.jobs).toHaveLength(0);
     expect(mockTables.events).toHaveLength(0);
     expect(mockTables.profiles).toHaveLength(0);
+    expect(mockTables.hrTimeline).toHaveLength(0);
   });
 
   it("removes known product keys from chrome.storage.local", async () => {
@@ -547,7 +555,7 @@ describe("deleteAllData", () => {
 });
 
 describe("deleteJobData", () => {
-  it("deletes a job and related cover letters, applications, and events", async () => {
+  it("deletes a job and related cover letters, applications, events, and hrTimeline", async () => {
     seedTable("jobs", [
       { id: "hh_1", title: "Keep me not", sourceVacancyId: "12345" },
       { id: "hh_2", title: "Keep me", sourceVacancyId: "67890" },
@@ -564,18 +572,28 @@ describe("deleteJobData", () => {
       { id: "evt_1", jobId: "hh_1" },
       { id: "evt_2", jobId: "hh_2" },
     ]);
+    seedTable("hrTimeline", [
+      { id: "hrt_1", applicationId: "app_1" },
+      { id: "hrt_2", applicationId: "app_1" },
+      { id: "hrt_3", applicationId: "app_2" },
+    ]);
 
     const result = await deleteJobData("hh_1");
 
     expect(result.coverLettersDeleted).toBe(1);
     expect(result.applicationsDeleted).toBe(1);
     expect(result.eventsDeleted).toBe(1);
+    expect(result.hrTimelineDeleted).toBe(2);
     expect(mockTables.jobs).toEqual([
       { id: "hh_2", title: "Keep me", sourceVacancyId: "67890" },
     ]);
     expect(mockTables.coverLetters).toEqual([{ id: "cl_2", jobId: "hh_2" }]);
     expect(mockTables.applications).toEqual([{ id: "app_2", jobId: "hh_2" }]);
     expect(mockTables.events).toEqual([{ id: "evt_2", jobId: "hh_2" }]);
+    // Only hrTimeline for surviving application should remain
+    expect(mockTables.hrTimeline).toEqual([
+      { id: "hrt_3", applicationId: "app_2" },
+    ]);
   });
 
   it("removes badge_v1_hh_ key for the deleted job", async () => {
@@ -629,6 +647,12 @@ describe("hasData", () => {
     const result = await hasData();
     expect(result).toBe(true);
   });
+
+  it("returns true when hrTimeline has data", async () => {
+    seedTable("hrTimeline", [{ id: "hrt_1", applicationId: "app_1" }]);
+    const result = await hasData();
+    expect(result).toBe(true);
+  });
 });
 
 describe("getDataCounts", () => {
@@ -637,7 +661,7 @@ describe("getDataCounts", () => {
 
     expect(counts.jobs).toBe(0);
     expect(counts.companies).toBe(0);
-    expect(Object.keys(counts).length).toBe(10);
+    expect(Object.keys(counts).length).toBe(11);
   });
 
   it("returns correct counts", async () => {
@@ -649,6 +673,19 @@ describe("getDataCounts", () => {
     expect(counts.jobs).toBe(2);
     expect(counts.events).toBe(1);
     expect(counts.companies).toBe(0);
+  });
+
+  it("includes hrTimeline in counts", async () => {
+    seedTable("hrTimeline", [
+      { id: "hrt_1", applicationId: "app_1" },
+      { id: "hrt_2", applicationId: "app_1" },
+      { id: "hrt_3", applicationId: "app_2" },
+    ]);
+
+    const counts = await getDataCounts();
+
+    expect(counts.hrTimeline).toBe(3);
+    expect(Object.keys(counts)).toContain("hrTimeline");
   });
 });
 

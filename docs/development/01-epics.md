@@ -48,7 +48,8 @@ This file is the working map from the master specification to implementation epi
 
 | Epic | Name | Phase | Status |
 | --- | --- | --- | --- |
-| EPIC-23 | HR Communication Hub | 4 | ready |
+| EPIC-23 | HR Communication Hub | 4 | done |
+| EPIC-29 | Post-Audit Reliability And Scoring | 4.1 | ready |
 
 ## Later Epics
 

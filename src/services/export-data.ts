@@ -65,14 +65,11 @@ function csvRow(cells: unknown[]): string {
 export async function exportAllJson(): Promise<ExportEnvelope> {
   const data: Record<string, unknown[]> = {};
 
-  // Collect all Dexie table data
+  // Collect all Dexie table data (TABLE_NAMES reflects the current schema v4)
   for (const name of TABLE_NAMES) {
     const table = db.table(name as TableName);
     data[name] = await table.toArray();
   }
-
-  // Collect tables added in later schema versions
-  data.labsActions = await db.labsActions.toArray();
 
   // Load and redact settings
   const rawSettings = await loadSettings();

@@ -132,8 +132,17 @@ Status values:
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
 | ITER-043 | EPIC-09 | Re-open n8n via permission-gated manual workflow events | deferred | `feat: add opt in workflow webhooks` |
-| ITER-044 | EPIC-23 | Add read-only HR timeline capture and reply classification from user-opened HH pages | planned | `feat: add hr timeline capture` |
-| ITER-045 | EPIC-23 | Add reply drafts and follow-up planning workspace | planned | `feat: add hr follow up workspace` |
+| ITER-044 | EPIC-23 | Add read-only HR timeline capture and reply classification from user-opened HH pages | done | `feat: add hr timeline capture` |
+| ITER-045 | EPIC-23 | Add reply drafts and follow-up planning workspace | done | `feat: add hr follow up workspace` |
+
+## Phase 4.1: Post-Audit Reliability And Scoring
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-055 | EPIC-29 | Align lifecycle utilities with the current live schema and HR data model | planned | `fix: align schema lifecycle utilities` |
+| ITER-056 | EPIC-29 | Wire migrations into boot flow and refresh runtime QA evidence | planned | `fix: wire migrations and refresh runtime qa gate` |
+| ITER-057 | EPIC-29 | Extend profiles with experience and seniority inputs | planned | `feat: add profile experience model` |
+| ITER-058 | EPIC-29 | Upgrade scoring using the new experience/seniority signals | planned | `feat: improve scoring fit signals` |
 
 ## Phase 5: Expansion And Release
 

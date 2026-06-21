@@ -24,15 +24,16 @@ phase 2 pack complete on 2026-06-20
 phase 3 workflow-assist pack complete on 2026-06-20
 dependency/toolchain maintenance pack complete on 2026-06-20
 security-alert closure pack complete on 2026-06-21
-next active pack: phase 4 hr communication hub
+phase 4 hr communication hub complete on 2026-06-21
+next active pack: post-audit reliability and scoring
 ```
 
 Recommended next action:
 
 ```text
 1. Review docs/development/00-product-development-plan.md
-2. Start ITER-044
-3. Continue ITER-045 one row at a time
+2. Start ITER-055
+3. Continue through ITER-056, ITER-057, and ITER-058 one row at a time
 4. Keep ITER-043 deferred until the n8n permission model is explicitly reopened
 ```
 
@@ -64,4 +65,4 @@ docs/development/phase-2-start-gate.md
 
 ## Status
 
-The first post-signoff hardening pack is complete. The second audit follow-up fix pack (`ITER-028`..`ITER-031`) is also complete. `ITER-032` closed the manual/infrastructure gate, Phase 2 implementation ran through `ITER-038`, the workflow-assist/Labs pack ran through `ITER-042`, the dependency/toolchain maintenance pack ran through `ITER-050`, and the security-alert closure pack ran through `ITER-054`. The next active product pack is the read-only HR communication hub (`ITER-044`..`ITER-045`). The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.
+The first post-signoff hardening pack is complete. The second audit follow-up fix pack (`ITER-028`..`ITER-031`) is also complete. `ITER-032` closed the manual/infrastructure gate, Phase 2 implementation ran through `ITER-038`, the workflow-assist/Labs pack ran through `ITER-042`, the dependency/toolchain maintenance pack ran through `ITER-050`, the security-alert closure pack ran through `ITER-054`, and the HR communication pack ran through `ITER-045`. The next active product pack is the post-audit reliability/scoring hardening pack (`ITER-055`..`ITER-058`). The master specification remains frozen unless a change affects product boundaries, permissions, data model, or external data flows.

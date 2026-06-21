@@ -10,8 +10,8 @@ import {
 import { VacancyDatabase } from "./database";
 
 describe("schema constant", () => {
-  it("has exactly 9 tables (v1)", () => {
-    expect(TABLE_NAMES).toHaveLength(9);
+  it("has exactly 11 tables (v4)", () => {
+    expect(TABLE_NAMES).toHaveLength(11);
   });
 
   it("includes all required table names", () => {
@@ -25,6 +25,8 @@ describe("schema constant", () => {
       "events",
       "aiCache",
       "meta",
+      "labsActions",
+      "hrTimeline",
     ]);
   });
 

@@ -20,6 +20,7 @@ export interface DeleteJobDataResult {
   coverLettersDeleted: number;
   applicationsDeleted: number;
   eventsDeleted: number;
+  hrTimelineDeleted: number;
 }
 
 export interface DeleteAiCacheAndEventLogResult {
@@ -34,13 +35,10 @@ export interface DeleteAiCacheAndEventLogResult {
  * Callers must present a confirmation flow before invoking.
  */
 export async function deleteAllData(): Promise<void> {
-  // 1. Clear all Dexie tables
+  // 1. Clear all Dexie tables (TABLE_NAMES now reflects the current schema v4)
   await Promise.all(
     TABLE_NAMES.map((name) => db.table(name as TableName).clear()),
   );
-
-  // Clear tables added in later schema versions
-  await db.labsActions.clear();
 
   // 2. Remove known product keys from chrome.storage.local
   await chrome.storage.local.remove(PRODUCT_STORAGE_KEYS);
@@ -57,6 +55,7 @@ export async function deleteAllData(): Promise<void> {
  * - related cover letters
  * - related application records
  * - related event log entries
+ * - HR timeline entries linked through deleted applications
  */
 export async function deleteJobData(
   jobId: string,
@@ -66,12 +65,25 @@ export async function deleteJobData(
     throw new Error(`Job not found: ${jobId}`);
   }
 
+  // Collect application IDs to cascade-delete linked HR timeline entries
+  const appIds = (
+    await db.applications.where("jobId").equals(jobId).toArray()
+  ).map((a) => a.id);
+
   const [coverLettersDeleted, applicationsDeleted, eventsDeleted] =
     await Promise.all([
       db.coverLetters.where("jobId").equals(jobId).delete(),
       db.applications.where("jobId").equals(jobId).delete(),
       db.events.where("jobId").equals(jobId).delete(),
     ]);
+
+  // Cascade-delete HR timeline entries linked to deleted applications
+  const hrTimelineResults = await Promise.all(
+    appIds.map((appId) =>
+      db.hrTimeline.where("applicationId").equals(appId).delete(),
+    ),
+  );
+  const hrTimelineDeleted = hrTimelineResults.reduce((sum, n) => sum + n, 0);
 
   await db.jobs.delete(jobId);
 
@@ -82,6 +94,7 @@ export async function deleteJobData(
     coverLettersDeleted,
     applicationsDeleted,
     eventsDeleted,
+    hrTimelineDeleted,
   };
 }
 
@@ -112,8 +125,6 @@ export async function hasData(): Promise<boolean> {
     const count = await db.table(name as TableName).count();
     if (count > 0) return true;
   }
-  const labsCount = await db.labsActions.count();
-  if (labsCount > 0) return true;
   return false;
 }
 
@@ -127,6 +138,5 @@ export async function getDataCounts(): Promise<Record<string, number>> {
       counts[name] = await db.table(name as TableName).count();
     }),
   );
-  counts.labsActions = await db.labsActions.count();
   return counts;
 }

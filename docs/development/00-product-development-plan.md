@@ -1,6 +1,6 @@
 # VacancyPilot Product Development Plan
 
-Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; dependency maintenance pack complete; security-closure pack complete; workflow-assist pack complete; HR communication pack ready  
+Status: Phase 1 implementation complete; closeout gate passed; Phase 2 pack complete; dependency maintenance pack complete; security-closure pack complete; workflow-assist pack complete; HR communication pack complete; post-audit reliability/scoring pack ready  
 Source of truth: `docs/Техническое заданиеV.1.md` v1.1 FINAL
 
 Implementation note:
@@ -8,7 +8,9 @@ Implementation note:
 - spec-level `Phase 3 — Workflow Queue` was partially absorbed into the enlarged implementation Phase 2 pack (`ITER-037` / `ITER-038`);
 - spec-level `Phase 4 — Guided Apply Labs` and the local workflow-assist layer landed through `ITER-039`..`ITER-042`;
 - the dependency/toolchain maintenance and security-closure packs landed after that product work;
-- the next active product-scope pack is `Phase 5 — HR Communication Hub`, while `n8n` remains deferred until its permission model is explicitly reopened.
+- the HR communication pack landed through `ITER-044` and `ITER-045`;
+- the next active product-scope pack is the post-audit reliability/scoring hardening pack (`ITER-055`..`ITER-058`);
+- `n8n` remains deferred until its permission model is explicitly reopened.
 
 ## Decision
 
@@ -113,8 +115,8 @@ Required:
 
 ## Immediate Next Actions
 
-1. Start the HR communication pack with `ITER-044`.
-2. Continue `ITER-045` after `ITER-044` is reviewed and validated.
+1. Start the post-audit hardening pack with `ITER-055`.
+2. Continue one row at a time through `ITER-056`, `ITER-057`, and `ITER-058`.
 3. Keep `ITER-043` deferred until the `n8n` permission model decision is explicitly reopened.
-4. Leave multi-site expansion and public-release packaging out of the next active pack.
-5. Re-evaluate the single remaining `uuid` dev-only alert only when upstream `wxt -> web-ext-run -> node-notifier` moves.
+4. Keep SonarCloud project identity and Dependency Review gate policy out of the product implementation pack.
+5. Leave multi-site expansion and public-release packaging out of the next active pack.

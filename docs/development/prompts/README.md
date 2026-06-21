@@ -65,6 +65,10 @@ Available prompts:
 - `ITER-052.md`
 - `ITER-053.md`
 - `ITER-054.md`
+- `ITER-055.md`
+- `ITER-056.md`
+- `ITER-057.md`
+- `ITER-058.md`
 - `PHASE-1-SIGNOFF.md`
 
 Recommended use after `ITER-016`:
@@ -81,5 +85,6 @@ Recommended use after `ITER-016`:
 10. Dependency/toolchain maintenance is complete through `ITER-050.md`
 11. The enlarged Phase 3 pack is complete through `ITER-042.md`
 12. The security-closure pack is complete through `ITER-054.md`
-13. Run the next active product pack: `ITER-044.md`, then `ITER-045.md`
-14. Keep `ITER-043.md` and `ITER-014.md` deferred until the n8n permission model is explicitly reopened
+13. The HR communication pack is complete through `ITER-045.md`
+14. Run the next active product pack: `ITER-055.md`, then continue one row at a time through `ITER-058.md`
+15. Keep `ITER-043.md` and `ITER-014.md` deferred until the n8n permission model is explicitly reopened

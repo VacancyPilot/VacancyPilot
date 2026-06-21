@@ -515,7 +515,7 @@ function PrivacySection(): ReactNode {
       const result = await deleteJobData(jobId);
       setJobDeleteStatus("done");
       setJobDeleteMessage(
-        `Deleted ${jobId} and related records (${result.coverLettersDeleted} letter(s), ${result.applicationsDeleted} application(s), ${result.eventsDeleted} event(s)).`,
+        `Deleted ${jobId} and related records (${result.coverLettersDeleted} letter(s), ${result.applicationsDeleted} application(s), ${result.eventsDeleted} event(s), ${result.hrTimelineDeleted} HR timeline entry(s)).`,
       );
       setJobIdInput("");
       await refreshCounts();
