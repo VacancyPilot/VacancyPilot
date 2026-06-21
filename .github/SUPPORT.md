@@ -43,6 +43,6 @@ Use the provided templates:
 ## Links
 
 - [README](https://github.com/VacancyPilot/VacancyPilot#readme)
-- [Documentation](docs/)
+- [Documentation](../docs/)
 - [Security Policy](../SECURITY.md)
 - [Contributing Guide](CONTRIBUTING.md)

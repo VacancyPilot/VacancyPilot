@@ -23,7 +23,7 @@ Cross-document consistency pass: fixed relative links in `.github/` docs, update
 | `docs/development/private-install-guide.md` | Updated (permissions wording corrected) |
 | `docs/development/license-and-community-decision.md` | No changes needed |
 | `.github/CONTRIBUTING.md` | Updated (5 relative links fixed: `../` prefix) |
-| `.github/SUPPORT.md` | Updated (4 relative links fixed: `../` prefix) |
+| `.github/SUPPORT.md` | Updated (5 relative links fixed: `../` prefix) |
 | `.github/ISSUE_TEMPLATE/bug_report.yml` | No changes needed |
 | `.github/ISSUE_TEMPLATE/feature_request.yml` | No changes needed |
 | `.github/ISSUE_TEMPLATE/config.yml` | No changes needed |
@@ -41,10 +41,11 @@ Cross-document consistency pass: fixed relative links in `.github/` docs, update
 | `.github/CONTRIBUTING.md:99` | `SECURITY.md` | `../SECURITY.md` |
 | `.github/SUPPORT.md:30` | `docs/` | `../docs/` |
 | `.github/SUPPORT.md:39` | `SECURITY.md` | `../SECURITY.md` |
+| `.github/SUPPORT.md:46` | `docs/` | `../docs/` |
 | `.github/SUPPORT.md:47` | `SECURITY.md` | `../SECURITY.md` |
 | `.github/SUPPORT.md:48` | `.github/CONTRIBUTING.md` | `CONTRIBUTING.md` |
 
-**Link audit result**: 10 unique referenced files verified via `find_path` — **0 broken links**.
+**Link audit result**: 11 unique referenced files verified via `find_path` — **0 broken links**.
 
 ---
 

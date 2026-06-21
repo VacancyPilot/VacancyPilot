@@ -50,7 +50,7 @@ Repository social preview artwork: [`assets/social-preview/vacancypilot-social-p
 - **No form autofill** — never writes values into HH.ru form fields
 - **No hidden HH fetch** — no fetch/XHR to HH.ru endpoints from background or content scripts
 - **No cookie/session handling** — does not access HH.ru cookies, tokens, or session state
-- **No broad host permissions** — only `storage`, `sidePanel`, `activeTab`
+- **Minimal permission surface** — current manifest requests only `storage`, `sidePanel`, `activeTab`
 - **No telemetry by default** — no analytics, crash reporting, or usage tracking
 
 ---
