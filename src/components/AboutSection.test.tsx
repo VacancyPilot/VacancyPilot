@@ -37,6 +37,15 @@ describe("AboutSection — product identity", () => {
     expect(source).toMatch(/TrustSafetySummary/);
   });
 
+  it("links to privacy, support, and security reporting", () => {
+    expect(source).toMatch(/Privacy Policy/);
+    expect(source).toMatch(/Support Guide/);
+    expect(source).toMatch(/Report a Security Issue/);
+    expect(source).toMatch(/PRIVACY\.md/);
+    expect(source).toMatch(/SUPPORT\.md/);
+    expect(source).toMatch(/security\/advisories\/new/);
+  });
+
   it("contains no forbidden patterns", () => {
     expect(source).not.toMatch(/fetch\(.*hh\.ru/);
   });

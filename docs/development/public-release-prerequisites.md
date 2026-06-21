@@ -16,8 +16,8 @@ This document lists everything that must be completed or resolved before Vacancy
 
 ### 1.2 Store Listing
 - [ ] **Name**: "VacancyPilot" — verify availability in Chrome Web Store (spec 26.1).
-- [ ] **Short description** (max 132 characters): describe what the extension does.
-- [ ] **Full description**: explain features, permissions, privacy posture.
+- [x] **Short description** draft prepared in `docs/development/store-listing-draft.md`.
+- [x] **Full description** draft prepared in `docs/development/store-listing-draft.md`.
 - [ ] **Screenshots** (at least 1, recommended 3–5): 1280x800 or 640x400.
 - [ ] **Promotional images**: small (440x280), large (920x680), marquee (1400x560) — optional but recommended.
 
@@ -41,6 +41,8 @@ Optional permissions (requested at runtime):
 |----------|---------------|
 | AI provider host | Users configure their own AI provider. The host is requested only when the user enters an API key and initiates an AI request. |
 | n8n webhook host | Users configure their own n8n instance. The host is requested only when the user enables the n8n integration in Labs settings. |
+
+Store-facing draft text is prepared in `docs/development/store-listing-draft.md`.
 
 **No sensitive permissions** (`cookies`, `webRequest`, `downloads`, `tabs` with broad access) are requested.
 
@@ -119,7 +121,7 @@ See `docs/development/privacy-policy-checklist.md` for detailed coverage.
 ### 6.2 Release Gate (spec 22.7)
 - [ ] `pnpm typecheck` passes.
 - [ ] `pnpm lint` passes.
-- [ ] `pnpm test` passes (currently 1614 tests).
+- [ ] `pnpm test` passes (currently 1615 tests).
 - [ ] `pnpm build` succeeds without warnings.
 - [ ] `pnpm test:release` passes (currently 373 release-safety tests).
 - [ ] All P0/P1 risks (`docs/development/known-risks.md`) are resolved or explicitly accepted.

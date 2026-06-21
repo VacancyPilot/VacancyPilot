@@ -78,7 +78,7 @@ EPIC-36 addressed P0 and P1 findings from the 2026-06-21 runtime UX audit. Four 
 | ITER-072 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | ITER-073 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | ITER-074 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| ITER-075 | ✅ | ✅ | ✅ (1614 tests) | ✅ | ✅ (373 release-safety tests) |
+| ITER-075 | ✅ | ✅ | ✅ (1615 tests) | ✅ | ✅ (373 release-safety tests) |
 
 ## Manual QA Checklist
 

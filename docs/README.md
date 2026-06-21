@@ -45,8 +45,10 @@ VacancyPilot is a **local-first, read-first HH.ru job-search copilot**. It runs 
 - [`development/security-alert-triage-report.md`](development/security-alert-triage-report.md) — dependency security alert triage
 - [`development/sonarqube-cloud-setup.md`](development/sonarqube-cloud-setup.md) — SonarQube Cloud setup (advisory mode)
 - [`../PRIVACY.md`](../PRIVACY.md) — current public-facing privacy policy draft
+- [`../.github/SUPPORT.md`](../.github/SUPPORT.md) — support channel and reporting guidance
 - [`development/privacy-policy-checklist.md`](development/privacy-policy-checklist.md) — privacy policy readiness checklist
 - [`development/public-release-prerequisites.md`](development/public-release-prerequisites.md) — requirements before public release
+- [`development/store-listing-draft.md`](development/store-listing-draft.md) — ready-to-edit Chrome Web Store copy draft
 
 ---
 
@@ -63,6 +65,7 @@ VacancyPilot is a **local-first, read-first HH.ru job-search copilot**. It runs 
 
 - [`vacancypilot_deep_repo_audit_2026-06-20.md`](vacancypilot_deep_repo_audit_2026-06-20.md) — deep repository audit
 - [`vacancypilot_deep_repo_audit_b9d114c_2026-06-20.md`](vacancypilot_deep_repo_audit_b9d114c_2026-06-20.md) — follow-up audit
+- [`vacancypilot_runtime_visual_consistency_audit_2026-06-21.md`](vacancypilot_runtime_visual_consistency_audit_2026-06-21.md) — runtime UI consistency audit
 - [`development/audit-2026-06-21-decision-report.md`](development/audit-2026-06-21-decision-report.md) — audit decision report
 
 ### External Model Audits

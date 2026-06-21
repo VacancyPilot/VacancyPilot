@@ -51,7 +51,7 @@ pnpm test:release
 
 All five commands must pass. The build output is in `.output/chrome-mv3/`.
 
-Expected current output: about **1614 tests** in the main suite and **373 release-safety tests**. Exact counts may move slightly as tests are added, but both commands must stay fully green.
+Expected current output: about **1615 tests** in the main suite and **373 release-safety tests**. Exact counts may move slightly as tests are added, but both commands must stay fully green.
 
 ---
 

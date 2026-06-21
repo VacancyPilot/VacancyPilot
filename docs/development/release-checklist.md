@@ -115,7 +115,7 @@ The following checks are NOT automated and require manual verification:
 
 ## Release Candidate Sign-off
 
-- [x] All automated CI checks pass (1614 tests, 0 failures)
+- [x] All automated CI checks pass (1615 tests, 0 failures)
 - [x] `pnpm typecheck` passes
 - [x] `pnpm lint` passes
 - [x] `pnpm build` succeeds

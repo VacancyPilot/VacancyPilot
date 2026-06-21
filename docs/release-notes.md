@@ -98,7 +98,7 @@ VacancyPilot is a **local-first, read-first HH.ru job search copilot**. It helps
 | UI | React 19 |
 | Storage | Dexie 4 (IndexedDB) + chrome.storage.local |
 | Language | TypeScript 6 |
-| Tests | 1614 automated tests across 60 files |
+| Tests | 1615 automated tests across 60 files |
 | Permissions | `storage`, `sidePanel`, `activeTab` |
 | Optional runtime host access | `https://api.openai.com/*` |
 | Release-safety tests | 373 tests across 9 files |
