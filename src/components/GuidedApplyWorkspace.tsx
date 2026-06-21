@@ -223,7 +223,7 @@ export function GuidedApplyWorkspace({
         copiedToClipboard: true,
         countsTowardBudget: true,
       });
-      setTimeout(() => setCopySuccess(false), 2000);
+      setTimeout(() => setCopySuccess(false), 2500);
     }
   }, [letter?.bodyText, jobId]);
 
@@ -294,25 +294,25 @@ export function GuidedApplyWorkspace({
         <h2 style={headingStyle}>Guided Apply</h2>
         <div
           style={{
-            padding: "12px 16px",
+            padding: "14px 16px",
             background: "#e6f7e6",
             border: "1px solid #2a8",
             borderRadius: 6,
-            marginBottom: 16,
           }}
         >
           <div
             style={{
-              fontSize: 13,
-              fontWeight: 600,
+              fontSize: 14,
+              fontWeight: 700,
               color: "#2a8",
-              marginBottom: 4,
+              marginBottom: 6,
             }}
           >
             ✅ Applied
           </div>
-          <div style={{ fontSize: 12, color: "#555" }}>
-            This vacancy has been marked as applied in your local tracker.
+          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.5 }}>
+            This vacancy has been marked as applied in your local tracker. You
+            can track HR communication in the HR tab.
           </div>
         </div>
       </div>
@@ -320,6 +320,8 @@ export function GuidedApplyWorkspace({
   }
 
   const allStepsDone = APPLY_STEPS.every((s) => completedSteps.has(s.id));
+  const completedCount = completedSteps.size;
+  const totalSteps = APPLY_STEPS.length;
 
   // ── Resume recommendation ──
 
@@ -335,11 +337,49 @@ export function GuidedApplyWorkspace({
         submit for you. Every HH action is manual and visible.
       </p>
 
+      {/* ── Progress indicator ── */}
+      <div
+        style={{
+          padding: "8px 12px",
+          background: "#f0f7ff",
+          border: "1px solid #d0e0f0",
+          borderRadius: 6,
+          marginBottom: 10,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <span style={{ fontSize: 12, fontWeight: 600, color: "#4a90d9" }}>
+          {completedCount} of {totalSteps} steps complete
+        </span>
+        <div
+          style={{
+            flex: 1,
+            height: 6,
+            background: "#e0e0e0",
+            borderRadius: 3,
+            marginLeft: 12,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${Math.round((completedCount / totalSteps) * 100)}%`,
+              background: "#2a8",
+              borderRadius: 3,
+              transition: "width 0.3s",
+            }}
+          />
+        </div>
+      </div>
+
       {/* ── Resume Recommendation ── */}
       <div style={sectionStyle}>
         <div style={sectionLabelStyle}>📄 Resume Recommendation</div>
         {recommendedResume ? (
-          <div style={{ fontSize: 12, color: "#333", marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: "#333", marginTop: 6 }}>
             <strong>{recommendedResume.title}</strong>
             {recommendedResume.hhResumeId && (
               <span style={{ color: "#999", marginLeft: 8 }}>
@@ -353,7 +393,7 @@ export function GuidedApplyWorkspace({
                     key={s}
                     style={{
                       display: "inline-block",
-                      padding: "1px 6px",
+                      padding: "2px 7px",
                       borderRadius: 3,
                       fontSize: 10,
                       background: "#e6f0ff",
@@ -374,11 +414,11 @@ export function GuidedApplyWorkspace({
             )}
           </div>
         ) : profilesResume ? (
-          <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: "#999", marginTop: 6 }}>
             Profile recommends a resume. Set it up in the Profile tab.
           </div>
         ) : (
-          <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: "#999", marginTop: 6 }}>
             No resume selected. Choose one in the Profile tab.
           </div>
         )}
@@ -404,15 +444,15 @@ export function GuidedApplyWorkspace({
                 lineHeight: 1.5,
               }}
             >
-              {letter.bodyText.slice(0, 400)}
-              {letter.bodyText.length > 400 && "…"}
+              {letter.bodyText.slice(0, 500)}
+              {letter.bodyText.length > 500 && "…"}
             </div>
             <button
               type="button"
               onClick={handleCopyLetter}
               style={{
-                padding: "5px 12px",
-                fontSize: 11,
+                padding: "6px 14px",
+                fontSize: 12,
                 cursor: "pointer",
                 border: "1px solid #4a90d9",
                 borderRadius: 4,
@@ -425,7 +465,7 @@ export function GuidedApplyWorkspace({
             </button>
           </div>
         ) : (
-          <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: "#999", marginTop: 6 }}>
             No cover letter yet. Generate one in the Letter tab first.
           </div>
         )}
@@ -435,7 +475,7 @@ export function GuidedApplyWorkspace({
       <div style={sectionStyle}>
         <div style={sectionLabelStyle}>💡 Field Guidance</div>
         <div
-          style={{ fontSize: 11, color: "#666", marginTop: 4, lineHeight: 1.5 }}
+          style={{ fontSize: 11, color: "#666", marginTop: 6, lineHeight: 1.5 }}
         >
           <p style={{ margin: "4px 0" }}>
             <strong>Cover Letter field:</strong> Usually a textarea below the
@@ -454,23 +494,30 @@ export function GuidedApplyWorkspace({
 
       {/* ── Apply Checklist ── */}
       <div style={sectionStyle}>
-        <div style={sectionLabelStyle}>✅ Apply Checklist</div>
+        <div style={sectionLabelStyle}>
+          ✅ Apply Checklist
+          <span style={{ fontWeight: 400, color: "#999", marginLeft: 8 }}>
+            {completedCount}/{totalSteps}
+          </span>
+        </div>
         <div style={{ marginTop: 8 }}>
           {APPLY_STEPS.map((step) => {
             const done = completedSteps.has(step.id);
+            const isMarkApplied = step.id === "mark-applied";
             return (
               <div
                 key={step.id}
                 style={{
                   display: "flex",
                   alignItems: "flex-start",
-                  gap: 8,
-                  padding: "6px 0",
+                  gap: 10,
+                  padding: "8px 0",
                   borderBottom: "1px solid #f5f5f5",
-                  cursor: step.id !== "mark-applied" ? "pointer" : "default",
+                  cursor: isMarkApplied ? "default" : "pointer",
+                  opacity: done ? 0.7 : 1,
                 }}
                 onClick={() => {
-                  if (step.id !== "mark-applied") handleToggleStep(step.id);
+                  if (!isMarkApplied) handleToggleStep(step.id);
                 }}
               >
                 {/* Checkbox */}
@@ -479,16 +526,16 @@ export function GuidedApplyWorkspace({
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    width: 18,
-                    height: 18,
-                    borderRadius: 3,
-                    border: done ? "none" : "1px solid #ccc",
+                    width: 22,
+                    height: 22,
+                    borderRadius: 4,
+                    border: done ? "none" : "2px solid #ccc",
                     background: done ? "#2a8" : "#fff",
                     color: done ? "#fff" : "transparent",
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: 700,
                     flexShrink: 0,
-                    marginTop: 1,
+                    marginTop: 0,
                   }}
                 >
                   {done ? "✓" : ""}
@@ -533,7 +580,11 @@ export function GuidedApplyWorkspace({
           opacity: markingApplied ? 0.6 : 1,
         }}
       >
-        {markingApplied ? "Updating…" : "✅ Mark as Applied in VacancyPilot"}
+        {markingApplied
+          ? "Updating…"
+          : markedApplied
+            ? "✓ Marked as Applied"
+            : "✅ Mark as Applied in VacancyPilot"}
       </button>
 
       <div
@@ -552,11 +603,11 @@ export function GuidedApplyWorkspace({
         <div
           style={{
             marginTop: 12,
-            padding: "10px 14px",
+            padding: "12px 16px",
             background: "#e6f7e6",
             border: "1px solid #2a8",
             borderRadius: 6,
-            fontSize: 12,
+            fontSize: 13,
             color: "#2a8",
           }}
         >

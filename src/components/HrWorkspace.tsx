@@ -24,6 +24,7 @@ import {
 import { hrTimelineRepo } from "@/db/hr-timeline-repository";
 import { jobRepo } from "@/db/repositories";
 import { db } from "@/db/database";
+import { LoadingState } from "@/components/LoadingState";
 import type { HrTimelineEntry, HrReplyType } from "@/models/hr-timeline";
 import type { Application } from "@/models/application";
 import type { Job } from "@/models/job";
@@ -235,7 +236,7 @@ export function HrWorkspace({
     try {
       await navigator.clipboard.writeText(draftReply);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 2500);
     } catch {
       // Fallback for older browsers or missing clipboard permissions
       const textarea = document.createElement("textarea");
@@ -247,7 +248,7 @@ export function HrWorkspace({
       document.execCommand("copy");
       document.body.removeChild(textarea);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 2500);
     }
   }, [draftReply]);
 
@@ -302,13 +303,7 @@ export function HrWorkspace({
 
   // ── Loading state ──────────────────────────────────────────────
 
-  if (loading) {
-    return (
-      <div style={{ padding: 20, textAlign: "center", color: "#999" }}>
-        Loading HR data…
-      </div>
-    );
-  }
+  if (loading) return <LoadingState message="Loading HR data…" />;
 
   // ── No application ─────────────────────────────────────────────
 
@@ -323,7 +318,6 @@ export function HrWorkspace({
             borderRadius: 6,
             fontSize: 13,
             color: "#8a6d14",
-            marginBottom: 16,
           }}
         >
           <strong>No application record found.</strong>
@@ -339,6 +333,7 @@ export function HrWorkspace({
   // ── Main workspace ──────────────────────────────────────────────
 
   const unreadCount = timeline.filter((e) => !e.isRead).length;
+  const replyCharCount = draftReply.length;
 
   return (
     <div style={{ fontSize: 13 }}>
@@ -376,13 +371,14 @@ export function HrWorkspace({
             type="button"
             onClick={() => void handleMarkReplied()}
             style={{
-              padding: "3px 8px",
+              padding: "4px 10px",
               fontSize: 11,
               cursor: "pointer",
               border: "1px solid #4a90d9",
               borderRadius: 4,
               background: "#e6f0ff",
               color: "#4a90d9",
+              fontWeight: 500,
             }}
           >
             Mark as HR replied
@@ -414,12 +410,17 @@ export function HrWorkspace({
           }}
         >
           Timeline ({timeline.length})
+          {unreadCount > 0 && (
+            <span style={{ color: "#4a90d9", marginLeft: 6 }}>
+              · {unreadCount} unread
+            </span>
+          )}
         </h3>
 
         {timeline.length === 0 ? (
           <div
             style={{
-              padding: 12,
+              padding: 16,
               background: "#f9f9f9",
               borderRadius: 6,
               color: "#999",
@@ -442,10 +443,11 @@ export function HrWorkspace({
                   style={{
                     padding: 10,
                     background: entry.isRead ? "#f9f9f9" : "#fff",
-                    border: `1px solid ${entry.isRead ? "#eee" : "#d0e0f0"}`,
+                    border: `1px solid ${entry.isRead ? "#eee" : colors.fg}40`,
                     borderRadius: 6,
                     cursor: entry.isRead ? "default" : "pointer",
                     opacity: entry.isRead ? 0.8 : 1,
+                    transition: "border-color 0.2s",
                   }}
                 >
                   <div
@@ -459,7 +461,7 @@ export function HrWorkspace({
                     <span
                       style={{
                         display: "inline-block",
-                        padding: "2px 6px",
+                        padding: "2px 7px",
                         borderRadius: 3,
                         fontSize: 11,
                         fontWeight: 600,
@@ -495,6 +497,17 @@ export function HrWorkspace({
                       }}
                     >
                       Click to mark as read
+                    </div>
+                  )}
+                  {entry.isRead && (
+                    <div
+                      style={{
+                        marginTop: 4,
+                        fontSize: 10,
+                        color: "#aaa",
+                      }}
+                    >
+                      ✓ Read
                     </div>
                   )}
                 </div>
@@ -540,7 +553,19 @@ export function HrWorkspace({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginTop: 6,
+            marginTop: 4,
+            marginBottom: 6,
+          }}
+        >
+          <span style={{ fontSize: 10, color: "#bbb" }}>
+            {replyCharCount} character{replyCharCount !== 1 ? "s" : ""}
+          </span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <button
@@ -548,7 +573,7 @@ export function HrWorkspace({
             onClick={() => void handleCopyReply()}
             disabled={!draftReply.trim()}
             style={{
-              padding: "5px 14px",
+              padding: "6px 16px",
               fontSize: 12,
               fontWeight: 600,
               cursor: draftReply.trim() ? "pointer" : "not-allowed",
@@ -560,7 +585,7 @@ export function HrWorkspace({
               transition: "background 0.2s",
             }}
           >
-            {copied ? "✓ Copied!" : "Copy to Clipboard"}
+            {copied ? "✓ Copied!" : "📋 Copy to Clipboard"}
           </button>
           <span style={{ fontSize: 10, color: "#999" }}>
             Paste into HH chat manually — no auto-send
@@ -626,7 +651,7 @@ export function HrWorkspace({
               }}
             />
             {followUpDate && (
-              <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>
+              <div style={{ fontSize: 10, color: "#999", marginTop: 2 }}>
                 Reminder will appear in the dashboard when approaching this
                 date.
               </div>
@@ -676,17 +701,17 @@ export function HrWorkspace({
             <button
               type="submit"
               style={{
-                padding: "5px 14px",
+                padding: "6px 16px",
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: "pointer",
                 border: "1px solid #2a8",
                 borderRadius: 4,
-                background: "#e6f7e6",
+                background: saveStatus ? "#e6f7e6" : "#e6f7e6",
                 color: "#2a8",
               }}
             >
-              Save Follow-up
+              {saveStatus ? "✓ Saved" : "Save Follow-up"}
             </button>
             {saveStatus && (
               <span style={{ fontSize: 12, color: "#2a8" }}>{saveStatus}</span>

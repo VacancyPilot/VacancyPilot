@@ -1,4 +1,10 @@
-import { useState, useCallback, useEffect, type ReactNode } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  type ReactNode,
+} from "react";
 import { jobRepo } from "@/db/repositories";
 import { createStatusChange } from "@/services/status-transitions";
 import { EmptyState } from "@/components/EmptyState";
@@ -136,6 +142,10 @@ export function KanbanBoard(): ReactNode {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [changingJobId, setChangingJobId] = useState<string | null>(null);
+  const [lastMoved, setLastMoved] = useState<{
+    jobId: string;
+    toStatus: JobStatus;
+  } | null>(null);
 
   const loadJobs = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -198,6 +208,9 @@ export function KanbanBoard(): ReactNode {
             )
             .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
         );
+        // Brief success indicator
+        setLastMoved({ jobId, toStatus });
+        setTimeout(() => setLastMoved(null), 1200);
       } catch {
         // Let UI stay consistent — reload on error
         void loadJobs(true);
@@ -277,19 +290,39 @@ export function KanbanBoard(): ReactNode {
         >
           Kanban Board ({totalJobs})
         </h2>
-        <input
-          type="text"
-          placeholder="Search title or company…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            padding: "4px 10px",
-            fontSize: 12,
-            border: "1px solid #ccc",
-            borderRadius: 4,
-            width: 200,
-          }}
-        />
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <input
+            type="text"
+            placeholder="Search title or company…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              padding: "5px 10px",
+              fontSize: 12,
+              border: "1px solid #ccc",
+              borderRadius: 4,
+              width: 200,
+            }}
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Clear search"
+              style={{
+                padding: "3px 8px",
+                fontSize: 11,
+                cursor: "pointer",
+                border: "1px solid #ccc",
+                borderRadius: 4,
+                background: "#f5f5f5",
+                color: "#666",
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Board */}
@@ -307,6 +340,7 @@ export function KanbanBoard(): ReactNode {
             column={col}
             jobs={columnJobs[col.id] ?? []}
             changingJobId={changingJobId}
+            lastMoved={lastMoved}
             onMoveJob={handleMoveJob}
             onOpenVacancy={handleOpenVacancy}
           />
@@ -324,6 +358,7 @@ export function KanbanBoard(): ReactNode {
             }}
             jobs={columnJobs.other ?? []}
             changingJobId={changingJobId}
+            lastMoved={lastMoved}
             onMoveJob={handleMoveJob}
             onOpenVacancy={handleOpenVacancy}
           />
@@ -339,16 +374,34 @@ function KanbanColumnView({
   column,
   jobs,
   changingJobId,
+  lastMoved,
   onMoveJob,
   onOpenVacancy,
 }: {
   column: KanbanColumn;
   jobs: Job[];
   changingJobId: string | null;
+  lastMoved: { jobId: string; toStatus: JobStatus } | null;
   onMoveJob: (jobId: string, toStatus: JobStatus) => void;
   onOpenVacancy: (url: string) => void;
 }): ReactNode {
   const [dropdownJobId, setDropdownJobId] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!dropdownJobId) return;
+    const handler = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setDropdownJobId(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [dropdownJobId]);
 
   const allowedMoves =
     COLUMN_TRANSITIONS[column.id] ??
@@ -357,7 +410,7 @@ function KanbanColumnView({
   return (
     <div
       style={{
-        flex: "0 0 220px",
+        flex: "0 0 240px",
         display: "flex",
         flexDirection: "column",
         background: "#f9f9f9",
@@ -390,11 +443,13 @@ function KanbanColumnView({
         <span
           style={{
             fontSize: 11,
-            fontWeight: 600,
-            color: "#999",
-            background: "#eee",
+            fontWeight: 700,
+            color: "#fff",
+            background: column.color,
             borderRadius: 10,
             padding: "1px 7px",
+            minWidth: 18,
+            textAlign: "center",
           }}
         >
           {jobs.length}
@@ -402,28 +457,31 @@ function KanbanColumnView({
       </div>
 
       {/* Cards */}
-      <div style={{ overflow: "auto", padding: "4px 6px", flex: 1 }}>
+      <div style={{ overflow: "auto", padding: "6px", flex: 1 }}>
         {jobs.map((job) => {
           const badge = statusBadgeStyle(job.status);
           const isChanging = changingJobId === job.id;
+          const justMoved =
+            lastMoved?.jobId === job.id ? lastMoved.toStatus : null;
 
           return (
             <div
               key={job.id}
               style={{
-                padding: "8px",
+                padding: "9px 10px",
                 background: "#fff",
-                border: "1px solid #e8e8e8",
-                borderRadius: 4,
+                border: `1px solid ${isChanging ? column.color : "#e8e8e8"}`,
+                borderRadius: 5,
                 marginBottom: 6,
-                opacity: isChanging ? 0.5 : 1,
-                cursor: "pointer",
+                opacity: isChanging ? 0.6 : 1,
+                cursor: "default",
+                transition: "border-color 0.2s, opacity 0.2s",
               }}
             >
               {/* Title */}
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 600,
                   color: "#333",
                   marginBottom: 4,
@@ -431,13 +489,13 @@ function KanbanColumnView({
                   cursor: "pointer",
                 }}
                 onClick={() => onOpenVacancy(job.sourceUrl)}
-                title="Open vacancy"
+                title="Open vacancy in new tab"
               >
                 {job.title || "(no title)"}
               </div>
 
               {/* Company */}
-              <div style={{ fontSize: 11, color: "#999", marginBottom: 4 }}>
+              <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>
                 {job.companyName || "—"}
               </div>
 
@@ -447,13 +505,13 @@ function KanbanColumnView({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: 4,
+                  marginBottom: 6,
                 }}
               >
                 {job.ruleScore?.total !== undefined ? (
                   <span
                     style={{
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: 700,
                       color: scoreColor(job.ruleScore.total),
                     }}
@@ -467,7 +525,7 @@ function KanbanColumnView({
                 <span
                   style={{
                     display: "inline-block",
-                    padding: "1px 6px",
+                    padding: "2px 7px",
                     borderRadius: 8,
                     fontSize: 10,
                     fontWeight: 600,
@@ -479,13 +537,39 @@ function KanbanColumnView({
                 </span>
               </div>
 
-              {/* Date */}
-              <div style={{ fontSize: 10, color: "#bbb" }}>
-                {formatShortDate(job.updatedAt)}
+              {/* Date + Just-moved indicator */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 6,
+                }}
+              >
+                <span style={{ fontSize: 10, color: "#bbb" }}>
+                  {formatShortDate(job.updatedAt)}
+                </span>
+                {justMoved && (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: "#2a8",
+                      background: "#e6f7e6",
+                      borderRadius: 3,
+                      padding: "1px 5px",
+                    }}
+                  >
+                    ✓ Moved
+                  </span>
+                )}
               </div>
 
               {/* Quick actions */}
-              <div style={{ marginTop: 6, position: "relative" }}>
+              <div
+                style={{ position: "relative" }}
+                ref={dropdownJobId === job.id ? dropdownRef : undefined}
+              >
                 <button
                   type="button"
                   onClick={(e) => {
@@ -494,16 +578,18 @@ function KanbanColumnView({
                   }}
                   style={{
                     width: "100%",
-                    padding: "3px 8px",
-                    fontSize: 10,
-                    border: "1px solid #ccc",
+                    padding: "4px 10px",
+                    fontSize: 11,
+                    fontWeight: 500,
+                    border: "1px solid #d0d0d0",
                     borderRadius: 3,
-                    background: "#fff",
+                    background:
+                      dropdownJobId === job.id ? "#f0f0f0" : "#fafafa",
                     color: "#555",
                     cursor: "pointer",
                   }}
                 >
-                  Move ▾
+                  {isChanging ? "Moving…" : "Move to… ▾"}
                 </button>
 
                 {dropdownJobId === job.id && (
@@ -514,39 +600,64 @@ function KanbanColumnView({
                       left: 0,
                       right: 0,
                       background: "#fff",
-                      border: "1px solid #ccc",
+                      border: "1px solid #d0d0d0",
                       borderRadius: 4,
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                      boxShadow: "0 3px 12px rgba(0,0,0,0.12)",
                       zIndex: 10,
                       marginTop: 2,
+                      overflow: "hidden",
                     }}
                   >
                     {allowedMoves
                       .filter((s) => s !== job.status)
-                      .map((targetStatus) => (
-                        <button
-                          key={targetStatus}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDropdownJobId(null);
-                            onMoveJob(job.id, targetStatus);
-                          }}
-                          style={{
-                            display: "block",
-                            width: "100%",
-                            padding: "4px 8px",
-                            fontSize: 10,
-                            border: "none",
-                            background: "transparent",
-                            color: "#333",
-                            cursor: "pointer",
-                            textAlign: "left",
-                          }}
-                        >
-                          → {statusLabel(targetStatus)}
-                        </button>
-                      ))}
+                      .map((targetStatus) => {
+                        const targetBadge = statusBadgeStyle(targetStatus);
+                        return (
+                          <button
+                            key={targetStatus}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDropdownJobId(null);
+                              onMoveJob(job.id, targetStatus);
+                            }}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 6,
+                              width: "100%",
+                              padding: "6px 10px",
+                              fontSize: 11,
+                              border: "none",
+                              borderBottom: "1px solid #f5f5f5",
+                              background: "transparent",
+                              color: "#333",
+                              cursor: "pointer",
+                              textAlign: "left",
+                            }}
+                            onMouseEnter={(e) => {
+                              (e.target as HTMLElement).style.background =
+                                "#f5f8ff";
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.target as HTMLElement).style.background =
+                                "transparent";
+                            }}
+                          >
+                            <span
+                              style={{
+                                display: "inline-block",
+                                width: 8,
+                                height: 8,
+                                borderRadius: "50%",
+                                background: targetBadge.fg,
+                                flexShrink: 0,
+                              }}
+                            />
+                            {statusLabel(targetStatus)}
+                          </button>
+                        );
+                      })}
                   </div>
                 )}
               </div>
@@ -557,13 +668,15 @@ function KanbanColumnView({
         {jobs.length === 0 && (
           <div
             style={{
-              padding: "12px 8px",
+              padding: "20px 8px",
               fontSize: 11,
-              color: "#ccc",
+              color: "#bbb",
               textAlign: "center",
             }}
           >
-            Empty
+            {column.id === "other"
+              ? "New/viewed vacancies appear here"
+              : `No ${column.label.toLowerCase()} vacancies`}
           </div>
         )}
       </div>
