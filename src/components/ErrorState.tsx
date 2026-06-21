@@ -1,4 +1,12 @@
 import type { ReactNode } from "react";
+import {
+  colors,
+  fontSizes,
+  fontWeights,
+  spacing,
+  borderRadius,
+  fontFamily,
+} from "../styles";
 
 interface ErrorStateProps {
   /** Short error title. */
@@ -12,6 +20,7 @@ interface ErrorStateProps {
 /**
  * Inline error state used within a UI section (not the root error boundary).
  * Displays an error message and an optional retry button.
+ * Uses shared design tokens for visual consistency.
  */
 export function ErrorState({
   message,
@@ -21,18 +30,31 @@ export function ErrorState({
   return (
     <div
       style={{
-        padding: 16,
-        fontFamily: "system-ui, sans-serif",
-        fontSize: 13,
-        color: "#b33",
-        background: "#fff5f5",
-        border: "1px solid #e0b0b0",
-        borderRadius: 6,
+        padding: spacing.xxxl,
+        fontFamily,
+        fontSize: fontSizes.body,
+        color: colors.red,
+        background: colors.errorBg,
+        border: `1px solid ${colors.redBorder}`,
+        borderRadius: borderRadius.lg,
       }}
     >
-      <p style={{ margin: "0 0 4px", fontWeight: 600 }}>{message}</p>
+      <p
+        style={{
+          margin: `0 0 ${spacing.xs}px`,
+          fontWeight: fontWeights.semibold,
+        }}
+      >
+        {message}
+      </p>
       {details && (
-        <p style={{ margin: "0 0 8px", fontSize: 12, color: "#888" }}>
+        <p
+          style={{
+            margin: `0 0 ${spacing.md}px`,
+            fontSize: fontSizes.md,
+            color: colors.textFaint,
+          }}
+        >
           {details}
         </p>
       )}
@@ -41,12 +63,12 @@ export function ErrorState({
           type="button"
           onClick={onRetry}
           style={{
-            padding: "2px 10px",
-            fontSize: 12,
+            padding: `${spacing.xs2}px ${spacing.lg}px`,
+            fontSize: fontSizes.md,
             cursor: "pointer",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-            background: "#fff",
+            border: `1px solid ${colors.borderLight}`,
+            borderRadius: borderRadius.md,
+            background: colors.white,
           }}
         >
           Retry

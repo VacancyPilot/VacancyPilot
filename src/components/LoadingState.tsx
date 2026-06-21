@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { colors, fontSizes, spacing, fontFamily } from "../styles";
 
 interface LoadingStateProps {
   /** Optional message; defaults to "Loading…". */
@@ -8,18 +9,21 @@ interface LoadingStateProps {
 /**
  * Minimal loading placeholder.
  * Used when data is being fetched or computed asynchronously.
+ * Uses shared design tokens for visual consistency.
  */
-export function LoadingState({ message = "Loading\u2026" }: LoadingStateProps): ReactNode {
+export function LoadingState({
+  message = "Loading\u2026",
+}: LoadingStateProps): ReactNode {
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: 24,
-        fontFamily: "system-ui, sans-serif",
-        fontSize: 13,
-        color: "#999",
+        padding: spacing.empty,
+        fontFamily,
+        fontSize: fontSizes.body,
+        color: colors.textPlaceholder,
       }}
     >
       {message}

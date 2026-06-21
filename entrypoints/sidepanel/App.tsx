@@ -1,4 +1,6 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorState } from "@/components/ErrorState";
+import { LoadingState } from "@/components/LoadingState";
 import { EmptyState } from "@/components/EmptyState";
 import { CoverLetterStudio } from "@/components/CoverLetterStudio";
 import { GuidedApplyWorkspace } from "@/components/GuidedApplyWorkspace";
@@ -16,8 +18,15 @@ import {
   colors,
   fontSizes,
   fontWeights,
+  spacing,
+  borderRadius,
   shellBody,
   scrollArea,
+  headerBar,
+  appTitle,
+  appSubtitle,
+  smallButton,
+  warningChip,
   scoreColor,
 } from "@/styles";
 
@@ -325,50 +334,16 @@ function SidePanelContent(): ReactNode {
       }}
     >
       {/* Header */}
-      <div
-        style={{
-          padding: "10px 14px",
-          borderBottom: `1px solid ${colors.border}`,
-          background: colors.cardBg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <div style={headerBar}>
         <div>
-          <h1
-            style={{
-              fontSize: 15,
-              fontWeight: 700,
-              margin: 0,
-              color: colors.navy,
-            }}
-          >
-            VacancyPilot
-          </h1>
-          <p
-            style={{
-              margin: "4px 0 0",
-              fontSize: fontSizes.sm,
-              color: colors.textPlaceholder,
-            }}
-          >
-            HH.ru copilot
-          </p>
+          <h1 style={appTitle}>VacancyPilot</h1>
+          <p style={appSubtitle}>HH.ru copilot</p>
         </div>
         <button
           type="button"
           onClick={handleRefresh}
           title="Refresh"
-          style={{
-            padding: "2px 6px",
-            fontSize: fontSizes.sm,
-            cursor: "pointer",
-            border: `1px solid ${colors.borderLight}`,
-            borderRadius: 4,
-            background: colors.white,
-            color: colors.textFaint,
-          }}
+          style={smallButton}
         >
           ↻
         </button>
@@ -494,28 +469,30 @@ function OverviewTab({ ctx }: { ctx: VacancyContext }): ReactNode {
   return (
     <div>
       {/* Title and company */}
-      <div style={{ marginBottom: 14 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>
+      <div style={{ marginBottom: spacing.xxl }}>
+        <h2
+          style={{
+            fontSize: fontSizes.sectionHeading,
+            fontWeight: fontWeights.bold,
+            margin: `0 0 ${spacing.xs}px`,
+          }}
+        >
           {job.title || "(no title)"}
         </h2>
-        <p style={{ fontSize: 13, color: "#666", margin: 0 }}>
+        <p
+          style={{
+            fontSize: fontSizes.body,
+            color: colors.textMuted,
+            margin: 0,
+          }}
+        >
           {job.companyName || "—"}
         </p>
       </div>
 
       {/* Passive HH status hint (informational, read-only) */}
       {ctx.passiveStatus && passiveStatusLabel(ctx.passiveStatus) && (
-        <div
-          style={{
-            padding: "6px 8px",
-            background: "#fff8e6",
-            border: "1px solid #e6d58c",
-            borderRadius: 4,
-            marginBottom: 14,
-            fontSize: 12,
-            color: "#8a7010",
-          }}
-        >
+        <div style={{ ...warningChip, marginBottom: spacing.xxl }}>
           {passiveStatusLabel(ctx.passiveStatus)}
         </div>
       )}
@@ -524,18 +501,18 @@ function OverviewTab({ ctx }: { ctx: VacancyContext }): ReactNode {
       <div
         style={{
           display: "flex",
-          gap: 10,
-          marginBottom: 14,
+          gap: spacing.lg,
+          marginBottom: spacing.xxl,
           alignItems: "center",
         }}
       >
         <span
           style={{
             display: "inline-block",
-            padding: "3px 10px",
-            borderRadius: 10,
-            fontSize: 12,
-            fontWeight: 600,
+            padding: `${spacing.xs3}px ${spacing.lg}px`,
+            borderRadius: spacing.lg,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.semibold,
             background: badge.bg,
             color: badge.fg,
           }}
@@ -545,8 +522,8 @@ function OverviewTab({ ctx }: { ctx: VacancyContext }): ReactNode {
         {job.ruleScore && (
           <span
             style={{
-              fontSize: 20,
-              fontWeight: 700,
+              fontSize: fontSizes.sectionHeading,
+              fontWeight: fontWeights.bold,
               color: scoreColor(job.ruleScore.total),
             }}
           >
@@ -556,8 +533,8 @@ function OverviewTab({ ctx }: { ctx: VacancyContext }): ReactNode {
         {job.ruleScore?.recommendation && (
           <span
             style={{
-              fontSize: 11,
-              color: "#999",
+              fontSize: fontSizes.sm,
+              color: colors.textPlaceholder,
               textTransform: "uppercase",
               letterSpacing: "0.3px",
             }}
@@ -570,10 +547,10 @@ function OverviewTab({ ctx }: { ctx: VacancyContext }): ReactNode {
       {/* Key details */}
       <div
         style={{
-          background: "#f9f9f9",
-          borderRadius: 6,
-          padding: 10,
-          marginBottom: 14,
+          background: colors.neutralBg,
+          borderRadius: borderRadius.lg,
+          padding: spacing.lg,
+          marginBottom: spacing.xxl,
         }}
       >
         <DetailRow label="Salary" value={job.salaryRaw ?? "—"} />
@@ -599,29 +576,29 @@ function OverviewTab({ ctx }: { ctx: VacancyContext }): ReactNode {
 
       {/* Skills */}
       {job.skills.length > 0 && (
-        <div style={{ marginBottom: 14 }}>
+        <div style={{ marginBottom: spacing.xxl }}>
           <div
             style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#888",
-              marginBottom: 4,
+              fontSize: fontSizes.sm,
+              fontWeight: fontWeights.semibold,
+              color: colors.textFaint,
+              marginBottom: spacing.xs,
               textTransform: "uppercase",
             }}
           >
             Skills
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.xs }}>
             {job.skills.map((skill) => (
               <span
                 key={skill}
                 style={{
                   display: "inline-block",
-                  padding: "2px 8px",
-                  borderRadius: 10,
-                  fontSize: 11,
-                  background: "#eef3ff",
-                  color: "#4a6fa5",
+                  padding: `${spacing.xs2}px ${spacing.md}px`,
+                  borderRadius: spacing.lg,
+                  fontSize: fontSizes.sm,
+                  background: colors.activeBg,
+                  color: colors.navy,
                 }}
               >
                 {skill}
@@ -636,10 +613,10 @@ function OverviewTab({ ctx }: { ctx: VacancyContext }): ReactNode {
         <div>
           <div
             style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#888",
-              marginBottom: 4,
+              fontSize: fontSizes.sm,
+              fontWeight: fontWeights.semibold,
+              color: colors.textFaint,
+              marginBottom: spacing.xs,
               textTransform: "uppercase",
             }}
           >
@@ -647,15 +624,15 @@ function OverviewTab({ ctx }: { ctx: VacancyContext }): ReactNode {
           </div>
           <div
             style={{
-              fontSize: 12,
-              color: "#555",
+              fontSize: fontSizes.md,
+              color: colors.textSecondary,
               lineHeight: 1.5,
               maxHeight: 150,
               overflow: "hidden",
               whiteSpace: "pre-wrap",
-              background: "#fafafa",
-              borderRadius: 4,
-              padding: 8,
+              background: colors.cardBg,
+              borderRadius: borderRadius.md,
+              padding: spacing.md,
             }}
           >
             {job.descriptionClean.slice(0, 500)}
@@ -679,13 +656,13 @@ function DetailRow({
       style={{
         display: "flex",
         justifyContent: "space-between",
-        padding: "3px 0",
-        fontSize: 12,
-        borderBottom: "1px solid #f0f0f0",
+        padding: `${spacing.xs3}px 0`,
+        fontSize: fontSizes.md,
+        borderBottom: `1px solid ${colors.borderHairline}`,
       }}
     >
-      <span style={{ color: "#888" }}>{label}</span>
-      <span style={{ fontWeight: 500 }}>{value}</span>
+      <span style={{ color: colors.textFaint }}>{label}</span>
+      <span style={{ fontWeight: fontWeights.semibold }}>{value}</span>
     </div>
   );
 }
@@ -787,16 +764,16 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
       <div
         style={{
           textAlign: "center",
-          marginBottom: 16,
-          padding: 12,
-          background: "#f9f9f9",
-          borderRadius: 8,
+          marginBottom: spacing.xxxl,
+          padding: spacing.xl,
+          background: colors.neutralBg,
+          borderRadius: borderRadius.xl,
         }}
       >
         <div
           style={{
-            fontSize: 32,
-            fontWeight: 700,
+            fontSize: fontSizes.icon,
+            fontWeight: fontWeights.bold,
             color: scoreColor(score.total),
             lineHeight: 1,
           }}
@@ -805,9 +782,9 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
         </div>
         <div
           style={{
-            fontSize: 11,
-            color: "#999",
-            marginTop: 4,
+            fontSize: fontSizes.sm,
+            color: colors.textPlaceholder,
+            marginTop: spacing.xs,
             textTransform: "uppercase",
             letterSpacing: "0.5px",
           }}
@@ -817,13 +794,13 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
       </div>
 
       {/* Breakdown bars */}
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: spacing.xxxl }}>
         <div
           style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "#888",
-            marginBottom: 8,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: colors.textFaint,
+            marginBottom: spacing.md,
             textTransform: "uppercase",
           }}
         >
@@ -831,27 +808,30 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
         </div>
         {breakdownEntries.map((entry) => {
           const pct = entry.max > 0 ? (entry.score / entry.max) * 100 : 0;
-          const barColor = pct >= 80 ? "#2a8" : pct >= 50 ? "#e6a817" : "#c44";
+          const barColor =
+            pct >= 80 ? colors.green : pct >= 50 ? colors.amber : colors.red;
           return (
-            <div key={entry.label} style={{ marginBottom: 6 }}>
+            <div key={entry.label} style={{ marginBottom: spacing.sm }}>
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  fontSize: 12,
-                  marginBottom: 2,
+                  fontSize: fontSizes.md,
+                  marginBottom: spacing.xs2,
                 }}
               >
-                <span style={{ color: "#555" }}>{entry.label}</span>
-                <span style={{ fontWeight: 600 }}>
+                <span style={{ color: colors.textSecondary }}>
+                  {entry.label}
+                </span>
+                <span style={{ fontWeight: fontWeights.semibold }}>
                   {entry.score}/{entry.max}
                 </span>
               </div>
               <div
                 style={{
                   height: 6,
-                  borderRadius: 3,
-                  background: "#eee",
+                  borderRadius: borderRadius.sm,
+                  background: colors.borderHairline,
                   overflow: "hidden",
                 }}
               >
@@ -860,7 +840,7 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
                     height: "100%",
                     width: `${Math.min(pct, 100)}%`,
                     background: barColor,
-                    borderRadius: 3,
+                    borderRadius: borderRadius.sm,
                     transition: "width 0.3s",
                   }}
                 />
@@ -872,13 +852,13 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
 
       {/* Caps applied */}
       {score.capsApplied && score.capsApplied.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: spacing.xxxl }}>
           <div
             style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#c44",
-              marginBottom: 6,
+              fontSize: fontSizes.sm,
+              fontWeight: fontWeights.semibold,
+              color: colors.red,
+              marginBottom: spacing.sm,
               textTransform: "uppercase",
             }}
           >
@@ -888,18 +868,22 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
             <div
               key={i}
               style={{
-                padding: "6px 8px",
-                background: "#fff5f5",
-                border: "1px solid #fcc",
-                borderRadius: 4,
-                marginBottom: 4,
-                fontSize: 12,
+                padding: `${spacing.sm}px ${spacing.md}px`,
+                background: colors.errorBg,
+                border: `1px solid ${colors.actionErrorBorder}`,
+                borderRadius: borderRadius.md,
+                marginBottom: spacing.xs,
+                fontSize: fontSizes.md,
               }}
             >
-              <span style={{ color: "#c44", fontWeight: 600 }}>
+              <span
+                style={{ color: colors.red, fontWeight: fontWeights.semibold }}
+              >
                 max {cap.maxScore}
               </span>
-              <span style={{ color: "#666", marginLeft: 8 }}>{cap.reason}</span>
+              <span style={{ color: colors.textMuted, marginLeft: spacing.md }}>
+                {cap.reason}
+              </span>
             </div>
           ))}
         </div>
@@ -907,13 +891,13 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
 
       {/* Fit reasons */}
       {score.fitReasons.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: spacing.xxxl }}>
           <div
             style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#2a8",
-              marginBottom: 6,
+              fontSize: fontSizes.sm,
+              fontWeight: fontWeights.semibold,
+              color: colors.green,
+              marginBottom: spacing.sm,
               textTransform: "uppercase",
             }}
           >
@@ -923,10 +907,10 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
             <div
               key={i}
               style={{
-                padding: "4px 0",
-                fontSize: 12,
-                color: "#555",
-                borderBottom: "1px solid #f5f5f5",
+                padding: `${spacing.xs}px 0`,
+                fontSize: fontSizes.md,
+                color: colors.textSecondary,
+                borderBottom: `1px solid ${colors.neutralBg}`,
               }}
             >
               ✓ {reason}
@@ -940,10 +924,10 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
         <div>
           <div
             style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#c44",
-              marginBottom: 6,
+              fontSize: fontSizes.sm,
+              fontWeight: fontWeights.semibold,
+              color: colors.red,
+              marginBottom: spacing.sm,
               textTransform: "uppercase",
             }}
           >
@@ -959,38 +943,43 @@ function ScoreTab({ ctx }: { ctx: VacancyContext }): ReactNode {
 }
 
 function RiskFlagRow({ flag }: { flag: RiskFlag }): ReactNode {
-  const color = riskSeverityColor(flag.severity);
+  const severityColor = riskSeverityColor(flag.severity);
   return (
     <div
       style={{
-        padding: "6px 8px",
-        background: "#fff8f8",
-        border: "1px solid #fee",
-        borderRadius: 4,
-        marginBottom: 4,
-        fontSize: 12,
+        padding: `${spacing.sm}px ${spacing.md}px`,
+        background: colors.actionErrorBg,
+        border: `1px solid ${colors.borderHairline}`,
+        borderRadius: borderRadius.md,
+        marginBottom: spacing.xs,
+        fontSize: fontSizes.md,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
         <span
           style={{
             display: "inline-block",
-            padding: "0 5px",
-            borderRadius: 3,
-            fontSize: 9,
-            fontWeight: 700,
-            background: color,
-            color: "#fff",
+            padding: `0 ${spacing.xs}px`,
+            borderRadius: borderRadius.sm,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.bold,
+            background: severityColor,
+            color: colors.white,
             textTransform: "uppercase",
           }}
         >
           {flag.severity}
         </span>
-        <span style={{ color: "#333" }}>{flag.message}</span>
+        <span style={{ color: colors.text }}>{flag.message}</span>
       </div>
       {flag.evidence && (
         <div
-          style={{ fontSize: 10, color: "#999", marginTop: 2, marginLeft: 2 }}
+          style={{
+            fontSize: fontSizes.xs,
+            color: colors.textPlaceholder,
+            marginTop: spacing.xs2,
+            marginLeft: spacing.xs2,
+          }}
         >
           {flag.evidence}
         </div>
@@ -1040,10 +1029,10 @@ function HistoryTab({ ctx }: { ctx: VacancyContext }): ReactNode {
     <div>
       <div
         style={{
-          fontSize: 11,
-          fontWeight: 600,
-          color: "#888",
-          marginBottom: 8,
+          fontSize: fontSizes.sm,
+          fontWeight: fontWeights.semibold,
+          color: colors.textFaint,
+          marginBottom: spacing.md,
           textTransform: "uppercase",
         }}
       >
@@ -1059,7 +1048,7 @@ function HistoryTab({ ctx }: { ctx: VacancyContext }): ReactNode {
             top: 0,
             bottom: 0,
             width: 2,
-            background: "#e0e0e0",
+            background: colors.border,
           }}
         />
 
@@ -1071,7 +1060,7 @@ function HistoryTab({ ctx }: { ctx: VacancyContext }): ReactNode {
               style={{
                 position: "relative",
                 paddingLeft: 24,
-                marginBottom: isLast ? 0 : 14,
+                marginBottom: isLast ? 0 : spacing.xxl,
               }}
             >
               {/* Dot */}
@@ -1083,35 +1072,50 @@ function HistoryTab({ ctx }: { ctx: VacancyContext }): ReactNode {
                   width: 10,
                   height: 10,
                   borderRadius: "50%",
-                  background: isLast ? "#4a90d9" : "#bbb",
-                  border: "2px solid #fff",
-                  boxShadow: "0 0 0 2px #e0e0e0",
+                  background: isLast ? colors.blue : "#bbb",
+                  border: `2px solid ${colors.white}`,
+                  boxShadow: `0 0 0 2px ${colors.border}`,
                 }}
               />
 
-              <div style={{ fontSize: 12, fontWeight: 600 }}>
+              <div
+                style={{
+                  fontSize: fontSizes.md,
+                  fontWeight: fontWeights.semibold,
+                }}
+              >
                 {change.from ? (
                   <>
-                    <span style={{ color: "#999" }}>
+                    <span style={{ color: colors.textPlaceholder }}>
                       {statusLabel(change.from)}
                     </span>
-                    <span style={{ color: "#ccc", margin: "0 4px" }}>→</span>
+                    <span
+                      style={{ color: "#ccc", margin: `0 ${spacing.xs}px` }}
+                    >
+                      →
+                    </span>
                   </>
                 ) : null}
                 <span>{statusLabel(change.to)}</span>
               </div>
-              <div style={{ fontSize: 10, color: "#999", marginTop: 1 }}>
+              <div
+                style={{
+                  fontSize: fontSizes.xs,
+                  color: colors.textPlaceholder,
+                  marginTop: 1,
+                }}
+              >
                 {formatShortDate(change.at)}
-                <span style={{ marginLeft: 6, color: "#bbb" }}>
+                <span style={{ marginLeft: spacing.sm, color: "#bbb" }}>
                   via {change.source}
                 </span>
               </div>
               {change.note && (
                 <div
                   style={{
-                    fontSize: 11,
-                    color: "#666",
-                    marginTop: 2,
+                    fontSize: fontSizes.sm,
+                    color: colors.textMuted,
+                    marginTop: spacing.xs2,
                     fontStyle: "italic",
                   }}
                 >
@@ -1197,21 +1201,14 @@ export default function App(): ReactNode {
   return (
     <ErrorBoundary rootLabel="Side Panel">
       {dbError ? (
-        <div style={{ padding: 12, fontSize: fontSizes.md, color: colors.red }}>
-          Failed to initialize local data: {dbError}
-        </div>
+        <ErrorState
+          message="Failed to initialize local data"
+          details={dbError}
+        />
       ) : dbReady ? (
         <SidePanelContent />
       ) : (
-        <div
-          style={{
-            padding: 12,
-            fontSize: fontSizes.md,
-            color: colors.textMuted,
-          }}
-        >
-          Initializing local data…
-        </div>
+        <LoadingState message="Initializing local data…" />
       )}
     </ErrorBoundary>
   );

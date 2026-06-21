@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorState } from "@/components/ErrorState";
+import { LoadingState } from "@/components/LoadingState";
 import { usePageStatus, PageStatus } from "@/components/PageStatus";
 import { EmptyState } from "@/components/EmptyState";
 import { tracker } from "@/services/tracker";
@@ -12,7 +14,23 @@ import type { Job, JobStatus } from "@/models/job";
 import type { Profile } from "@/models/profile";
 import type { ApplicationStatusSync } from "@/adapters/types";
 import type { PageStatusInfo } from "@/components/PageStatus";
-import { colors, fontSizes, fontWeights, scoreColor } from "@/styles";
+import {
+  colors,
+  fontSizes,
+  fontWeights,
+  spacing,
+  scoreColor,
+  shellBody,
+  panelHeader,
+  appTitle,
+  appSubtitle,
+  infoChip,
+  warningChip,
+  errorChip,
+  expandToggle,
+  labelStyle,
+  selectStyle,
+} from "@/styles";
 
 // ── Helpers ──
 
@@ -282,76 +300,41 @@ function PopupContent(): ReactNode {
     <div
       style={{
         width: 300,
-        padding: 12,
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        fontSize: 13,
-        color: "#333",
+        padding: spacing.xxxl,
+        ...shellBody,
       }}
     >
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 10,
-        }}
-      >
-        <h1
-          style={{
-            fontSize: 16,
-            fontWeight: 700,
-            margin: 0,
-            color: colors.navy,
-          }}
-        >
-          VacancyPilot
-        </h1>
-        <span style={{ fontSize: fontSizes.sm, color: colors.textVeryFaint }}>
-          v0.1
-        </span>
+      <div style={{ ...panelHeader, marginBottom: spacing.section }}>
+        <h1 style={appTitle}>VacancyPilot</h1>
+        <span style={appSubtitle}>v0.1</span>
       </div>
 
       {/* Page status */}
-      <div
-        style={{
-          padding: "6px 8px",
-          background: colors.neutralBg,
-          borderRadius: 4,
-          marginBottom: 10,
-        }}
-      >
+      <div style={{ ...infoChip, marginBottom: spacing.lg }}>
         <PageStatus info={pageInfo} />
       </div>
 
       {/* Passive HH status hint (informational, read-only) */}
       {passiveStatus && passiveStatusLabel(passiveStatus) && (
-        <div
-          style={{
-            padding: "6px 8px",
-            background: colors.warningBg,
-            border: "1px solid #e6d58c",
-            borderRadius: 4,
-            marginBottom: 10,
-            fontSize: fontSizes.md,
-            color: colors.amberText,
-          }}
-        >
+        <div style={{ ...warningChip, marginBottom: spacing.lg }}>
           {passiveStatusLabel(passiveStatus)}
         </div>
       )}
 
       {/* Score & Status */}
       {isVacancy && jobLoaded ? (
-        <div style={{ marginBottom: 10 }}>
+        <div style={{ marginBottom: spacing.lg }}>
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
-              marginBottom: 6,
+              marginBottom: spacing.xs3,
             }}
           >
-            <span style={{ color: colors.textMuted }}>Score</span>
+            <span style={{ color: colors.textMuted, fontSize: fontSizes.md }}>
+              Score
+            </span>
             <span
               style={{
                 fontWeight: fontWeights.semibold,
@@ -364,9 +347,9 @@ function PopupContent(): ReactNode {
           {recommendation && (
             <div
               style={{
-                fontSize: 11,
+                fontSize: fontSizes.sm,
                 color: colors.textPlaceholder,
-                marginBottom: 6,
+                marginBottom: spacing.xs3,
                 textAlign: "right",
               }}
             >
@@ -379,7 +362,9 @@ function PopupContent(): ReactNode {
               justifyContent: "space-between",
             }}
           >
-            <span style={{ color: colors.textMuted }}>Status</span>
+            <span style={{ color: colors.textMuted, fontSize: fontSizes.md }}>
+              Status
+            </span>
             <span style={{ fontWeight: fontWeights.semibold }}>
               {statusDisplay}
             </span>
@@ -387,21 +372,11 @@ function PopupContent(): ReactNode {
 
           {/* Score breakdown toggle */}
           {savedJob?.ruleScore && (
-            <div style={{ marginTop: 8 }}>
+            <div style={{ marginTop: spacing.md }}>
               <button
                 type="button"
                 onClick={() => setShowBreakdown(!showBreakdown)}
-                style={{
-                  width: "100%",
-                  padding: "3px 6px",
-                  fontSize: fontSizes.sm,
-                  cursor: "pointer",
-                  border: `1px solid ${colors.borderLight}`,
-                  borderRadius: 3,
-                  background: "#f9f9f9",
-                  color: colors.textFaint,
-                  textAlign: "left",
-                }}
+                style={expandToggle}
               >
                 {showBreakdown ? "▾ Hide breakdown" : "▸ Show breakdown"}
               </button>
@@ -419,30 +394,12 @@ function PopupContent(): ReactNode {
 
       {/* Profile selector */}
       {isVacancy && profiles.length > 1 && (
-        <div style={{ marginBottom: 10 }}>
-          <label
-            style={{
-              display: "block",
-              fontSize: fontSizes.sm,
-              fontWeight: fontWeights.semibold,
-              color: colors.textMuted,
-              marginBottom: 3,
-            }}
-          >
-            Profile
-          </label>
+        <div style={{ marginBottom: spacing.lg }}>
+          <label style={labelStyle}>Profile</label>
           <select
             value={selectedProfileId ?? ""}
             onChange={(e) => setSelectedProfileId(e.target.value || undefined)}
-            style={{
-              width: "100%",
-              padding: "4px 6px",
-              fontSize: fontSizes.md,
-              border: `1px solid ${colors.borderLight}`,
-              borderRadius: 3,
-              background: colors.white,
-              color: colors.text,
-            }}
+            style={selectStyle}
           >
             {profiles.map((p) => (
               <option key={p.id} value={p.id}>
@@ -455,17 +412,7 @@ function PopupContent(): ReactNode {
 
       {/* Error message */}
       {actionError && (
-        <div
-          style={{
-            padding: "6px 8px",
-            background: colors.actionErrorBg,
-            border: `1px solid ${colors.actionErrorBorder}`,
-            borderRadius: 4,
-            marginBottom: 10,
-            fontSize: fontSizes.md,
-            color: colors.red,
-          }}
-        >
+        <div style={{ ...errorChip, marginBottom: spacing.lg }}>
           {actionError}
         </div>
       )}
@@ -474,8 +421,8 @@ function PopupContent(): ReactNode {
       <div
         style={{
           display: "flex",
-          gap: 6,
-          marginTop: isVacancy ? 10 : 0,
+          gap: spacing.sm,
+          marginTop: isVacancy ? spacing.lg : 0,
         }}
       >
         {isVacancy && (
@@ -764,21 +711,14 @@ export default function App(): ReactNode {
   return (
     <ErrorBoundary rootLabel="Popup">
       {dbError ? (
-        <div style={{ padding: 12, fontSize: fontSizes.md, color: colors.red }}>
-          Failed to initialize local data: {dbError}
-        </div>
+        <ErrorState
+          message="Failed to initialize local data"
+          details={dbError}
+        />
       ) : dbReady ? (
         <PopupContent />
       ) : (
-        <div
-          style={{
-            padding: 12,
-            fontSize: fontSizes.md,
-            color: colors.textMuted,
-          }}
-        >
-          Initializing local data…
-        </div>
+        <LoadingState message="Initializing local data…" />
       )}
     </ErrorBoundary>
   );

@@ -1703,21 +1703,14 @@ export default function App(): ReactNode {
   return (
     <ErrorBoundary rootLabel="Dashboard">
       {dbError ? (
-        <div style={{ padding: 16, fontSize: fontSizes.md, color: colors.red }}>
-          Failed to initialize local data: {dbError}
-        </div>
+        <ErrorState
+          message="Failed to initialize local data"
+          details={dbError}
+        />
       ) : dbReady ? (
         <DashboardContent />
       ) : (
-        <div
-          style={{
-            padding: 16,
-            fontSize: fontSizes.md,
-            color: colors.textMuted,
-          }}
-        >
-          Initializing local data…
-        </div>
+        <LoadingState message="Initializing local data…" />
       )}
     </ErrorBoundary>
   );

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { colors, fontSizes, fontWeights, spacing, fontFamily } from "../styles";
 
 interface EmptyStateProps {
   /** Icon or emoji to show above the message. */
@@ -11,9 +12,10 @@ interface EmptyStateProps {
 
 /**
  * Placeholder for screens that have no data yet.
+ * Uses shared design tokens for visual consistency.
  */
 export function EmptyState({
-  icon = "\uD83D\uDCCB",
+  icon = "📋",
   message,
   description,
 }: EmptyStateProps): ReactNode {
@@ -24,19 +26,27 @@ export function EmptyState({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: 32,
-        fontFamily: "system-ui, sans-serif",
-        fontSize: 13,
-        color: "#999",
+        padding: spacing.emptyLarge,
+        fontFamily,
+        fontSize: fontSizes.body,
+        color: colors.textPlaceholder,
         textAlign: "center",
       }}
     >
-      <span style={{ fontSize: 32, marginBottom: 8 }}>{icon}</span>
-      <p style={{ margin: "0 0 4px", fontWeight: 500, color: "#666" }}>
+      <span style={{ fontSize: fontSizes.icon, marginBottom: spacing.md }}>
+        {icon}
+      </span>
+      <p
+        style={{
+          margin: `0 0 ${spacing.xs}px`,
+          fontWeight: fontWeights.semibold,
+          color: colors.textMuted,
+        }}
+      >
         {message}
       </p>
       {description && (
-        <p style={{ margin: 0, fontSize: 12 }}>{description}</p>
+        <p style={{ margin: 0, fontSize: fontSizes.md }}>{description}</p>
       )}
     </div>
   );

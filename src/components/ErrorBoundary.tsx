@@ -1,4 +1,12 @@
 import { type ErrorInfo, Component, type ReactNode } from "react";
+import {
+  colors,
+  fontSizes,
+  fontWeights,
+  spacing,
+  borderRadius,
+  fontFamily,
+} from "../styles";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -19,8 +27,12 @@ interface ErrorBoundaryState {
  * - Offers a "Reload UI" button.
  * - Logs the error to the console.
  * - Does NOT send data anywhere — no telemetry.
+ * - Uses shared design tokens for visual consistency.
  */
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -32,7 +44,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error(
-      `[VacancyPilot] ErrorBoundary caught an error${this.props.rootLabel ? ` in ${this.props.rootLabel}` : ""}:`,
+      `[VacancyPilot] ErrorBoundary caught an error${
+        this.props.rootLabel ? ` in ${this.props.rootLabel}` : ""
+      }:`,
       error,
       info.componentStack,
     );
@@ -48,33 +62,44 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <div
           style={{
-            padding: 16,
-            fontFamily: "system-ui, sans-serif",
-            fontSize: 13,
-            color: "#333",
-            background: "#fff3f3",
-            border: "1px solid #e0a0a0",
-            borderRadius: 6,
+            padding: spacing.xxxl,
+            fontFamily,
+            fontSize: fontSizes.body,
+            color: colors.text,
+            background: colors.actionErrorBg,
+            border: `1px solid ${colors.redBorder}`,
+            borderRadius: borderRadius.lg,
             maxWidth: "100%",
             overflow: "hidden",
           }}
         >
-          <p style={{ margin: "0 0 8px", fontWeight: 600 }}>
+          <p
+            style={{
+              margin: `0 0 ${spacing.md}px`,
+              fontWeight: fontWeights.semibold,
+            }}
+          >
             {label} crashed
           </p>
-          <p style={{ margin: "0 0 8px", color: "#666", fontSize: 12 }}>
+          <p
+            style={{
+              margin: `0 0 ${spacing.md}px`,
+              color: colors.textMuted,
+              fontSize: fontSizes.md,
+            }}
+          >
             {this.state.error?.message ?? "Unknown error"}
           </p>
           <button
             type="button"
             onClick={this.handleReload}
             style={{
-              padding: "4px 12px",
-              fontSize: 12,
+              padding: `${spacing.xs}px ${spacing.xl}px`,
+              fontSize: fontSizes.md,
               cursor: "pointer",
-              border: "1px solid #ccc",
-              borderRadius: 4,
-              background: "#fff",
+              border: `1px solid ${colors.borderLight}`,
+              borderRadius: borderRadius.md,
+              background: colors.white,
             }}
           >
             Reload UI

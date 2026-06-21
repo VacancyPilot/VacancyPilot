@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { colors, fontSizes } from "../styles";
 
 export type PageStatusInfo =
   | { kind: "loading" }
@@ -71,16 +72,24 @@ interface PageStatusProps {
  */
 export function PageStatus({ info }: PageStatusProps): ReactNode {
   if (info.kind === "loading") {
-    return <span style={{ color: "#999", fontSize: 12 }}>Detecting page…</span>;
+    return (
+      <span style={{ color: colors.textPlaceholder, fontSize: fontSizes.md }}>
+        Detecting page…
+      </span>
+    );
   }
 
   if (info.kind === "vacancy") {
     return (
-      <span style={{ color: "#2a8", fontSize: 12 }}>Vacancy page detected</span>
+      <span style={{ color: colors.green, fontSize: fontSizes.md }}>
+        Vacancy page detected
+      </span>
     );
   }
 
   return (
-    <span style={{ color: "#999", fontSize: 12 }}>Not a vacancy page</span>
+    <span style={{ color: colors.textPlaceholder, fontSize: fontSizes.md }}>
+      Not a vacancy page
+    </span>
   );
 }
