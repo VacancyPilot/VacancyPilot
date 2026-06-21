@@ -9,6 +9,14 @@ export type CoverLetterMode =
   | "very_short"
   | "en";
 
+/**
+ * Draft provenance tracks the review lifecycle of a cover letter.
+ * - ai_generated: raw AI output, not yet reviewed by the user
+ * - edited: user has modified the text after generation
+ * - final: user has explicitly marked as ready to send
+ */
+export type DraftProvenance = "ai_generated" | "edited" | "final";
+
 export interface CoverLetterVersion {
   bodyText: string;
   createdAt: string;
@@ -35,6 +43,9 @@ export interface CoverLetter {
   aiProvider?: string;
   aiModel?: string;
   promptVersion?: string;
+
+  /** Review-lifecycle provenance. Distinct from `source` which tracks origin. */
+  provenance: DraftProvenance;
 
   versions: CoverLetterVersion[];
 

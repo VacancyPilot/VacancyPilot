@@ -37,6 +37,8 @@ import {
   defaultConstraintsForMode,
   buildLetterVersion,
   buildLetterId,
+  computeProvenance,
+  provenanceBadge,
 } from "./CoverLetterStudio";
 import { coverLetterRepo } from "@/db/repositories";
 
@@ -131,6 +133,52 @@ describe("buildLetterId", () => {
   });
 });
 
+// ── computeProvenance ──────────────────────────────────────────────────
+
+describe("computeProvenance", () => {
+  it('returns "final" when isFinal is true', () => {
+    expect(computeProvenance("ai", true, false)).toBe("final");
+    expect(computeProvenance("manual_edit", true, true)).toBe("final");
+  });
+
+  it('returns "ai_generated" for AI source without edits', () => {
+    expect(computeProvenance("ai", false, false)).toBe("ai_generated");
+  });
+
+  it('returns "edited" when user has edited AI text', () => {
+    expect(computeProvenance("ai", false, true)).toBe("edited");
+  });
+
+  it('returns "edited" for manual/template sources', () => {
+    expect(computeProvenance("manual_edit", false, false)).toBe("edited");
+    expect(computeProvenance("template", false, true)).toBe("edited");
+  });
+});
+
+// ── provenanceBadge ────────────────────────────────────────────────────
+
+describe("provenanceBadge", () => {
+  it('returns correct badge for "ai_generated"', () => {
+    const badge = provenanceBadge("ai_generated");
+    expect(badge.label).toBe("AI-generated");
+    expect(badge.icon).toBe("🤖");
+    expect(badge.color).toBeTruthy();
+    expect(badge.bg).toBeTruthy();
+  });
+
+  it('returns correct badge for "edited"', () => {
+    const badge = provenanceBadge("edited");
+    expect(badge.label).toBe("Edited");
+    expect(badge.icon).toBe("✏️");
+  });
+
+  it('returns correct badge for "final"', () => {
+    const badge = provenanceBadge("final");
+    expect(badge.label).toBe("Final");
+    expect(badge.icon).toBe("✓");
+  });
+});
+
 // ── Repository tests ─────────────────────────────────────────────────────
 
 function makeLetter(overrides?: Partial<CoverLetter>): CoverLetter {
@@ -149,6 +197,7 @@ function makeLetter(overrides?: Partial<CoverLetter>): CoverLetter {
     bodyText: "Test letter",
     isFinal: false,
     source: "manual_edit",
+    provenance: "edited",
     versions: [
       {
         bodyText: "Test letter",

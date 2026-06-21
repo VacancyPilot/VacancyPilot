@@ -416,6 +416,127 @@ describe("validateCoverLetter", () => {
     const result = validateCoverLetter(longText, strictConstraints);
 
     expect(result.valid).toBe(false);
-    expect(result.issues.length).toBeGreaterThanOrEqual(3);
+    expect(result.blockers.length).toBeGreaterThanOrEqual(3);
+  });
+
+  // ── New guardrail tests ─────────────────────────────────────────────
+
+  it("warns about very short letters", () => {
+    const result = validateCoverLetter("Hi", defaultConstraints);
+    expect(result.warnings.some((w) => w.includes("короткое"))).toBe(true);
+  });
+
+  it("warns about unfilled placeholders", () => {
+    const result = validateCoverLetter(
+      "Dear [Name], I am interested in the [Position] at [Company].",
+      defaultConstraints,
+    );
+    expect(result.warnings.some((w) => w.includes("плейсхолдеры"))).toBe(true);
+  });
+
+  it("does not warn about placeholders in normal text", () => {
+    const result = validateCoverLetter(
+      "Здравствуйте! Меня заинтересовала позиция в вашей компании.",
+      defaultConstraints,
+    );
+    expect(result.warnings.some((w) => w.includes("плейсхолдеры"))).toBe(false);
+  });
+
+  it("warns about overly generic letter (English)", () => {
+    const genericLetter = [
+      "I am writing to express my interest in the Senior Developer position.",
+      "I believe my skills and experience make me a strong candidate.",
+      "Thank you for considering my application.",
+      "I look forward to hearing from you.",
+    ].join(" ");
+    const result = validateCoverLetter(genericLetter, defaultConstraints);
+    expect(result.warnings.some((w) => w.includes("шаблонным"))).toBe(true);
+  });
+
+  it("warns about overly generic letter (Russian)", () => {
+    const genericLetter = [
+      "Я пишу, чтобы выразить заинтересованность в позиции Senior Developer.",
+      "Уверен, что мой опыт и навыки делают меня подходящим кандидатом.",
+      "Благодарю за рассмотрение моей кандидатуры.",
+    ].join(" ");
+    const result = validateCoverLetter(genericLetter, defaultConstraints);
+    expect(result.warnings.some((w) => w.includes("шаблонным"))).toBe(true);
+  });
+
+  it("warns about mixed English+Russian generic letter", () => {
+    const genericLetter = [
+      "I am writing to express my interest in the Developer position.",
+      "Уверена, что мой опыт делает меня сильным кандидатом.",
+      "Благодарю за рассмотрение моего резюме.",
+    ].join(" ");
+    const result = validateCoverLetter(genericLetter, defaultConstraints);
+    expect(result.warnings.some((w) => w.includes("шаблонным"))).toBe(true);
+  });
+
+  it("does not flag letter with fewer than 3 generic patterns", () => {
+    const letter =
+      "I am writing to express my interest. Here is my specific experience with React and TypeScript.";
+    const result = validateCoverLetter(letter, defaultConstraints);
+    expect(result.warnings.some((w) => w.includes("шаблонным"))).toBe(false);
+  });
+
+  it("provides info note when greeting is missing", () => {
+    const result = validateCoverLetter(
+      "I have 5 years of experience in frontend development.",
+      defaultConstraints,
+    );
+    expect(result.infoNotes.some((n) => n.includes("приветствие"))).toBe(true);
+  });
+
+  it("provides info note when closing is missing", () => {
+    const result = validateCoverLetter(
+      "Здравствуйте! Я опытный разработчик.",
+      defaultConstraints,
+    );
+    expect(result.infoNotes.some((n) => n.includes("завершающей фразы"))).toBe(
+      true,
+    );
+  });
+
+  it("does not provide info notes for well-structured letter", () => {
+    const result = validateCoverLetter(
+      "Здравствуйте! Я заинтересован в позиции. С уважением, Иван.",
+      defaultConstraints,
+    );
+    expect(result.infoNotes).toHaveLength(0);
+  });
+
+  it("separates blockers from warnings correctly", () => {
+    const constraints: CoverLetterConstraints = {
+      noEmoji: true,
+      noMarkdown: true,
+      noSpecialChars: false,
+      maxChars: 500,
+    };
+    const text = "A".repeat(600);
+    const result = validateCoverLetter(text, constraints);
+
+    // Length violation is a blocker
+    expect(result.blockers.length).toBeGreaterThan(0);
+    expect(result.blockers.some((b) => b.includes("превышает"))).toBe(true);
+    // Short text check should not fire as warning when text is long
+    expect(result.warnings.some((w) => w.includes("короткое"))).toBe(false);
+  });
+
+  it("empty letter returns early with single blocker", () => {
+    const result = validateCoverLetter("   ", defaultConstraints);
+    expect(result.valid).toBe(false);
+    expect(result.blockers).toHaveLength(1);
+    expect(result.blockers[0]).toContain("пустое");
+    expect(result.warnings).toHaveLength(0);
+    expect(result.infoNotes).toHaveLength(0);
+  });
+
+  it("all new fields are present in result", () => {
+    const result = validateCoverLetter("Hello world", defaultConstraints);
+    expect(result).toHaveProperty("blockers");
+    expect(result).toHaveProperty("warnings");
+    expect(result).toHaveProperty("infoNotes");
+    expect(result).toHaveProperty("issues");
   });
 });

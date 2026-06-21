@@ -210,7 +210,13 @@ export function createFallbackAnalysis(overrides: {
 export interface LetterValidationResult {
   valid: boolean;
   text: string;
+  /** Issues that should block marking as final (constraint violations). */
+  blockers: string[];
+  /** Non-blocking quality warnings. */
   warnings: string[];
+  /** Informational notes (e.g., provenance, structure hints). */
+  infoNotes: string[];
+  /** Legacy alias — kept for existing consumers. */
   issues: string[];
 }
 
@@ -218,53 +224,124 @@ export interface LetterValidationResult {
  * Validate a generated cover letter against constraints.
  *
  * Checks:
- * - Length against maxChars
- * - Emoji presence (if noEmoji is set)
- * - Markdown presence (if noMarkdown is set)
- * - Special characters (if noSpecialChars is set)
- * - Fabricated facts warning (heuristic)
+ * - Length against maxChars (blocker)
+ * - Emoji presence (if noEmoji is set) (blocker)
+ * - Markdown presence (if noMarkdown is set) (blocker)
+ * - Special characters (if noSpecialChars is set) (blocker)
+ * - Empty text (blocker)
+ * - Too short for the mode (warning)
+ * - Too generic / placeholder-laden (warning)
+ * - Missing structural elements (info)
+ * - Fabricated facts warning (warning)
  */
 export function validateCoverLetter(
   text: string,
   constraints: CoverLetterConstraints,
 ): LetterValidationResult {
+  const blockers: string[] = [];
   const warnings: string[] = [];
-  const issues: string[] = [];
+  const infoNotes: string[] = [];
 
-  // Length check
+  const trimmed = text.trim();
+
+  // ── Blocker: empty text ──
+  if (trimmed.length === 0) {
+    blockers.push("Письмо пустое.");
+    return {
+      valid: false,
+      text,
+      blockers,
+      warnings,
+      infoNotes,
+      issues: blockers,
+    };
+  }
+
+  // ── Blocker: length exceeds maxChars ──
   if (constraints.maxChars && text.length > constraints.maxChars) {
-    issues.push(
+    blockers.push(
       `Письмо превышает лимит в ${constraints.maxChars} символов (текущая длина: ${text.length}).`,
     );
   }
 
-  // Emoji check
+  // ── Blocker: emoji ──
   if (constraints.noEmoji) {
     if (EMOJI_LIKE_RE.test(text)) {
-      issues.push("Письмо содержит emoji (настройка noEmoji включена).");
+      blockers.push("Письмо содержит emoji (настройка noEmoji включена).");
     }
   }
 
-  // Markdown check
+  // ── Blocker: markdown ──
   if (constraints.noMarkdown) {
     if (/[*_~`#]/.test(text)) {
-      issues.push(
+      blockers.push(
         "Письмо содержит markdown-форматирование (настройка noMarkdown включена).",
       );
     }
   }
 
-  // Special chars check
+  // ── Blocker: special chars ──
   if (constraints.noSpecialChars) {
     if (containsDisallowedSpecialChars(text)) {
-      issues.push(
+      blockers.push(
         "Письмо содержит нестандартные символы (настройка noSpecialChars включена).",
       );
     }
   }
 
-  // Fabricated facts heuristic: if the letter mentions specific years, numbers,
-  // or named achievements that look fabricated
+  // ── Warning: too short ──
+  if (trimmed.length < 50) {
+    warnings.push(
+      "Письмо очень короткое. Убедитесь, что оно содержит достаточно информации для работодателя.",
+    );
+  }
+
+  // ── Warning: too generic / placeholder patterns ──
+  const placeholderPatterns = [
+    /\[Name\]/i,
+    /\[Company\]/i,
+    /\[Position\]/i,
+    /\[your name\]/i,
+    /\[your company\]/i,
+    /\[insert/i,
+    /\[fill/i,
+  ];
+  for (const pattern of placeholderPatterns) {
+    if (pattern.test(text)) {
+      warnings.push(
+        "Письмо содержит незаполненные плейсхолдеры (например, [Name], [Company]). Заполните их перед отправкой.",
+      );
+      break;
+    }
+  }
+
+  // ── Warning: overly generic AI output ──
+  const genericIndicators = [
+    // English
+    /I am writing to express my interest in the .+ position/i,
+    /I believe my skills and experience make me a strong candidate/i,
+    /Thank you for considering my application/i,
+    /I look forward to hearing from you/i,
+    // Russian
+    /я пишу.{0,30}чтобы выразить.{0,30}(заинтересованность|интерес)/i,
+    /уверен[а]?.{0,20}что мой опыт.{0,30}(делают|делает).{0,20}(подходящим|идеальным|сильным) кандидатом/i,
+    /благодарю за рассмотрение.{0,20}(моей кандидатуры|моего резюме|отклика)/i,
+    /с нетерпением жду.{0,20}(возможности|ответа|обратной связи)/i,
+    /я внимательно ознакомил[ся|ась] с требованиями/i,
+    /мой опыт работы включает/i,
+    /готов[а]? ответить на.{0,20}(дополнительные|ваши) вопросы/i,
+  ];
+  let genericCount = 0;
+  for (const pattern of genericIndicators) {
+    if (pattern.test(text)) genericCount++;
+  }
+  if (genericCount >= 3) {
+    warnings.push(
+      "Письмо выглядит слишком шаблонным. Добавьте больше конкретики о вашем опыте и интересе к позиции.",
+    );
+  }
+
+  // ── Warning: fabricated facts ──
   const fabricationPatterns = [
     /\b(20\d{2})\b/g, // years like 2020, 2021
     /\bувеличил[а]?\s+на\s+\d+%/gi, // "увеличил на X%"
@@ -281,16 +358,34 @@ export function validateCoverLetter(
     }
   }
 
-  // Empty text
-  if (text.trim().length === 0) {
-    issues.push("Письмо пустое.");
+  // ── Info: structural completeness ──
+  const hasGreeting =
+    /^(здравствуйте|добрый|уважаем|приветствую|hello|dear|hi|greetings)/im.test(
+      trimmed,
+    );
+  const hasClosing =
+    /(с уважением|best regards|sincerely|thank you|спасибо|благодарю)/im.test(
+      trimmed,
+    );
+
+  if (!hasGreeting) {
+    infoNotes.push(
+      "В письме не найдено приветствие. Добавьте обращение к получателю.",
+    );
+  }
+  if (!hasClosing) {
+    infoNotes.push(
+      "В письме не найдено завершающей фразы. Добавьте подпись или благодарность.",
+    );
   }
 
   return {
-    valid: issues.length === 0,
+    valid: blockers.length === 0,
     text,
+    blockers,
     warnings,
-    issues,
+    infoNotes,
+    issues: blockers,
   };
 }
 
@@ -485,7 +580,7 @@ const ALLOWED_BASIC_PUNCTUATION = new Set([
   ":",
   "(",
   ")",
-  "\"",
+  '"',
   "'",
   "/",
   "%",
@@ -498,8 +593,7 @@ const ALLOWED_BASIC_PUNCTUATION = new Set([
 function containsDisallowedSpecialChars(text: string): boolean {
   return Array.from(text).some(
     (char) =>
-      !ALLOWED_EXTRA_SPECIAL_CHARS.has(char) &&
-      !isAllowedBasicChar(char),
+      !ALLOWED_EXTRA_SPECIAL_CHARS.has(char) && !isAllowedBasicChar(char),
   );
 }
 

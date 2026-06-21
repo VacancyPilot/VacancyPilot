@@ -9,6 +9,7 @@ export type {
   CoverLetterMode,
   CoverLetterVersion,
   CoverLetter,
+  DraftProvenance,
 } from "./cover-letter";
 export type { Application } from "./application";
 export type { EventLogType, EventLog } from "./event-log";

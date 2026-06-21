@@ -4,6 +4,7 @@ import type {
   CoverLetterConstraints,
   CoverLetter,
   CoverLetterVersion,
+  DraftProvenance,
 } from "@/models";
 import { coverLetterRepo } from "@/db/repositories";
 import { validateCoverLetter } from "@/services/ai-validation";
@@ -91,6 +92,49 @@ export function buildLetterId(jobId: string, profileId: string): string {
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 type CopyStatus = "idle" | "copied" | "error";
 
+// ── Provenance helpers (pure, exported for tests) ───────────────────────
+
+export function computeProvenance(
+  source: CoverLetter["source"],
+  isFinal: boolean,
+  hasEdits: boolean,
+): DraftProvenance {
+  if (isFinal) return "final";
+  if (source === "ai" && !hasEdits) return "ai_generated";
+  return "edited";
+}
+
+export function provenanceBadge(provenance: DraftProvenance): {
+  label: string;
+  color: string;
+  bg: string;
+  icon: string;
+} {
+  switch (provenance) {
+    case "ai_generated":
+      return {
+        label: "AI-generated",
+        color: "#7b4dff",
+        bg: "#f3eeff",
+        icon: "🤖",
+      };
+    case "edited":
+      return {
+        label: "Edited",
+        color: "#e6a817",
+        bg: "#fffbed",
+        icon: "✏️",
+      };
+    case "final":
+      return {
+        label: "Final",
+        color: "#2a8",
+        bg: "#e8f5e9",
+        icon: "✓",
+      };
+  }
+}
+
 export function CoverLetterStudio({
   jobId,
   profileId,
@@ -109,6 +153,10 @@ export function CoverLetterStudio({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
   const [loaded, setLoaded] = useState(false);
+  const [provenance, setProvenance] = useState<DraftProvenance>("edited");
+  const [showReviewGate, setShowReviewGate] = useState(false);
+  // Track whether user has edited the text since loading (for provenance)
+  const [userEdited, setUserEdited] = useState(false);
 
   // ── Load existing letter on mount ──
   useEffect(() => {
@@ -130,6 +178,8 @@ export function CoverLetterStudio({
           setMode(match.mode);
           setConstraints(match.constraints);
           setBodyText(match.bodyText);
+          setProvenance(match.provenance ?? "edited");
+          setUserEdited(false);
         }
       } catch {
         // Silently fail — user can start fresh
@@ -149,6 +199,13 @@ export function CoverLetterStudio({
     bodyText,
     constraints,
   );
+
+  // ── Update provenance when user edits ──
+  useEffect(() => {
+    if (userEdited && provenance === "ai_generated") {
+      setProvenance("edited");
+    }
+  }, [userEdited, provenance]);
 
   // ── Mode change → update constraints ──
   const handleModeChange = useCallback((newMode: CoverLetterMode) => {
@@ -173,10 +230,13 @@ export function CoverLetterStudio({
   const handleTextChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setBodyText(e.target.value);
+      setUserEdited(true);
       // Clear copy status when user edits
       if (copyStatus !== "idle") setCopyStatus("idle");
+      // Close review gate when user continues editing
+      if (showReviewGate) setShowReviewGate(false);
     },
-    [copyStatus],
+    [copyStatus, showReviewGate],
   );
 
   // ── Save ──
@@ -210,12 +270,14 @@ export function CoverLetterStudio({
           bodyText,
           isFinal,
           source: "manual_edit" as const,
+          provenance: isFinal ? "final" : "edited",
           versions: [...base.versions, version],
           updatedAt: now,
         };
 
         await coverLetterRepo.save(letter);
         setExistingLetter(letter);
+        setProvenance(isFinal ? "final" : "edited");
         setSaveStatus("saved");
 
         // Reset status after delay
@@ -245,6 +307,30 @@ export function CoverLetterStudio({
       setErrorMessage("Failed to copy to clipboard");
     }
   }, [bodyText]);
+
+  // ── Review gate: confirm copy/final when warnings exist ──
+  const hasWarningsOrNotes =
+    validation.warnings.length > 0 || validation.infoNotes.length > 0;
+  const hasBlockers = validation.blockers.length > 0;
+
+  const handleSaveFinalWithReview = useCallback(() => {
+    if (hasWarningsOrNotes && !showReviewGate) {
+      setShowReviewGate(true);
+      return;
+    }
+    handleSave(true);
+    setShowReviewGate(false);
+  }, [hasWarningsOrNotes, showReviewGate, handleSave]);
+
+  const handleCopyWithReview = useCallback(() => {
+    if (hasBlockers) return;
+    if (hasWarningsOrNotes && !showReviewGate) {
+      setShowReviewGate(true);
+      return;
+    }
+    handleCopy();
+    setShowReviewGate(false);
+  }, [hasBlockers, hasWarningsOrNotes, showReviewGate, handleCopy]);
 
   // ── No context → EmptyState ──
   if (!jobId || !profileId) {
@@ -389,6 +475,33 @@ export function CoverLetterStudio({
         </div>
       </fieldset>
 
+      {/* Provenance badge */}
+      {bodyText.trim() && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "4px 10px",
+            background: provenanceBadge(provenance).bg,
+            borderRadius: 4,
+            fontSize: 11,
+            color: provenanceBadge(provenance).color,
+            fontWeight: 500,
+          }}
+        >
+          <span>{provenanceBadge(provenance).icon}</span>
+          <span>
+            {provenanceBadge(provenance).label}
+            {provenance === "ai_generated" &&
+              " — отредактируйте перед сохранением"}
+            {provenance === "edited" &&
+              !existingLetter?.isFinal &&
+              " — черновик редактируется"}
+          </span>
+        </div>
+      )}
+
       {/* Text editor */}
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <textarea
@@ -433,7 +546,7 @@ export function CoverLetterStudio({
             {constraints.maxChars ? ` / ${constraints.maxChars}` : ""} chars
           </span>
 
-          {/* Validation issues */}
+          {/* Validation messages */}
           <div
             style={{
               display: "flex",
@@ -442,14 +555,19 @@ export function CoverLetterStudio({
               textAlign: "right",
             }}
           >
-            {validation.issues.map((issue, i) => (
-              <span key={`issue-${i}`} style={{ color: "#c44" }}>
-                ⚠ {issue}
+            {validation.blockers.map((issue, i) => (
+              <span key={`blocker-${i}`} style={{ color: "#c44" }}>
+                ⛔ {issue}
               </span>
             ))}
             {validation.warnings.map((warn, i) => (
               <span key={`warn-${i}`} style={{ color: "#e6a817" }}>
                 ⚡ {warn}
+              </span>
+            ))}
+            {validation.infoNotes.map((note, i) => (
+              <span key={`info-${i}`} style={{ color: "#4a90d9" }}>
+                ℹ {note}
               </span>
             ))}
           </div>
@@ -489,13 +607,20 @@ export function CoverLetterStudio({
 
         <button
           type="button"
-          onClick={() => handleSave(true)}
-          disabled={saveStatus === "saving" || !bodyText.trim()}
+          onClick={handleSaveFinalWithReview}
+          disabled={saveStatus === "saving" || !bodyText.trim() || hasBlockers}
+          title={
+            hasBlockers
+              ? "Исправьте ошибки перед сохранением финальной версии"
+              : hasWarningsOrNotes
+                ? "Есть замечания — нажмите для просмотра"
+                : "Сохранить как финальную версию"
+          }
           style={{
             padding: "5px 12px",
             fontSize: 12,
             cursor:
-              saveStatus === "saving" || !bodyText.trim()
+              saveStatus === "saving" || !bodyText.trim() || hasBlockers
                 ? "not-allowed"
                 : "pointer",
             border: "1px solid #2a8",
@@ -503,29 +628,41 @@ export function CoverLetterStudio({
             background: "#2a8",
             color: "#fff",
             fontWeight: 600,
-            opacity: saveStatus === "saving" || !bodyText.trim() ? 0.6 : 1,
+            opacity:
+              saveStatus === "saving" || !bodyText.trim() || hasBlockers
+                ? 0.6
+                : 1,
           }}
         >
           Save Final
+          {hasWarningsOrNotes && !hasBlockers && " ⚡"}
         </button>
 
         <button
           type="button"
-          onClick={handleCopy}
-          disabled={!bodyText.trim()}
+          onClick={handleCopyWithReview}
+          disabled={!bodyText.trim() || hasBlockers}
+          title={
+            hasBlockers
+              ? "Исправьте ошибки перед копированием"
+              : hasWarningsOrNotes
+                ? "Есть замечания — нажмите для просмотра"
+                : "Скопировать в буфер обмена"
+          }
           style={{
             padding: "5px 12px",
             fontSize: 12,
-            cursor: bodyText.trim() ? "pointer" : "not-allowed",
+            cursor: !bodyText.trim() || hasBlockers ? "not-allowed" : "pointer",
             border: "1px solid #ccc",
             borderRadius: 4,
             background: copyStatus === "copied" ? "#e8f5e9" : "#fff",
             color: copyStatus === "copied" ? "#2a8" : "#555",
             fontWeight: 500,
-            opacity: bodyText.trim() ? 1 : 0.6,
+            opacity: !bodyText.trim() || hasBlockers ? 0.6 : 1,
           }}
         >
           {copyStatus === "copied" ? "✓ Copied" : "Copy"}
+          {hasWarningsOrNotes && !hasBlockers && " ⚡"}
         </button>
 
         {/* Save status feedback */}
@@ -542,6 +679,83 @@ export function CoverLetterStudio({
         )}
       </div>
 
+      {/* Review gate panel */}
+      {showReviewGate && !hasBlockers && (
+        <div
+          style={{
+            border: "1px solid #e6a817",
+            borderRadius: 4,
+            padding: "8px 10px",
+            background: "#fffbed",
+            fontSize: 12,
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 600,
+              color: "#8a6d14",
+              marginBottom: 6,
+            }}
+          >
+            ⚡ Перед продолжением проверьте замечания:
+          </div>
+          <ul
+            style={{
+              margin: "0 0 8px 0",
+              paddingLeft: 18,
+              color: "#8a6d14",
+              fontSize: 11,
+              lineHeight: 1.6,
+            }}
+          >
+            {validation.warnings.map((w, i) => (
+              <li key={`review-warn-${i}`}>{w}</li>
+            ))}
+            {validation.infoNotes.map((n, i) => (
+              <li key={`review-info-${i}`} style={{ color: "#4a90d9" }}>
+                {n}
+              </li>
+            ))}
+          </ul>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => {
+                handleSave(true);
+                setShowReviewGate(false);
+              }}
+              style={{
+                padding: "3px 10px",
+                fontSize: 11,
+                cursor: "pointer",
+                border: "1px solid #2a8",
+                borderRadius: 3,
+                background: "#2a8",
+                color: "#fff",
+                fontWeight: 600,
+              }}
+            >
+              Всё равно сохранить
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowReviewGate(false)}
+              style={{
+                padding: "3px 10px",
+                fontSize: 11,
+                cursor: "pointer",
+                border: "1px solid #ccc",
+                borderRadius: 3,
+                background: "#fff",
+                color: "#555",
+              }}
+            >
+              Вернуться к редактированию
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Existing letter indicator */}
       {existingLetter && (
         <div
@@ -556,6 +770,9 @@ export function CoverLetterStudio({
           {existingLetter.isFinal
             ? `Final version saved at ${new Date(existingLetter.updatedAt).toLocaleString()}`
             : `Draft saved at ${new Date(existingLetter.updatedAt).toLocaleString()}`}
+          {existingLetter.source === "ai" &&
+            !existingLetter.isFinal &&
+            ` · Source: AI`}
         </div>
       )}
     </div>
