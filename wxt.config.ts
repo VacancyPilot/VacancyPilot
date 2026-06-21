@@ -18,11 +18,11 @@ export default defineConfig({
     optional_host_permissions: ["https://api.openai.com/*"],
     optional_permissions: [],
     icons: {
-      16: "/icons/icon-128.svg",
-      32: "/icons/icon-128.svg",
-      48: "/icons/icon-128.svg",
-      96: "/icons/icon-128.svg",
-      128: "/icons/icon-128.svg",
+      16: "/icons/icon-16.png",
+      32: "/icons/icon-32.png",
+      48: "/icons/icon-48.png",
+      96: "/icons/icon-96.png",
+      128: "/icons/icon-128.png",
     },
   },
 });

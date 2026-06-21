@@ -50,7 +50,7 @@ Repository social preview artwork: [`assets/social-preview/vacancypilot-social-p
 - **No form autofill** — never writes values into HH.ru form fields
 - **No hidden HH fetch** — no fetch/XHR to HH.ru endpoints from background or content scripts
 - **No cookie/session handling** — does not access HH.ru cookies, tokens, or session state
-- **Minimal permission surface** — current manifest requests only `storage`, `sidePanel`, `activeTab`
+- **Minimal permission surface** — current core permissions are `storage`, `sidePanel`, `activeTab`, with a narrow optional OpenAI runtime host for user-confirmed AI requests
 - **No telemetry by default** — no analytics, crash reporting, or usage tracking
 
 ---
@@ -60,10 +60,11 @@ Repository social preview artwork: [`assets/social-preview/vacancypilot-social-p
 **Private alpha / dogfooding.**
 
 - CI pipeline with typecheck, lint, unit tests, build, and release-safety tests — green
+- OpenAI BYOK provider is implemented behind explicit user action and payload preview
 - Critical dependency alerts — remediated
 - High dependency alert backlog — triaged/remediated in the latest security pass
 - GitHub infrastructure and security baseline — 90+ % complete
-- Data-integrity hardening and runtime browser QA remain before public beta
+- Public-release work remains mostly in packaging, legal/compliance, broader manual QA, and larger parser coverage
 
 ---
 
@@ -136,9 +137,9 @@ Release-safety tests are the project's automated guard against accidentally intr
 |----------|-----------|--------|
 | P0 | Data Integrity Hardening | Planned |
 | P0 | Runtime QA (Chrome / Edge) | Planned |
-| P1 | Scoring v2 | Backlog |
-| P1 | UI Design System | Backlog |
-| P2 | AI Provider Gateway | Backlog |
+| P1 | Parser Fixture Expansion | Planned |
+| P1 | Public Release Docs And Assets | Planned |
+| P2 | UI Design System | Backlog |
 | P2 | Public Beta Readiness | Backlog |
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for full details and near-term priorities.
@@ -150,6 +151,7 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md) for full details and near-term prioriti
 - [Product specification](docs/Техническое%20заданиеV.1.md)
 - [Development pack](docs/development/)
 - [Docs index](docs/README.md)
+- [Privacy policy](PRIVACY.md)
 - [Security policy](SECURITY.md)
 - [Release notes](docs/release-notes.md)
 

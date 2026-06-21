@@ -39,19 +39,19 @@ pnpm typecheck
 # Lint
 pnpm lint
 
-# Unit and safety tests (1417 tests expected across 48 test files)
+# Unit and safety tests
 pnpm test
 
 # Production build
 pnpm build
 
-# Release safety tests (347 tests across 8 files)
+# Release safety tests
 pnpm test:release
 ```
 
 All five commands must pass. The build output is in `.output/chrome-mv3/`.
 
-Expected test output: **48 test files, 1417 tests passed**. Release safety: **8 test files, 347 tests passed**.
+Expected current output: about **1614 tests** in the main suite and **373 release-safety tests**. Exact counts may move slightly as tests are added, but both commands must stay fully green.
 
 ---
 
@@ -104,7 +104,7 @@ At the current private-alpha stage, the extension requests only:
 
 There are currently no broad `host_permissions` and no `optional_permissions` in the manifest.
 
-Future AI/n8n integrations may require explicit opt-in network access. If added, those permissions must be documented, optional where possible, and gated behind user settings.
+The current build also declares a narrow optional runtime host access for OpenAI requests: `https://api.openai.com/*`. It is not a broad install-time host permission.
 
 ---
 

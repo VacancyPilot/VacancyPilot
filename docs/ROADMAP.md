@@ -2,7 +2,7 @@
 
 ## Current Status
 
-**Private alpha / dogfooding.** The extension is functional end-to-end: vacancy parser, local tracker, rule-based scoring, cover letter studio, export, and release-safety tests all pass. The project is not yet publicly released.
+**Private alpha / dogfooding.** The extension is functional end-to-end: vacancy parser, local tracker, rule-based scoring, search triage, workflow queue, HR timeline, cover letter studio, OpenAI BYOK flow, export, and release-safety tests all pass. The project is not yet publicly released.
 
 Key milestones reached:
 
@@ -19,13 +19,6 @@ Key milestones reached:
 
 ## Near-Term Priorities
 
-### P0 — Data Integrity Hardening
-
-- Ensure all current schema tables are included in export/delete/count flows
-- Verify `hrTimeline` is included in JSON export and delete-all flows
-- Add tests for delete-all, delete-job, export, hasData and getDataCounts
-- Validate save/load/export cycles with larger local datasets
-
 ### P0 — Runtime QA
 
 - Manual QA pass in Chrome latest stable
@@ -41,12 +34,18 @@ Key milestones reached:
 - Add edge-case parsing for non-standard HH.ru vacancy layouts
 - Target ≥ 50 sanitized vacancy fixtures before public beta
 
-### P1 — AI/release-trust (ITER-060 → ITER-063)
+### P1 — Release-Trust And Public Readiness
 
-- AI assist quality improvements
-- Onboarding and permission disclosure surfaces
-- Privacy explainer and user-facing trust documentation
-- Real AI provider integration
+- Refresh release-facing docs so they match the actual implementation
+- Host the public-facing privacy policy at a stable public URL
+- Prepare store listing assets and permission-justification text
+- Prepare a narrow public-release follow-up pack without reopening product scope
+
+### P1 — Performance And Scale Confidence
+
+- Test with 500+ tracked vacancies
+- Verify export/delete responsiveness on larger local datasets
+- Document observed thresholds and residual limits
 
 ---
 
@@ -58,7 +57,8 @@ Key milestones reached:
 - [ ] Parser fixture coverage ≥ 50 vacancies
 - [ ] Document public release prerequisites
 - [ ] Privacy policy and user-facing disclosures finalized
-- [ ] Real AI provider implemented and tested
+- [x] Real AI provider implemented
+- [ ] Real AI provider manually tested in live browser flow
 - [ ] API key storage hardened (see spec §26.6)
 - [ ] Performance tested with 500+ tracked vacancies
 - [ ] Chrome Web Store listing assets prepared

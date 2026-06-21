@@ -1,9 +1,9 @@
-# VacancyPilot — Phase 1 Release Notes
+# VacancyPilot — Private Alpha Release Notes
 
 **Version**: 0.1.0  
-**Date**: 2026-06-19  
-**Status**: Release Candidate (private/personal use)  
-**Target**: Phase 1 — Read & Assist MVP
+**Date**: 2026-06-22  
+**Status**: Private alpha / dogfooding build  
+**Target**: First real private release baseline
 
 ---
 
@@ -40,7 +40,8 @@ VacancyPilot is a **local-first, read-first HH.ru job search copilot**. It helps
 - Redaction of emails, phones, URLs before external requests.
 - Strict Privacy mode excludes description and resume text.
 - AI cache with configurable controls.
-- Mock-provider workflow and validation path are implemented; a real provider is still pending.
+- Real OpenAI provider is implemented and gated behind explicit user action.
+- Mock provider remains available for local testing.
 
 ### Cover Letter Studio
 - Generate cover letters using AI with multiple modes (short, full, concise).
@@ -63,8 +64,9 @@ VacancyPilot is a **local-first, read-first HH.ru job search copilot**. It helps
 - Content badge on HH.ru vacancy pages (Shadow DOM isolated).
 - Side panel with vacancy details, score, and actions.
 - Popup shell with vacancy detection and navigation.
-- Dashboard/options shell with export and privacy controls.
-- Settings and Labs remain partially placeholder-driven outside the implemented privacy/export flows.
+- Dashboard/options shell with responsive navigation, onboarding, About surface, export and privacy controls.
+- Search-result quick actions for Save / Reject triage.
+- Workflow queue, company greylist, reminders, and HR follow-up workspace.
 
 ---
 
@@ -72,10 +74,7 @@ VacancyPilot is a **local-first, read-first HH.ru job search copilot**. It helps
 
 ### Deferred from Phase 1
 - **n8n / Telegram integration** (ITER-014): UI placeholders exist, implementation deferred pending go/no-go decision.
-- **Search badges**: Triage mode for HH.ru search result pages (Phase 2).
-- **Workflow queue**: Kanban-style application tracking (Phase 3).
-- **Guided apply**: Clipboard-based field guidance (Phase 3, Labs).
-- **HR communication hub** (Phase 5).
+- **Guided apply**: Still Labs-scoped and intentionally not part of the core product promise.
 - **Multi-site support** (Phase 6).
 
 ### Forbidden by Design (never in Core)
@@ -95,29 +94,31 @@ VacancyPilot is a **local-first, read-first HH.ru job search copilot**. It helps
 | Item | Detail |
 |------|--------|
 | Platform | Chrome Extension Manifest V3 |
-| Framework | WXT 0.19 |
-| UI | React 18 |
+| Framework | WXT 0.20.26 |
+| UI | React 19 |
 | Storage | Dexie 4 (IndexedDB) + chrome.storage.local |
-| Language | TypeScript 5.6 |
-| Tests | 451 tests across 21 test files |
+| Language | TypeScript 6 |
+| Tests | 1614 automated tests across 60 files |
 | Permissions | `storage`, `sidePanel`, `activeTab` |
-| Build size | ~306 KB |
+| Optional runtime host access | `https://api.openai.com/*` |
+| Release-safety tests | 373 tests across 9 files |
+| Build size | ~700 KB unpacked production output |
 
 ---
 
 ## Known Limitations
 
 ### Parser Coverage
-Only 3 fixture tests cover the vacancy parser. The spec calls for 50+. Real-world vacancy diversity may expose parsing gaps. Report broken parses with the vacancy URL.
+Current parser coverage is 22 fixtures (19 vacancy + 3 search cards). This is materially better than the earliest MVP baseline but still below the 50+ public-release target.
 
 ### AI Provider
-A mock AI provider is used for testing. No real provider (OpenAI, DeepSeek, OpenRouter) is implemented. AI analysis requires implementing at least one provider and configuring an API key.
+OpenAI is implemented, but live browser QA with a real API key still belongs to the public-ready validation path. Alternative providers remain backlog work.
 
 ### API Key Storage
 API keys are stored in `chrome.storage.local` as plaintext. This is acceptable for personal use but should be hardened before public release (see spec 26.6).
 
 ### Browser Testing
-Manual QA has not been executed. Testing has been limited to automated unit and safety tests in a Node.js environment. Browser-specific issues (badge positioning, side panel behavior) may exist.
+Core runtime reruns in Chrome and Edge were reported as successful earlier in the project, but the full public-release regression matrix still needs a fresh broad rerun after the latest UI and AI changes.
 
 ### Large Datasets
 Performance with 500+ tracked vacancies is untested. Export and dashboard operations may be slow with large datasets.
@@ -163,11 +164,11 @@ See `docs/development/private-install-guide.md` for detailed instructions.
 
 | Priority | Item | Iteration |
 |----------|------|-----------|
-| P0 | Implement at least one real AI provider | Future |
-| P0 | Expand parser fixtures to 50+ | Future |
-| P1 | Execute manual QA in 2+ browsers | ITER-016 follow-up |
+| P0 | Execute full manual QA in 2+ browsers on the current feature surface | Follow-up |
+| P0 | Expand parser fixtures to 50+ | Follow-up |
 | P1 | Resolve API key storage approach | Spec 26.6 |
-| P2 | Implement n8n or make explicit deferral decision | ITER-014 |
+| P1 | Prepare store assets, public policy hosting, and permissions justification | EPIC-26 |
+| P2 | Keep n8n deferred unless permission model is intentionally reopened | ITER-014 / ITER-043 |
 | P2 | Expand contributor onboarding docs | Future |
 | P2 | Test performance with 500+ jobs | Manual QA |
 

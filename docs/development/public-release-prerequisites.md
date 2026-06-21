@@ -10,8 +10,8 @@ This document lists everything that must be completed or resolved before Vacancy
 ## 1. Store Assets
 
 ### 1.1 Extension Icons
-- [ ] Produce icon in required sizes: 16x16, 32x32, 48x48, 128x128 (actual PNG, not SVG reference).
-- [ ] Current config references a single `icon-128.svg` for all sizes — store may reject SVG-only icons.
+- [x] Produce icon in required sizes: 16x16, 32x32, 48x48, 128x128 (actual PNG, not SVG reference).
+- [x] Replace SVG-only manifest icon references with packaged PNG assets in `public/icons/`.
 - [ ] Icon must be original work or properly licensed.
 
 ### 1.2 Store Listing
@@ -78,9 +78,9 @@ See `docs/development/privacy-policy-checklist.md` for detailed coverage.
 ## 5. Technical Requirements
 
 ### 5.1 AI Provider Implementation (spec 26.2)
-- [ ] Implement at least one real AI provider (OpenRouter or OpenAI recommended).
-- [ ] Mock provider is insufficient for public release.
-- [ ] Test with real API calls: analysis, cover letter generation, error handling, rate limiting.
+- [x] Implement at least one real AI provider (OpenRouter or OpenAI recommended).
+- [x] Mock provider is no longer the only path.
+- [ ] Test with real API calls in live browser flow: analysis, cover letter generation, error handling, rate limiting.
 
 ### 5.2 API Key Security (spec 26.6)
 - [ ] Decide on key storage approach for public release:
@@ -119,9 +119,9 @@ See `docs/development/privacy-policy-checklist.md` for detailed coverage.
 ### 6.2 Release Gate (spec 22.7)
 - [ ] `pnpm typecheck` passes.
 - [ ] `pnpm lint` passes.
-- [ ] `pnpm test` passes (all 1417 tests).
+- [ ] `pnpm test` passes (currently 1614 tests).
 - [ ] `pnpm build` succeeds without warnings.
-- [ ] `pnpm test:release` passes (347 release-safety tests).
+- [ ] `pnpm test:release` passes (currently 373 release-safety tests).
 - [ ] All P0/P1 risks (`docs/development/known-risks.md`) are resolved or explicitly accepted.
 
 ### 6.3 Privacy/Safety Tests (spec 22.6)
@@ -165,10 +165,10 @@ See `docs/development/privacy-policy-checklist.md` for detailed coverage.
 
 | # | Blocker | Severity | Status |
 |---|---------|----------|--------|
-| 1 | Privacy policy drafted and hosted | **P0** | Checklist exists, policy not drafted |
+| 1 | Privacy policy drafted and hosted | **P0** | Draft now exists in `PRIVACY.md`; public hosting still pending |
 | 2 | Store listing assets (icons, screenshots, description) | **P0** | Not started |
 | 3 | Permissions justification text | **P0** | Draft exists in this doc |
-| 4 | At least one real AI provider implemented | **P0** | Mock only — see `ITER-060` for the first real-provider implementation |
+| 4 | At least one real AI provider implemented | **P0** | Resolved — OpenAI provider implemented; live manual validation still pending |
 | 5 | Name/trademark clearance | **P0** | Not checked |
 | 6 | 50+ parser fixtures | **P1** | 22 fixtures (19 vacancy + 3 search); 28 more needed |
 | 7 | API key storage decision | **P1** | Accepted for personal, not for public |

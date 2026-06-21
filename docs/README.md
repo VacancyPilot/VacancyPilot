@@ -44,6 +44,7 @@ VacancyPilot is a **local-first, read-first HH.ru job-search copilot**. It runs 
 - [`development/github-infra-oauth-audit-report.md`](development/github-infra-oauth-audit-report.md) — OAuth/permission audit report
 - [`development/security-alert-triage-report.md`](development/security-alert-triage-report.md) — dependency security alert triage
 - [`development/sonarqube-cloud-setup.md`](development/sonarqube-cloud-setup.md) — SonarQube Cloud setup (advisory mode)
+- [`../PRIVACY.md`](../PRIVACY.md) — current public-facing privacy policy draft
 - [`development/privacy-policy-checklist.md`](development/privacy-policy-checklist.md) — privacy policy readiness checklist
 - [`development/public-release-prerequisites.md`](development/public-release-prerequisites.md) — requirements before public release
 

@@ -26,7 +26,7 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 
 **Mitigation**:
 - Parser uses JSON-LD as primary source, DOM as fallback.
-- Fixture regression tests catch regressions for known page shapes (currently 3 fixtures).
+- Fixture regression tests catch regressions for known page shapes (currently 22 fixtures across vacancy and search surfaces).
 - Fixture maintenance process is documented (spec 16.5).
 
 **Residual**: Only 22 fixtures (19 vacancy + 3 search). Spec target was 50+. Fixture coverage is adequate for private use but below public-release confidence.
@@ -99,15 +99,15 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 
 ---
 
-### R7 — AI Provider Not Implemented (P2)
+### R7 — AI Provider Runtime Validation Still Pending (P2)
 
-**Risk**: The AI provider interface is defined and a mock provider exists for testing, but no real provider implementation (OpenAI, DeepSeek, OpenRouter) is present. This is the next active product-scope pack (`ITER-060`..`ITER-062`, `EPIC-31`).
+**Risk**: A real OpenAI provider is implemented, but the broader live-browser validation path with real API keys, error conditions, and rate-limit behavior is still narrower than the automated suite.
 
-**Mitigation**: Provider interface is clean and mock covers testing needs. BYOK architecture means no backend proxy required.
+**Mitigation**: BYOK architecture is implemented, payload preview/redaction are in place, provider logic has automated coverage, and the feature is fully opt-in.
 
-**Residual**: AI analysis and cover letter generation cannot be tested end-to-end without a real API key.
+**Residual**: Real-provider browser QA is still needed before public release confidence.
 
-**Action**: Implement at least one provider (OpenRouter or OpenAI as recommended in spec 26.2) in `ITER-060` before continuing with the rest of the AI trust pack.
+**Action**: Run live browser QA with a real API key across analysis, cover-letter generation, and provider error handling before public release.
 
 ---
 
@@ -144,7 +144,7 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 
 **Risk**: Core closeout rerun (Chrome + Edge) passed for Phase 1 scope. The wider public-release regression matrix in `release-checklist.md` and `qa-checklist.md` has not been fully re-run item-by-item. Phase 2 features (search triage, HR timeline, queue, reminders) have not been manually QA'd in live browsers.
 
-**Mitigation**: QA checklists are comprehensive. All automated safety, privacy, and fixture tests pass (1417 unit tests, 347 release-safety tests).
+**Mitigation**: QA checklists are comprehensive. All automated safety, privacy, and fixture tests pass (1614 unit tests, 373 release-safety tests).
 
 **Residual**: Full public-release regression QA not yet executed. Some Phase 2+ features untested in real browser runtime.
 
@@ -174,7 +174,7 @@ This document lists all known risks, open decisions, and unresolved gaps at Phas
 | R4 — Large dataset perf | P2 | Untested | Manual test 500+ jobs |
 | R5 — Network resilience | P2 | Partially tested | Manual test with throttling |
 | R6 — n8n deferred | P2 | Accepted, pending decision | Go/no-go decision |
-| R7 — AI provider missing | P2 | Mock only | Implement 1 provider |
+| R7 — AI provider runtime validation | P2 | Implemented, broader live validation pending | Manual QA with real key |
 | R8 — API key storage | P1 | Accepted for personal MVP | Evaluate for public release |
 | R9 — Name/trademark | P3 | Not checked | Before public submission |
 | R10 — Manual QA pending | P1 | Initial runtime rerun completed for Phase 1 core | Expand before public release |
@@ -188,7 +188,6 @@ For **private/personal use Phase 1 release**, the following risks are explicitly
 
 - R2 (22 fixtures instead of 50+)
 - R6 (n8n deferred — PHASE-1-SIGNOFF)
-- R7 (mock provider only — real provider required in active `ITER-060`)
 - R8 (plaintext key storage)
 - R10 (full matrix not yet run — core closeout passed)
 - R11 (contributor onboarding still thin)

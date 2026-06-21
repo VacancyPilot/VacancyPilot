@@ -65,7 +65,8 @@ Execute in at least Chrome and one additional Chromium browser (Edge, Brave, or 
 ### Permissions UI (spec 19.6)
 
 - [ ] Extension installs without requesting unexpected permissions
-- [ ] Optional permissions (AI provider host, n8n host) can be granted/denied individually
+- [ ] OpenAI runtime host access can be granted/denied when AI is actually used
+- [ ] No unexpected webhook/n8n host permission is requested in the current build
 - [ ] Permission status is visible in settings
 - [ ] Instructions for revoking access via browser settings are accessible
 
@@ -114,11 +115,11 @@ The following checks are NOT automated and require manual verification:
 
 ## Release Candidate Sign-off
 
-- [x] All automated CI checks pass (1417 tests, 0 failures)
+- [x] All automated CI checks pass (1614 tests, 0 failures)
 - [x] `pnpm typecheck` passes
 - [x] `pnpm lint` passes
 - [x] `pnpm build` succeeds
-- [x] `pnpm test:release` passes (347 release-safety tests, 0 failures)
+- [x] `pnpm test:release` passes (373 release-safety tests, 0 failures)
 - [x] No secrets committed
 - [x] Manifest permissions are minimal
 - [x] Manual QA rerun completed in at least 2 browsers for the current Phase 1 core scope (see `docs/development/manual-qa-run-2026-06-20.md` § Phase 1 Closeout Rerun)

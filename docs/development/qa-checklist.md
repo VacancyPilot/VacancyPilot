@@ -45,10 +45,11 @@ Test each state on a real HH.ru vacancy page.
 |---|-------|------|-------|
 | 1 | Extension installs without requesting unexpected permissions | ☐ | |
 | 2 | Only `storage`, `sidePanel`, `activeTab` listed at install time | ☐ | |
-| 3 | No optional host permissions are requested in the current manifest | ☐ | |
-| 4 | Core features work with only `storage`, `sidePanel`, and `activeTab` | ☐ | |
-| 5 | Permission status is visible in extension settings/docs where applicable | ☐ | |
-| 6 | Revoke instructions are accessible from settings/docs | ☐ | |
+| 3 | No broad optional host permissions are requested in the current manifest | ☐ | |
+| 4 | Narrow OpenAI runtime host access appears only when AI is actually used | ☐ | |
+| 5 | Core features work with only `storage`, `sidePanel`, `activeTab`, plus optional OpenAI access for AI flows | ☐ | |
+| 6 | Permission status is visible in extension settings/docs where applicable | ☐ | |
+| 7 | Revoke instructions are accessible from settings/docs | ☐ | |
 
 ---
 
