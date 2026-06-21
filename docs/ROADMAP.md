@@ -21,16 +21,25 @@ Key milestones reached:
 
 ### P0 — Data Integrity Hardening
 
-- Expand parser fixture coverage beyond current baseline
-- Add edge-case parsing for non-standard HH.ru vacancy layouts
-- Validate data integrity across save/load/export cycles with larger datasets
+- Ensure all current schema tables are included in export/delete/count flows
+- Verify `hrTimeline` is included in JSON export and delete-all flows
+- Add tests for delete-all, delete-job, export, hasData and getDataCounts
+- Validate save/load/export cycles with larger local datasets
 
 ### P0 — Runtime QA
 
-- Manual QA pass in Chrome (latest stable)
-- Manual QA pass in Edge (latest stable)
-- Verify content badge positioning across HH.ru page variants
-- Verify side panel and dashboard behavior under real usage
+- Manual QA pass in Chrome latest stable
+- Manual QA pass in Edge latest stable
+- Verify popup → side panel context
+- Verify search page quick save/reject
+- Verify HR timeline extraction on user-opened HH pages
+- Verify delete/export flows
+
+### P1 — Parser Fixture Coverage
+
+- Expand parser fixture coverage beyond current baseline
+- Add edge-case parsing for non-standard HH.ru vacancy layouts
+- Target ≥ 50 sanitized vacancy fixtures before public beta
 
 ### P1 — AI/release-trust (ITER-060 → ITER-063)
 

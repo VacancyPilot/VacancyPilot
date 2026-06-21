@@ -94,19 +94,17 @@ Expected test output: **48 test files, 1417 tests passed**. Release safety: **8 
 
 ## 4. Permissions Granted
 
-At install time, the extension requests only these permissions:
+At the current private-alpha stage, the extension requests only:
 
 | Permission | Reason |
 |------------|--------|
 | `storage` | Save vacancy data, settings, and profiles locally |
-| `sidePanel` | Open a side panel on HH.ru vacancy pages |
-| `activeTab` | Read the current vacancy page to extract job data |
+| `sidePanel` | Open a side panel for the current browser window |
+| `activeTab` | Read the user-opened HH.ru page after explicit user action |
 
-**No broad host permissions** (`<all_urls>`, `*://*`) are requested at install.
+There are currently no broad `host_permissions` and no `optional_permissions` in the manifest.
 
-Optional permissions (requested at runtime, only when needed):
-- AI provider host (e.g., `https://api.openai.com/*`) — only if user configures AI
-- n8n webhook host — only if user enables n8n in Labs
+Future AI/n8n integrations may require explicit opt-in network access. If added, those permissions must be documented, optional where possible, and gated behind user settings.
 
 ---
 

@@ -22,7 +22,7 @@ pnpm build      # Production build
 
 Load the unpacked extension from `.output/chrome-mv3/` in Chrome Developer mode.
 
-See [`docs/development/private-install-guide.md`](docs/development/private-install-guide.md) for detailed instructions.
+See [`docs/development/private-install-guide.md`](../docs/development/private-install-guide.md) for detailed instructions.
 
 ---
 
@@ -88,14 +88,14 @@ Before opening a pull request:
 
 ## Documentation
 
-- Product specification: [`docs/Техническое заданиеV.1.md`](docs/Техническое%20заданиеV.1.md)
-- Development plan: [`docs/development/00-product-development-plan.md`](docs/development/00-product-development-plan.md)
-- Security policy: [`SECURITY.md`](SECURITY.md)
+- Product specification: [`docs/Техническое заданиеV.1.md`](../docs/Техническое%20заданиеV.1.md)
+- Development plan: [`docs/development/00-product-development-plan.md`](../docs/development/00-product-development-plan.md)
+- Security policy: [`SECURITY.md`](../SECURITY.md)
 
 ---
 
 ## Reporting Security Issues
 
-**Do not post security vulnerabilities publicly.** Follow the process in [`SECURITY.md`](SECURITY.md):
+**Do not post security vulnerabilities publicly.** Follow the process in [`SECURITY.md`](../SECURITY.md):
 
 GitHub → [Report a vulnerability](https://github.com/VacancyPilot/VacancyPilot/security/advisories/new)

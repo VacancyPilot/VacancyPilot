@@ -27,6 +27,8 @@ Planned:
 - Dashboard / Kanban
 - Search results badges
 
+Repository social preview artwork: [`assets/social-preview/vacancypilot-social-preview.svg`](assets/social-preview/vacancypilot-social-preview.svg)
+
 ---
 
 ## What It Does
@@ -58,7 +60,8 @@ Planned:
 **Private alpha / dogfooding.**
 
 - CI pipeline with typecheck, lint, unit tests, build, and release-safety tests — green
-- Critical and high dependency alerts — remediated
+- Critical dependency alerts — remediated
+- High dependency alert backlog — triaged/remediated in the latest security pass
 - GitHub infrastructure and security baseline — 90+ % complete
 - Data-integrity hardening and runtime browser QA remain before public beta
 
