@@ -1,41 +1,5 @@
 import type { ReactNode } from "react";
-
-const sectionHeading: React.CSSProperties = {
-  fontSize: 16,
-  fontWeight: 700,
-  margin: "0 0 6px",
-  color: "#1a3a5c",
-};
-
-const para: React.CSSProperties = {
-  fontSize: 12,
-  color: "#555",
-  margin: "0 0 10px",
-  lineHeight: 1.6,
-};
-
-const card: React.CSSProperties = {
-  padding: 14,
-  border: "1px solid #e0e0e0",
-  borderRadius: 8,
-  background: "#fafafa",
-  marginBottom: 12,
-};
-
-const cardHeading: React.CSSProperties = {
-  fontSize: 14,
-  fontWeight: 600,
-  margin: "0 0 6px",
-  color: "#1a3a5c",
-};
-
-const listStyle: React.CSSProperties = {
-  margin: "4px 0 0",
-  paddingLeft: 18,
-  fontSize: 12,
-  color: "#555",
-  lineHeight: 1.7,
-};
+import { sectionHeading, para, card, cardHeading, listStyle } from "@/styles";
 
 const doItem: React.CSSProperties = { color: "#2a8" };
 const dontItem: React.CSSProperties = { color: "#c44" };
@@ -73,9 +37,7 @@ export function AboutSection(): ReactNode {
             Provides AI-powered vacancy analysis (opt-in, payload preview before
             every request)
           </li>
-          <li style={doItem}>
-            Exports your data as CSV or JSON at any time
-          </li>
+          <li style={doItem}>Exports your data as CSV or JSON at any time</li>
           <li style={doItem}>
             Sends optional notifications via your own n8n webhook (opt-in, Labs)
           </li>

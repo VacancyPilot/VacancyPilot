@@ -1,59 +1,26 @@
 import { useState, useCallback, type ReactNode, type FormEvent } from "react";
 import { loadSettings, saveSettings } from "@/db/settings-bridge";
-
-const sectionHeading: React.CSSProperties = {
-  fontSize: 16,
-  fontWeight: 700,
-  margin: "0 0 6px",
-  color: "#1a3a5c",
-};
-
-const card: React.CSSProperties = {
-  padding: 16,
-  border: "1px solid #e0e0e0",
-  borderRadius: 8,
-  background: "#fafafa",
-  marginBottom: 14,
-  maxWidth: 560,
-};
-
-const cardHeading: React.CSSProperties = {
-  fontSize: 14,
-  fontWeight: 600,
-  margin: "0 0 8px",
-  color: "#1a3a5c",
-};
-
-const listStyle: React.CSSProperties = {
-  margin: "4px 0 0",
-  paddingLeft: 18,
-  fontSize: 12,
-  color: "#555",
-  lineHeight: 1.7,
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: "8px 20px",
-  fontSize: 13,
-  cursor: "pointer",
-  border: "none",
-  borderRadius: 6,
-  background: "#4a90d9",
-  color: "#fff",
-  fontWeight: 600,
-  marginTop: 10,
-};
+import {
+  sectionHeading,
+  card,
+  cardHeading,
+  listStyle,
+  primaryButton,
+  colors,
+  fontSizes,
+  fontWeights,
+} from "@/styles";
 
 const stepHeading: React.CSSProperties = {
-  fontSize: 14,
-  fontWeight: 600,
+  fontSize: fontSizes.cardHeading,
+  fontWeight: fontWeights.semibold,
   margin: "14px 0 6px",
-  color: "#1a3a5c",
+  color: colors.navy,
 };
 
 const stepDesc: React.CSSProperties = {
-  fontSize: 12,
-  color: "#666",
+  fontSize: fontSizes.md,
+  color: colors.textMuted,
   margin: "0 0 8px",
 };
 
@@ -61,37 +28,41 @@ export function OnboardingSection(): ReactNode {
   const [completed, setCompleted] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const handleComplete = useCallback(
-    async (e: FormEvent) => {
-      e.preventDefault();
-      setSaving(true);
-      try {
-        const settings = await loadSettings();
-        settings.onboardingCompleted = true;
-        await saveSettings(settings);
-        setCompleted(true);
-      } catch {
-        // If saving fails, user can retry.
-      } finally {
-        setSaving(false);
-      }
-    },
-    [],
-  );
+  const handleComplete = useCallback(async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const settings = await loadSettings();
+      settings.onboardingCompleted = true;
+      await saveSettings(settings);
+      setCompleted(true);
+    } catch {
+      // If saving fails, user can retry.
+    } finally {
+      setSaving(false);
+    }
+  }, []);
 
   if (completed) {
     return (
       <div style={{ maxWidth: 560 }}>
         <h2 style={sectionHeading}>Onboarding Complete ✓</h2>
         <div style={card}>
-          <p style={{ fontSize: 13, color: "#2a8", margin: 0 }}>
+          <p
+            style={{ fontSize: fontSizes.body, color: colors.green, margin: 0 }}
+          >
             You&apos;re all set! Navigate to any HH.ru vacancy page to start
             using VacancyPilot.
           </p>
-          <p style={{ fontSize: 12, color: "#666", margin: "10px 0 0" }}>
-            Tip: open a vacancy like{" "}
-            <code>https://hh.ru/vacancy/12345678</code> and look for the
-            VacancyPilot badge.
+          <p
+            style={{
+              fontSize: fontSizes.md,
+              color: colors.textMuted,
+              margin: "10px 0 0",
+            }}
+          >
+            Tip: open a vacancy like <code>https://hh.ru/vacancy/12345678</code>{" "}
+            and look for the VacancyPilot badge.
           </p>
         </div>
       </div>
@@ -101,7 +72,13 @@ export function OnboardingSection(): ReactNode {
   return (
     <div style={{ maxWidth: 600 }}>
       <h2 style={sectionHeading}>Welcome to VacancyPilot</h2>
-      <p style={{ fontSize: 12, color: "#666", margin: "0 0 14px" }}>
+      <p
+        style={{
+          fontSize: fontSizes.md,
+          color: colors.textMuted,
+          margin: "0 0 14px",
+        }}
+      >
         This quick guide explains what the extension does, what permissions it
         uses, and how to get started.
       </p>
@@ -110,9 +87,7 @@ export function OnboardingSection(): ReactNode {
       <div style={card}>
         <h3 style={cardHeading}>What VacancyPilot Does</h3>
         <ul style={listStyle}>
-          <li>
-            Parses and scores HH.ru vacancies you open, using local rules
-          </li>
+          <li>Parses and scores HH.ru vacancies you open, using local rules</li>
           <li>Tracks your application status history</li>
           <li>Generates cover letters with AI (opt-in, your own API key)</li>
           <li>Provides AI-powered vacancy analysis (opt-in)</li>
@@ -127,15 +102,11 @@ export function OnboardingSection(): ReactNode {
       {/* ── What it does NOT do ── */}
       <div style={card}>
         <h3 style={cardHeading}>What VacancyPilot Does NOT Do</h3>
-        <ul style={{ ...listStyle, color: "#c44" }}>
+        <ul style={{ ...listStyle, color: colors.red }}>
           <li>Does not auto-submit applications or fill HH.ru forms</li>
-          <li>
-            Does not auto-click HH.ru controls or simulate user actions
-          </li>
+          <li>Does not auto-click HH.ru controls or simulate user actions</li>
           <li>Does not access your HH.ru login, cookies, or session</li>
-          <li>
-            Does not send data to developer servers — there are none
-          </li>
+          <li>Does not send data to developer servers — there are none</li>
           <li>Does not collect analytics, telemetry, or crash reports</li>
           <li>Does not bypass CAPTCHA or anti-bot protections</li>
         </ul>
@@ -160,8 +131,8 @@ export function OnboardingSection(): ReactNode {
         </ul>
         <p
           style={{
-            fontSize: 11,
-            color: "#888",
+            fontSize: fontSizes.sm,
+            color: colors.textFaint,
             margin: "8px 0 0",
           }}
         >
@@ -177,9 +148,9 @@ export function OnboardingSection(): ReactNode {
         <h3 style={cardHeading}>Where Data Is Stored</h3>
         <ul style={listStyle}>
           <li>
-            All data is stored <strong>only in your browser</strong>:
-            IndexedDB for vacancy data and profiles,{" "}
-            <code>chrome.storage.local</code> for settings and API keys
+            All data is stored <strong>only in your browser</strong>: IndexedDB
+            for vacancy data and profiles, <code>chrome.storage.local</code> for
+            settings and API keys
           </li>
           <li>No cloud sync, no developer backend, no third-party storage</li>
           <li>
@@ -222,8 +193,8 @@ export function OnboardingSection(): ReactNode {
         <h3 style={cardHeading}>How n8n Integration Works</h3>
         <ul style={listStyle}>
           <li>
-            n8n is <strong>opt-in</strong> and part of{" "}
-            <strong>Labs</strong> (experimental features)
+            n8n is <strong>opt-in</strong> and part of <strong>Labs</strong>{" "}
+            (experimental features)
           </li>
           <li>
             It sends event notifications (e.g., &quot;vacancy saved&quot;,
@@ -240,11 +211,23 @@ export function OnboardingSection(): ReactNode {
       </div>
 
       {/* ── API keys warning ── */}
-      <div style={{ ...card, border: "1px solid #f0d060", background: "#fffdf0" }}>
-        <h3 style={{ ...cardHeading, color: "#b08010" }}>
+      <div
+        style={{
+          ...card,
+          border: `1px solid ${colors.keyWarningBorder}`,
+          background: colors.keyWarningBg,
+        }}
+      >
+        <h3 style={{ ...cardHeading, color: colors.keyWarningText }}>
           ⚠ Important: API Key Security
         </h3>
-        <p style={{ fontSize: 12, color: "#555", margin: 0 }}>
+        <p
+          style={{
+            fontSize: fontSizes.md,
+            color: colors.textSecondary,
+            margin: 0,
+          }}
+        >
           API keys are stored locally in <code>chrome.storage.local</code> in
           plaintext. This is <strong>not a secure vault</strong>. Anyone with
           access to your unlocked computer and browser profile could read them.
@@ -256,7 +239,13 @@ export function OnboardingSection(): ReactNode {
       {/* ── Labs off by default ── */}
       <div style={card}>
         <h3 style={cardHeading}>Labs: Experimental Features</h3>
-        <p style={{ fontSize: 12, color: "#555", margin: 0 }}>
+        <p
+          style={{
+            fontSize: fontSizes.md,
+            color: colors.textSecondary,
+            margin: 0,
+          }}
+        >
           Labs features (n8n, guided apply) are <strong>off by default</strong>{" "}
           and not required for core functionality. You can ignore Labs
           completely. Core features — parsing, scoring, tracking, cover letters,
@@ -267,7 +256,13 @@ export function OnboardingSection(): ReactNode {
       {/* ── Getting started steps ── */}
       <div style={card}>
         <h3 style={cardHeading}>Quick Setup (optional)</h3>
-        <p style={{ fontSize: 12, color: "#999", margin: "0 0 10px" }}>
+        <p
+          style={{
+            fontSize: fontSizes.md,
+            color: colors.textPlaceholder,
+            margin: "0 0 10px",
+          }}
+        >
           These steps help scoring work better. You can skip them and return
           later.
         </p>
@@ -297,7 +292,7 @@ export function OnboardingSection(): ReactNode {
 
       {/* ── Complete button ── */}
       <form onSubmit={handleComplete}>
-        <button type="submit" disabled={saving} style={buttonStyle}>
+        <button type="submit" disabled={saving} style={primaryButton}>
           {saving ? "Saving…" : "Got it — Start Using VacancyPilot"}
         </button>
       </form>

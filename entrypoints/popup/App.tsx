@@ -12,6 +12,7 @@ import type { Job, JobStatus } from "@/models/job";
 import type { Profile } from "@/models/profile";
 import type { ApplicationStatusSync } from "@/adapters/types";
 import type { PageStatusInfo } from "@/components/PageStatus";
+import { colors, fontSizes, fontWeights, scoreColor } from "@/styles";
 
 // ── Helpers ──
 
@@ -268,14 +269,7 @@ function PopupContent(): ReactNode {
 
   const recommendation = savedJob?.ruleScore?.recommendation;
 
-  const scoreColor =
-    savedJob?.ruleScore?.total !== undefined
-      ? savedJob.ruleScore.total >= 80
-        ? "#2a8"
-        : savedJob.ruleScore.total >= 50
-          ? "#e6a817"
-          : "#c44"
-      : "#999";
+  const scoreDisplayColor = scoreColor(savedJob?.ruleScore?.total);
 
   const isVacancy = pageInfo.kind === "vacancy";
 
@@ -308,19 +302,21 @@ function PopupContent(): ReactNode {
             fontSize: 16,
             fontWeight: 700,
             margin: 0,
-            color: "#1a3a5c",
+            color: colors.navy,
           }}
         >
           VacancyPilot
         </h1>
-        <span style={{ fontSize: 11, color: "#aaa" }}>v0.1</span>
+        <span style={{ fontSize: fontSizes.sm, color: colors.textVeryFaint }}>
+          v0.1
+        </span>
       </div>
 
       {/* Page status */}
       <div
         style={{
           padding: "6px 8px",
-          background: "#f5f5f5",
+          background: colors.neutralBg,
           borderRadius: 4,
           marginBottom: 10,
         }}
@@ -333,12 +329,12 @@ function PopupContent(): ReactNode {
         <div
           style={{
             padding: "6px 8px",
-            background: "#fff8e6",
+            background: colors.warningBg,
             border: "1px solid #e6d58c",
             borderRadius: 4,
             marginBottom: 10,
-            fontSize: 12,
-            color: "#8a7010",
+            fontSize: fontSizes.md,
+            color: colors.amberText,
           }}
         >
           {passiveStatusLabel(passiveStatus)}
@@ -355,8 +351,13 @@ function PopupContent(): ReactNode {
               marginBottom: 6,
             }}
           >
-            <span style={{ color: "#666" }}>Score</span>
-            <span style={{ fontWeight: 600, color: scoreColor }}>
+            <span style={{ color: colors.textMuted }}>Score</span>
+            <span
+              style={{
+                fontWeight: fontWeights.semibold,
+                color: scoreDisplayColor,
+              }}
+            >
               {scoreDisplay}
             </span>
           </div>
@@ -364,7 +365,7 @@ function PopupContent(): ReactNode {
             <div
               style={{
                 fontSize: 11,
-                color: "#999",
+                color: colors.textPlaceholder,
                 marginBottom: 6,
                 textAlign: "right",
               }}
@@ -378,8 +379,10 @@ function PopupContent(): ReactNode {
               justifyContent: "space-between",
             }}
           >
-            <span style={{ color: "#666" }}>Status</span>
-            <span style={{ fontWeight: 600 }}>{statusDisplay}</span>
+            <span style={{ color: colors.textMuted }}>Status</span>
+            <span style={{ fontWeight: fontWeights.semibold }}>
+              {statusDisplay}
+            </span>
           </div>
 
           {/* Score breakdown toggle */}
@@ -391,12 +394,12 @@ function PopupContent(): ReactNode {
                 style={{
                   width: "100%",
                   padding: "3px 6px",
-                  fontSize: 11,
+                  fontSize: fontSizes.sm,
                   cursor: "pointer",
-                  border: "1px solid #ddd",
+                  border: `1px solid ${colors.borderLight}`,
                   borderRadius: 3,
                   background: "#f9f9f9",
-                  color: "#888",
+                  color: colors.textFaint,
                   textAlign: "left",
                 }}
               >
@@ -420,9 +423,9 @@ function PopupContent(): ReactNode {
           <label
             style={{
               display: "block",
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#666",
+              fontSize: fontSizes.sm,
+              fontWeight: fontWeights.semibold,
+              color: colors.textMuted,
               marginBottom: 3,
             }}
           >
@@ -434,11 +437,11 @@ function PopupContent(): ReactNode {
             style={{
               width: "100%",
               padding: "4px 6px",
-              fontSize: 12,
-              border: "1px solid #ddd",
+              fontSize: fontSizes.md,
+              border: `1px solid ${colors.borderLight}`,
               borderRadius: 3,
-              background: "#fff",
-              color: "#333",
+              background: colors.white,
+              color: colors.text,
             }}
           >
             {profiles.map((p) => (
@@ -455,12 +458,12 @@ function PopupContent(): ReactNode {
         <div
           style={{
             padding: "6px 8px",
-            background: "#fff3f3",
-            border: "1px solid #fcc",
+            background: colors.actionErrorBg,
+            border: `1px solid ${colors.actionErrorBorder}`,
             borderRadius: 4,
             marginBottom: 10,
-            fontSize: 12,
-            color: "#c44",
+            fontSize: fontSizes.md,
+            color: colors.red,
           }}
         >
           {actionError}
@@ -503,9 +506,7 @@ function PopupContent(): ReactNode {
   );
 }
 
-function buildOpenSidePanelMessage(
-  pageInfo: PageStatusInfo,
-): {
+function buildOpenSidePanelMessage(pageInfo: PageStatusInfo): {
   type: "OPEN_SIDE_PANEL";
   tabId?: number;
   vacancyId?: string;
@@ -527,14 +528,12 @@ function openSidePanel(pageInfo: PageStatusInfo): void {
     return;
   }
 
-  void chrome.tabs
-    .query({ active: true, currentWindow: true })
-    .then(([tab]) =>
-      chrome.runtime.sendMessage({
-        type: "OPEN_SIDE_PANEL",
-        tabId: tab?.id,
-      }),
-    );
+  void chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) =>
+    chrome.runtime.sendMessage({
+      type: "OPEN_SIDE_PANEL",
+      tabId: tab?.id,
+    }),
+  );
 }
 
 function openDashboard(): void {
@@ -589,12 +588,12 @@ function ScoreBreakdown({
         padding: "6px 8px",
         background: "#f9f9f9",
         borderRadius: 4,
-        fontSize: 11,
+        fontSize: fontSizes.sm,
       }}
     >
       {entries.map((e) => {
         const pct = e.max > 0 ? (e.score / e.max) * 100 : 0;
-        const barColor = pct >= 80 ? "#2a8" : pct >= 50 ? "#e6a817" : "#c44";
+        const barColor = scoreColor(pct >= 80 ? 85 : pct >= 50 ? 70 : 30);
         return (
           <div key={e.label} style={{ marginBottom: 3 }}>
             <div
@@ -604,8 +603,8 @@ function ScoreBreakdown({
                 marginBottom: 1,
               }}
             >
-              <span style={{ color: "#888" }}>{e.label}</span>
-              <span style={{ fontWeight: 600 }}>
+              <span style={{ color: colors.textFaint }}>{e.label}</span>
+              <span style={{ fontWeight: fontWeights.semibold }}>
                 {e.score}/{e.max}
               </span>
             </div>
@@ -613,7 +612,7 @@ function ScoreBreakdown({
               style={{
                 height: 4,
                 borderRadius: 2,
-                background: "#eee",
+                background: colors.borderHairline,
                 overflow: "hidden",
               }}
             >
@@ -632,16 +631,27 @@ function ScoreBreakdown({
 
       {score.fitReasons.length > 0 && (
         <div style={{ marginTop: 6 }}>
-          <div style={{ fontWeight: 600, color: "#2a8", marginBottom: 2 }}>
+          <div
+            style={{
+              fontWeight: fontWeights.semibold,
+              color: colors.green,
+              marginBottom: 2,
+            }}
+          >
             Fit reasons
           </div>
           {score.fitReasons.slice(0, 3).map((r, i) => (
-            <div key={i} style={{ color: "#555", padding: "1px 0" }}>
+            <div
+              key={i}
+              style={{ color: colors.textSecondary, padding: "1px 0" }}
+            >
               ✓ {r}
             </div>
           ))}
           {score.fitReasons.length > 3 && (
-            <div style={{ color: "#999", fontSize: 10 }}>
+            <div
+              style={{ color: colors.textPlaceholder, fontSize: fontSizes.xs }}
+            >
               +{score.fitReasons.length - 3} more
             </div>
           )}
@@ -650,19 +660,31 @@ function ScoreBreakdown({
 
       {score.riskFlags.length > 0 && (
         <div style={{ marginTop: 6 }}>
-          <div style={{ fontWeight: 600, color: "#c44", marginBottom: 2 }}>
+          <div
+            style={{
+              fontWeight: fontWeights.semibold,
+              color: colors.red,
+              marginBottom: 2,
+            }}
+          >
             Risk flags
           </div>
           {score.riskFlags.slice(0, 3).map((flag, i) => (
             <div
               key={i}
-              style={{ color: "#c44", padding: "1px 0", fontSize: 10 }}
+              style={{
+                color: colors.red,
+                padding: "1px 0",
+                fontSize: fontSizes.xs,
+              }}
             >
               ⚠ {flag.message}
             </div>
           ))}
           {score.riskFlags.length > 3 && (
-            <div style={{ color: "#999", fontSize: 10 }}>
+            <div
+              style={{ color: colors.textPlaceholder, fontSize: fontSizes.xs }}
+            >
               +{score.riskFlags.length - 3} more
             </div>
           )}
@@ -697,13 +719,15 @@ function ActionButton({
       style={{
         flex: wide ? 1 : undefined,
         padding: "4px 8px",
-        fontSize: 12,
+        fontSize: fontSizes.md,
         cursor: disabled ? "not-allowed" : "pointer",
-        border: primary ? `1px solid ${color ?? "#4a90d9"}` : "1px solid #ddd",
+        border: primary
+          ? `1px solid ${color ?? colors.blue}`
+          : `1px solid ${colors.borderLight}`,
         borderRadius: 4,
-        background: primary ? (color ?? "#4a90d9") : "#fff",
-        color: primary ? "#fff" : (color ?? "#333"),
-        fontWeight: primary ? 600 : 400,
+        background: primary ? (color ?? colors.blue) : colors.white,
+        color: primary ? colors.white : (color ?? colors.text),
+        fontWeight: primary ? fontWeights.semibold : fontWeights.normal,
         opacity: disabled ? 0.6 : 1,
       }}
     >
@@ -740,13 +764,19 @@ export default function App(): ReactNode {
   return (
     <ErrorBoundary rootLabel="Popup">
       {dbError ? (
-        <div style={{ padding: 12, fontSize: 12, color: "#c44" }}>
+        <div style={{ padding: 12, fontSize: fontSizes.md, color: colors.red }}>
           Failed to initialize local data: {dbError}
         </div>
       ) : dbReady ? (
         <PopupContent />
       ) : (
-        <div style={{ padding: 12, fontSize: 12, color: "#666" }}>
+        <div
+          style={{
+            padding: 12,
+            fontSize: fontSizes.md,
+            color: colors.textMuted,
+          }}
+        >
           Initializing local data…
         </div>
       )}

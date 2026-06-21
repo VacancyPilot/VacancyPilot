@@ -12,6 +12,17 @@ import { PermissionsSection } from "@/components/PermissionsSection";
 import { PrivacyDisclosureSection } from "@/components/PrivacyDisclosureSection";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import {
+  colors,
+  fontSizes,
+  fontWeights,
+  shellBody,
+  appTitle,
+  appSubtitle,
+  headerBar,
+  scrollArea,
+} from "@/styles";
+
+import {
   exportAllJson,
   downloadJson,
   generateJobsCsv,
@@ -98,11 +109,9 @@ function DashboardContent(): ReactNode {
   return (
     <div
       style={{
+        ...shellBody,
         display: "flex",
         height: "100vh",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        fontSize: 13,
-        color: "#333",
       }}
     >
       {/* Sidebar */}
@@ -110,30 +119,14 @@ function DashboardContent(): ReactNode {
         style={{
           width: 180,
           flexShrink: 0,
-          borderRight: "1px solid #e0e0e0",
-          background: "#fafafa",
+          borderRight: `1px solid ${colors.border}`,
+          background: colors.cardBg,
           overflow: "auto",
         }}
       >
-        <div
-          style={{
-            padding: "12px 14px",
-            borderBottom: "1px solid #e0e0e0",
-          }}
-        >
-          <h1
-            style={{
-              fontSize: 15,
-              fontWeight: 700,
-              margin: 0,
-              color: "#1a3a5c",
-            }}
-          >
-            VacancyPilot
-          </h1>
-          <p style={{ margin: "2px 0 0", fontSize: 10, color: "#999" }}>
-            Dashboard
-          </p>
+        <div style={headerBar}>
+          <h1 style={appTitle}>VacancyPilot</h1>
+          <p style={appSubtitle}>Dashboard</p>
         </div>
         <ul style={{ listStyle: "none", margin: 0, padding: "4px 0" }}>
           {SECTIONS.map((section) => (
@@ -147,17 +140,25 @@ function DashboardContent(): ReactNode {
                   gap: 8,
                   width: "100%",
                   padding: "8px 14px",
-                  fontSize: 12,
+                  fontSize: fontSizes.md,
                   cursor: "pointer",
                   border: "none",
                   borderLeft:
                     activeSection === section.id
-                      ? "3px solid #4a90d9"
+                      ? `3px solid ${colors.blue}`
                       : "3px solid transparent",
                   background:
-                    activeSection === section.id ? "#f0f6ff" : "transparent",
-                  color: activeSection === section.id ? "#4a90d9" : "#555",
-                  fontWeight: activeSection === section.id ? 600 : 400,
+                    activeSection === section.id
+                      ? colors.activeBg
+                      : "transparent",
+                  color:
+                    activeSection === section.id
+                      ? colors.blue
+                      : colors.textSecondary,
+                  fontWeight:
+                    activeSection === section.id
+                      ? fontWeights.semibold
+                      : fontWeights.normal,
                   textAlign: "left",
                 }}
               >
@@ -173,9 +174,9 @@ function DashboardContent(): ReactNode {
       <main
         style={{
           flex: 1,
-          overflow: "auto",
+          ...scrollArea,
           padding: 20,
-          background: "#fff",
+          background: colors.white,
         }}
       >
         <SectionContent section={activeSection} />
@@ -1702,13 +1703,19 @@ export default function App(): ReactNode {
   return (
     <ErrorBoundary rootLabel="Dashboard">
       {dbError ? (
-        <div style={{ padding: 16, fontSize: 12, color: "#c44" }}>
+        <div style={{ padding: 16, fontSize: fontSizes.md, color: colors.red }}>
           Failed to initialize local data: {dbError}
         </div>
       ) : dbReady ? (
         <DashboardContent />
       ) : (
-        <div style={{ padding: 16, fontSize: 12, color: "#666" }}>
+        <div
+          style={{
+            padding: 16,
+            fontSize: fontSizes.md,
+            color: colors.textMuted,
+          }}
+        >
           Initializing local data…
         </div>
       )}

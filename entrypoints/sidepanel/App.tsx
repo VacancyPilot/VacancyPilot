@@ -12,8 +12,23 @@ import type { ApplicationStatusSync } from "@/adapters/types";
 import type { RawHrTimelineDTO } from "@/models/hr-timeline";
 import { persistHrTimelineForJob } from "@/services/hr-timeline-sync";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
+import {
+  colors,
+  fontSizes,
+  fontWeights,
+  shellBody,
+  scrollArea,
+  scoreColor,
+} from "@/styles";
 
-type TabId = "overview" | "score" | "letter" | "apply" | "profile" | "history" | "hr";
+type TabId =
+  | "overview"
+  | "score"
+  | "letter"
+  | "apply"
+  | "profile"
+  | "history"
+  | "hr";
 
 interface TabDef {
   id: TabId;
@@ -46,14 +61,6 @@ interface HrExtractionResponse {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-function scoreColor(total: number | undefined): string {
-  if (total === undefined) return "#999";
-  if (total >= 85) return "#2a8";
-  if (total >= 70) return "#6a6";
-  if (total >= 50) return "#e6a817";
-  return "#c44";
-}
 
 function statusBadgeStyle(status: string): { bg: string; fg: string } {
   switch (status) {
@@ -314,17 +321,15 @@ function SidePanelContent(): ReactNode {
         height: "100vh",
         display: "flex",
         flexDirection: "column",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        fontSize: 13,
-        color: "#333",
+        ...shellBody,
       }}
     >
       {/* Header */}
       <div
         style={{
           padding: "10px 14px",
-          borderBottom: "1px solid #e0e0e0",
-          background: "#fafafa",
+          borderBottom: `1px solid ${colors.border}`,
+          background: colors.cardBg,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -336,12 +341,18 @@ function SidePanelContent(): ReactNode {
               fontSize: 15,
               fontWeight: 700,
               margin: 0,
-              color: "#1a3a5c",
+              color: colors.navy,
             }}
           >
             VacancyPilot
           </h1>
-          <p style={{ margin: "4px 0 0", fontSize: 11, color: "#999" }}>
+          <p
+            style={{
+              margin: "4px 0 0",
+              fontSize: fontSizes.sm,
+              color: colors.textPlaceholder,
+            }}
+          >
             HH.ru copilot
           </p>
         </div>
@@ -351,12 +362,12 @@ function SidePanelContent(): ReactNode {
           title="Refresh"
           style={{
             padding: "2px 6px",
-            fontSize: 11,
+            fontSize: fontSizes.sm,
             cursor: "pointer",
-            border: "1px solid #ddd",
+            border: `1px solid ${colors.borderLight}`,
             borderRadius: 4,
-            background: "#fff",
-            color: "#888",
+            background: colors.white,
+            color: colors.textFaint,
           }}
         >
           ↻
@@ -368,8 +379,8 @@ function SidePanelContent(): ReactNode {
         role="tablist"
         style={{
           display: "flex",
-          borderBottom: "1px solid #e0e0e0",
-          background: "#fff",
+          borderBottom: `1px solid ${colors.border}`,
+          background: colors.white,
           flexShrink: 0,
         }}
       >
@@ -383,16 +394,20 @@ function SidePanelContent(): ReactNode {
             style={{
               flex: 1,
               padding: "8px 4px",
-              fontSize: 12,
+              fontSize: fontSizes.md,
               cursor: "pointer",
               border: "none",
               borderBottom:
                 activeTab === tab.id
-                  ? "2px solid #4a90d9"
+                  ? `2px solid ${colors.blue}`
                   : "2px solid transparent",
-              background: activeTab === tab.id ? "#f0f6ff" : "transparent",
-              color: activeTab === tab.id ? "#4a90d9" : "#666",
-              fontWeight: activeTab === tab.id ? 600 : 400,
+              background:
+                activeTab === tab.id ? colors.activeBg : "transparent",
+              color: activeTab === tab.id ? colors.blue : colors.textMuted,
+              fontWeight:
+                activeTab === tab.id
+                  ? fontWeights.semibold
+                  : fontWeights.normal,
               transition: "background 0.15s",
             }}
           >
@@ -402,7 +417,7 @@ function SidePanelContent(): ReactNode {
       </div>
 
       {/* Tab content */}
-      <div style={{ flex: 1, overflow: "auto", padding: 14 }}>
+      <div style={scrollArea}>
         <TabContent tab={activeTab} ctx={ctx} onRefresh={handleRefresh} />
       </div>
     </div>
@@ -1182,13 +1197,19 @@ export default function App(): ReactNode {
   return (
     <ErrorBoundary rootLabel="Side Panel">
       {dbError ? (
-        <div style={{ padding: 12, fontSize: 12, color: "#c44" }}>
+        <div style={{ padding: 12, fontSize: fontSizes.md, color: colors.red }}>
           Failed to initialize local data: {dbError}
         </div>
       ) : dbReady ? (
         <SidePanelContent />
       ) : (
-        <div style={{ padding: 12, fontSize: 12, color: "#666" }}>
+        <div
+          style={{
+            padding: 12,
+            fontSize: fontSizes.md,
+            color: colors.textMuted,
+          }}
+        >
           Initializing local data…
         </div>
       )}

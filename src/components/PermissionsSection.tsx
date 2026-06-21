@@ -1,59 +1,17 @@
 import { useEffect, useState, type ReactNode } from "react";
-
-const sectionHeading: React.CSSProperties = {
-  fontSize: 16,
-  fontWeight: 700,
-  margin: "0 0 6px",
-  color: "#1a3a5c",
-};
-
-const card: React.CSSProperties = {
-  padding: 14,
-  border: "1px solid #e0e0e0",
-  borderRadius: 8,
-  background: "#fafafa",
-  marginBottom: 12,
-  maxWidth: 560,
-};
-
-const cardHeading: React.CSSProperties = {
-  fontSize: 14,
-  fontWeight: 600,
-  margin: "0 0 6px",
-  color: "#1a3a5c",
-};
-
-const permTable: React.CSSProperties = {
-  width: "100%",
-  borderCollapse: "collapse",
-  fontSize: 12,
-  marginTop: 8,
-};
-
-const thStyle: React.CSSProperties = {
-  textAlign: "left",
-  padding: "4px 8px",
-  borderBottom: "1px solid #eee",
-  fontWeight: 600,
-  color: "#555",
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: "4px 8px",
-  borderBottom: "1px solid #f5f5f5",
-  color: "#333",
-  verticalAlign: "top",
-};
-
-const grantedBadge: React.CSSProperties = {
-  display: "inline-block",
-  padding: "1px 6px",
-  borderRadius: 3,
-  fontSize: 10,
-  fontWeight: 600,
-  background: "#e6f7e6",
-  color: "#2a8",
-};
+import {
+  sectionHeading,
+  sectionDesc,
+  card,
+  cardHeading,
+  listStyle,
+  tableStyle,
+  thStyle,
+  tdStyle,
+  grantedBadge,
+  colors,
+  fontSizes,
+} from "@/styles";
 
 interface PermissionInfo {
   permission: string;
@@ -122,18 +80,24 @@ export function PermissionsSection(): ReactNode {
   return (
     <div style={{ maxWidth: 620 }}>
       <h2 style={sectionHeading}>Permissions &amp; Data Access</h2>
-      <p style={{ fontSize: 12, color: "#666", margin: "0 0 14px" }}>
+      <p style={sectionDesc}>
         VacancyPilot keeps the permission surface narrow. The current manifest
         requests only the permissions listed below.
       </p>
 
       <div style={card}>
         <h3 style={cardHeading}>Declared Manifest Permissions</h3>
-        <p style={{ fontSize: 11, color: "#888", margin: "0 0 4px" }}>
+        <p
+          style={{
+            fontSize: fontSizes.sm,
+            color: colors.textFaint,
+            margin: "0 0 4px",
+          }}
+        >
           These permissions are part of the installed extension package. There
           are no declared host permissions in the current build.
         </p>
-        <table style={permTable}>
+        <table style={tableStyle}>
           <thead>
             <tr>
               <th style={thStyle}>Permission</th>
@@ -146,13 +110,17 @@ export function PermissionsSection(): ReactNode {
             {permissions.map((permission) => (
               <tr key={permission.permission}>
                 <td style={tdStyle}>
-                  <code style={{ fontSize: 11 }}>{permission.permission}</code>
+                  <code style={{ fontSize: fontSizes.sm }}>
+                    {permission.permission}
+                  </code>
                 </td>
                 <td style={tdStyle}>
                   <span style={grantedBadge}>Granted</span>
                 </td>
                 <td style={tdStyle}>{permission.feature}</td>
-                <td style={{ ...tdStyle, color: "#555" }}>{permission.reason}</td>
+                <td style={{ ...tdStyle, color: colors.textSecondary }}>
+                  {permission.reason}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -161,11 +129,17 @@ export function PermissionsSection(): ReactNode {
 
       <div style={card}>
         <h3 style={cardHeading}>Optional Runtime Host Access</h3>
-        <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
+        <p
+          style={{
+            fontSize: fontSizes.sm,
+            color: colors.textFaint,
+            margin: "0 0 8px",
+          }}
+        >
           OpenAI access is declared as an optional host permission and is
           requested only when you confirm an AI action that needs it.
         </p>
-        <table style={permTable}>
+        <table style={tableStyle}>
           <thead>
             <tr>
               <th style={thStyle}>Origin</th>
@@ -177,7 +151,9 @@ export function PermissionsSection(): ReactNode {
           <tbody>
             <tr>
               <td style={tdStyle}>
-                <code style={{ fontSize: 11 }}>https://api.openai.com/*</code>
+                <code style={{ fontSize: fontSizes.sm }}>
+                  https://api.openai.com/*
+                </code>
               </td>
               <td style={tdStyle}>
                 <span style={grantedBadge}>
@@ -185,7 +161,7 @@ export function PermissionsSection(): ReactNode {
                 </span>
               </td>
               <td style={tdStyle}>OpenAI requests by explicit user action</td>
-              <td style={{ ...tdStyle, color: "#555" }}>
+              <td style={{ ...tdStyle, color: colors.textSecondary }}>
                 Needed only when you confirm an AI draft or analysis request.
                 VacancyPilot does not request this access at install time.
               </td>
@@ -196,15 +172,7 @@ export function PermissionsSection(): ReactNode {
 
       <div style={card}>
         <h3 style={cardHeading}>What Is Not Requested</h3>
-        <ul
-          style={{
-            margin: "4px 0 0",
-            paddingLeft: 18,
-            fontSize: 12,
-            color: "#555",
-            lineHeight: 1.8,
-          }}
-        >
+        <ul style={listStyle}>
           <li>No install-time host permissions such as `https://hh.ru/*`.</li>
           <li>No optional permissions such as `clipboardWrite` or `alarms`.</li>
           <li>
@@ -212,7 +180,13 @@ export function PermissionsSection(): ReactNode {
             OpenRouter, or n8n.
           </li>
         </ul>
-        <p style={{ fontSize: 11, color: "#888", margin: "8px 0 0" }}>
+        <p
+          style={{
+            fontSize: fontSizes.sm,
+            color: colors.textFaint,
+            margin: "8px 0 0",
+          }}
+        >
           AI and n8n remain opt-in. Today only OpenAI is wired through an
           optional runtime host request. Other providers stay out of scope until
           implemented.
@@ -221,19 +195,13 @@ export function PermissionsSection(): ReactNode {
 
       <div style={card}>
         <h3 style={cardHeading}>How to Revoke Access</h3>
-        <ol
-          style={{
-            margin: "4px 0 0",
-            paddingLeft: 18,
-            fontSize: 12,
-            color: "#555",
-            lineHeight: 1.8,
-          }}
-        >
+        <ol style={listStyle}>
           <li>
             Open <code>chrome://extensions/</code> in your browser.
           </li>
-          <li>Find <strong>VacancyPilot</strong>.</li>
+          <li>
+            Find <strong>VacancyPilot</strong>.
+          </li>
           <li>
             Open <strong>Details</strong> to inspect the installed manifest.
           </li>

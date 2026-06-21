@@ -1,41 +1,15 @@
 import type { ReactNode } from "react";
-
-const sectionHeading: React.CSSProperties = {
-  fontSize: 16,
-  fontWeight: 700,
-  margin: "0 0 6px",
-  color: "#1a3a5c",
-};
-
-const card: React.CSSProperties = {
-  padding: 14,
-  border: "1px solid #e0e0e0",
-  borderRadius: 8,
-  background: "#fafafa",
-  marginBottom: 12,
-  maxWidth: 560,
-};
-
-const cardHeading: React.CSSProperties = {
-  fontSize: 14,
-  fontWeight: 600,
-  margin: "0 0 6px",
-  color: "#1a3a5c",
-};
-
-const listStyle: React.CSSProperties = {
-  margin: "4px 0 0",
-  paddingLeft: 18,
-  fontSize: 12,
-  color: "#555",
-  lineHeight: 1.7,
-};
-
-const muted: React.CSSProperties = {
-  fontSize: 11,
-  color: "#888",
-  margin: "0 0 4px",
-};
+import {
+  sectionHeading,
+  sectionDesc,
+  card,
+  cardHeading,
+  listStyle,
+  muted,
+  colors,
+  fontSizes,
+  fontWeights,
+} from "@/styles";
 
 /**
  * Privacy disclosure surface explaining what data is collected, stored,
@@ -46,7 +20,7 @@ export function PrivacyDisclosureSection(): ReactNode {
   return (
     <div style={{ maxWidth: 600 }}>
       <h2 style={sectionHeading}>Privacy Disclosure</h2>
-      <p style={{ fontSize: 12, color: "#666", margin: "0 0 14px" }}>
+      <p style={sectionDesc}>
         VacancyPilot is designed to keep your data local and under your control.
         Here is exactly what happens with your data.
       </p>
@@ -109,10 +83,10 @@ export function PrivacyDisclosureSection(): ReactNode {
 
         <h4
           style={{
-            fontSize: 13,
-            fontWeight: 600,
+            fontSize: fontSizes.body,
+            fontWeight: fontWeights.semibold,
             margin: "10px 0 4px",
-            color: "#1a3a5c",
+            color: colors.navy,
           }}
         >
           AI Provider (your API key required)
@@ -135,10 +109,10 @@ export function PrivacyDisclosureSection(): ReactNode {
 
         <h4
           style={{
-            fontSize: 13,
-            fontWeight: 600,
+            fontSize: fontSizes.body,
+            fontWeight: fontWeights.semibold,
             margin: "10px 0 4px",
-            color: "#1a3a5c",
+            color: colors.navy,
           }}
         >
           n8n Webhook (Labs, your n8n instance required)
