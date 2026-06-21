@@ -1,0 +1,141 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug] "
+labels: ["type: bug", "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill out the form below.
+
+        **Before submitting**: check [existing issues](https://github.com/VacancyPilot/VacancyPilot/issues) for duplicates.
+        **Do not include secrets, API keys, or personal data.**
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Briefly describe the bug
+      placeholder: e.g. "Vacancy parser fails to extract salary on remote-only positions"
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: Browser name and version
+      placeholder: e.g. "Chrome 128", "Edge 127"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: OS name and version
+      placeholder: e.g. "Windows 11", "macOS 14.5", "Ubuntu 24.04"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Extension Version / Commit
+      description: Version from manifest or commit hash
+      placeholder: e.g. "0.1.0", "commit 3d6a208"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: page_type
+    attributes:
+      label: Page Type
+      description: Where does the bug occur?
+      options:
+        - Vacancy page
+        - Search results
+        - Applications / Negotiations
+        - Dashboard
+        - Popup
+        - Side panel
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe the expected outcome
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what went wrong
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the bug
+      placeholder: |
+        1. Open HH.ru vacancy page
+        2. Click extension icon
+        3. Observe error
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Logs
+      description: If applicable, attach screenshots or console logs. Do not include personal data or full page HTML.
+      placeholder: Paste console errors or describe visual issues
+    validations:
+      required: false
+
+  - type: dropdown
+    id: safety_impact
+    attributes:
+      label: Safety Impact
+      description: Does this bug affect any safety guarantees?
+      options:
+        - None — no safety concern
+        - Parser failure may cause incorrect data
+        - Potential privacy concern
+        - Potential security concern
+    validations:
+      required: true
+
+  - type: dropdown
+    id: privacy_impact
+    attributes:
+      label: Data / Privacy Impact
+      description: Does this bug affect data integrity or privacy?
+      options:
+        - None — no privacy concern
+        - Data may be saved incorrectly
+        - Data may be exposed unexpectedly
+        - Other (describe in summary)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Submission Checklist
+      options:
+        - label: I have checked existing issues for duplicates
+          required: true
+        - label: I have not included secrets, API keys, or personal data
+          required: true
+        - label: I have not included full HH.ru page HTML with personal information
+          required: true

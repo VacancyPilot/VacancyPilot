@@ -1,0 +1,88 @@
+name: Feature Request
+description: Propose a new feature or improvement
+title: "[Feature] "
+labels: ["type: feature", "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a feature. Please review the project's [safety boundaries](https://github.com/VacancyPilot/VacancyPilot#what-it-does-not-do) before submitting.
+
+        **VacancyPilot is not an auto-apply bot.** Features that involve auto-submit, auto-click, or hidden HH requests will not be accepted.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this feature solve? Describe the user need.
+      placeholder: e.g. "When browsing many search results, I can't quickly tell which vacancies match my profile"
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the feature you'd like to see
+      placeholder: Describe how this would work from the user's perspective
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow
+    attributes:
+      label: User Workflow
+      description: Walk through the user's steps when using this feature
+      placeholder: |
+        1. User opens HH.ru search results
+        2. Extension shows score badges on each card
+        3. User clicks a badge to see details
+    validations:
+      required: true
+
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety Considerations
+      description: How does this feature respect project safety boundaries?
+      placeholder: |
+        - Reads only opened HH pages: yes
+        - Requires user action for external requests: yes
+        - Does not auto-submit or auto-click: yes
+        - Does not programmatically fill HH forms: yes
+        - Does not require broad permissions: yes
+    validations:
+      required: true
+
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy Considerations
+      description: Does this feature collect, store, or transmit any new data?
+      placeholder: |
+        - All data stays local: yes
+        - No new telemetry: yes
+        - No new data sent externally: yes
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Are there other ways to solve this problem?
+      placeholder: Describe alternative approaches and why this one is preferred
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: How will we know this feature is complete?
+      placeholder: |
+        - [ ] Feature works on vacancy pages
+        - [ ] Feature works on search pages
+        - [ ] Tests cover the new behavior
+    validations:
+      required: true
