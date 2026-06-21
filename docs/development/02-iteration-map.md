@@ -165,6 +165,20 @@ Status values:
 | ITER-063 | EPIC-32 | Complete onboarding, permission disclosure, and privacy explainer surfaces for real private installs | done | `feat: complete onboarding and permission disclosure` |
 | ITER-064 | EPIC-32 | Harden private packaging assets, install flow docs, and release verification evidence | done | `docs: finalize private release readiness pack` |
 
+## Phase 5.5: UI Foundation And Surface Consistency
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-065 | EPIC-33 | Extract shared UI tokens/primitives and normalize popup, side panel, dashboard shell styling | planned | `refactor: unify ui surface foundations` |
+| ITER-066 | EPIC-33 | Polish empty/loading/error states and responsive density across core surfaces | planned | `feat: polish shared ui states and responsiveness` |
+
+## Phase 5.6: Workflow UX Refinement
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-067 | EPIC-34 | Improve kanban, HR, and guided-apply workflow ergonomics for repeated daily use | planned | `feat: refine workflow ergonomics` |
+| ITER-068 | EPIC-34 | Improve popup, side panel, and search triage interaction clarity, feedback, and accessibility | planned | `feat: improve runtime interaction clarity` |
+
 ## Phase 5: Expansion And Release
 
 | Iteration | Epic | Goal | Status | Commit |

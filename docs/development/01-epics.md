@@ -53,6 +53,8 @@ This file is the working map from the master specification to implementation epi
 | EPIC-30 | Final Security Tail Closure | 4.2 | ready |
 | EPIC-31 | AI Assist Quality And Trust | 5 | active |
 | EPIC-32 | Private Release Readiness | 5 | done |
+| EPIC-33 | UI Foundation And Surface Consistency | 5.5 | ready |
+| EPIC-34 | Workflow UX Refinement | 5.6 | ready |
 
 ## Later Epics
 

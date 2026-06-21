@@ -75,6 +75,10 @@ Available prompts:
 - `ITER-062.md`
 - `ITER-063.md`
 - `ITER-064.md`
+- `ITER-065.md`
+- `ITER-066.md`
+- `ITER-067.md`
+- `ITER-068.md`
 - `PHASE-1-SIGNOFF.md`
 
 Recommended use after `ITER-016`:
@@ -96,3 +100,4 @@ Recommended use after `ITER-016`:
 15. Run `ITER-059.md` to close the remaining moderate dependency alert
 16. Continue with the next active product pack: `ITER-060.md`, then continue one row at a time through `ITER-062.md`
 17. Keep `ITER-043.md` and `ITER-014.md` deferred until the n8n permission model is explicitly reopened
+18. After `EPIC-31`, the queued GUI/UI/UX follow-up pack is `ITER-065.md` through `ITER-068.md`
