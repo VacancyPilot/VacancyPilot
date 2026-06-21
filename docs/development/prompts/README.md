@@ -79,6 +79,9 @@ Available prompts:
 - `ITER-066.md`
 - `ITER-067.md`
 - `ITER-068.md`
+- `ITER-069.md`
+- `ITER-070.md`
+- `ITER-071.md`
 - `PHASE-1-SIGNOFF.md`
 
 Recommended use after `ITER-016`:
@@ -101,3 +104,4 @@ Recommended use after `ITER-016`:
 16. Continue with the next active product pack: `ITER-060.md`, then continue one row at a time through `ITER-062.md`
 17. Keep `ITER-043.md` and `ITER-014.md` deferred until the n8n permission model is explicitly reopened
 18. After `EPIC-31`, the queued GUI/UI/UX follow-up pack is `ITER-065.md` through `ITER-068.md`
+19. If manual QA still shows popup/side-panel runtime bugs or narrow-layout friction after that, continue with `ITER-069.md` through `ITER-071.md`

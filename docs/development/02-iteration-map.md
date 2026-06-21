@@ -179,6 +179,14 @@ Status values:
 | ITER-067 | EPIC-34 | Improve kanban, HR, and guided-apply workflow ergonomics for repeated daily use | planned | `feat: refine workflow ergonomics` |
 | ITER-068 | EPIC-34 | Improve popup, side panel, and search triage interaction clarity, feedback, and accessibility | planned | `feat: improve runtime interaction clarity` |
 
+## Phase 5.7: Runtime Stabilization And Surface Hardening
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-069 | EPIC-35 | Fix popup-to-side-panel runtime opening flow and background boot synchronization without expanding permissions | planned | `fix: stabilize side panel open flow` |
+| ITER-070 | EPIC-35 | Polish popup density and HH page badge placement after the side-panel runtime fix | planned | `polish: improve popup and page badge UX` |
+| ITER-071 | EPIC-35 | Improve dashboard/options responsive layout and reduce nested scroll friction in narrow widths | planned | `feat: polish dashboard responsive ergonomics` |
+
 ## Phase 5: Expansion And Release
 
 | Iteration | Epic | Goal | Status | Commit |

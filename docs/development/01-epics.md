@@ -55,6 +55,7 @@ This file is the working map from the master specification to implementation epi
 | EPIC-32 | Private Release Readiness | 5 | done |
 | EPIC-33 | UI Foundation And Surface Consistency | 5.5 | ready |
 | EPIC-34 | Workflow UX Refinement | 5.6 | ready |
+| EPIC-35 | Runtime Stabilization And Surface Hardening | 5.7 | ready |
 
 ## Later Epics
 
