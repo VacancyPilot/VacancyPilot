@@ -5,6 +5,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { ProfileManager } from "@/components/ProfileManager";
 import { ResumeManager } from "@/components/ResumeManager";
+import { AISettingsSection } from "@/components/AISettingsSection";
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import {
   exportAllJson,
@@ -277,13 +278,7 @@ function SectionContent({ section }: { section: SectionId }): ReactNode {
     case "export":
       return <ExportSection />;
     case "settings":
-      return (
-        <EmptyState
-          icon="⚙️"
-          message="Settings"
-          description="Configure scoring, AI provider, n8n, and general preferences."
-        />
-      );
+      return <AISettingsSection />;
     case "privacy":
       return <PrivacySection />;
     case "debug":

@@ -2,6 +2,7 @@ import { db, TABLE_NAMES } from "@/db";
 import type { TableName } from "@/db";
 import { invalidateCache } from "./ai-cache";
 import { removeBadgeState, removeAllBadgeStates } from "./badge-state";
+import { deleteAllApiKeys } from "@/db/api-key-bridge";
 
 /**
  * Safe delete-all-data service.
@@ -43,7 +44,10 @@ export async function deleteAllData(): Promise<void> {
   // 2. Remove known product keys from chrome.storage.local
   await chrome.storage.local.remove(PRODUCT_STORAGE_KEYS);
 
-  // 3. Remove all badge state keys
+  // 3. Remove all API keys
+  await deleteAllApiKeys();
+
+  // 4. Remove all badge state keys
   await removeAllBadgeStates();
 }
 
