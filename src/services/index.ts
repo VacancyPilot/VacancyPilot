@@ -91,8 +91,10 @@ export {
 export type { ProviderOriginAccess } from "./ai-provider-permissions";
 export {
   prepareCoverLetterAiRequest,
+  previewCoverLetterPayload,
   buildCoverLetterAiCostSummary,
   generateCoverLetterAiDraft,
+  generateCoverLetterDraft,
 } from "./cover-letter-ai";
 export type {
   CoverLetterAiRequest,

@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { OpenAILLMProvider, estimateCost } from "./ai-provider-openai";
+import {
+  OpenAILLMProvider,
+  estimateCost,
+  getOpenAITokenLimitParam,
+} from "./ai-provider-openai";
 import type { VacancyAnalysisInput, CoverLetterInput } from "@/models/ai";
 
 // ── Mock getApiKey from api-key-bridge ────────────────────────────────────
@@ -107,12 +111,16 @@ function makeSuccessResponse(
   } as unknown as Response;
 }
 
-function makeErrorResponse(status: number, errorMessage: string): Response {
+function makeErrorResponse(
+  status: number,
+  errorMessage: string,
+  code?: string,
+): Response {
   return {
     ok: false,
     status,
     json: async () => ({
-      error: { message: errorMessage, type: "api_error" },
+      error: { message: errorMessage, type: "api_error", code },
     }),
   } as unknown as Response;
 }
@@ -424,5 +432,148 @@ describe("estimateCost", () => {
   it("returns non-zero cost for gpt-3.5-turbo", () => {
     const cost = estimateCost("gpt-3.5-turbo", 5000, 2000);
     expect(cost).toBeGreaterThan(0);
+  });
+});
+
+// ── getOpenAITokenLimitParam ────────────────────────────────────────────
+
+describe("getOpenAITokenLimitParam", () => {
+  it("gpt-5.5 uses max_completion_tokens and not max_tokens", () => {
+    const result = getOpenAITokenLimitParam("gpt-5.5", 1500);
+    expect(result).toEqual({ max_completion_tokens: 1500 });
+    expect(result).not.toHaveProperty("max_tokens");
+  });
+
+  it("gpt-5.4-mini uses max_completion_tokens and not max_tokens", () => {
+    const result = getOpenAITokenLimitParam("gpt-5.4-mini", 800);
+    expect(result).toEqual({ max_completion_tokens: 800 });
+    expect(result).not.toHaveProperty("max_tokens");
+  });
+
+  it("o-series models use max_completion_tokens", () => {
+    expect(getOpenAITokenLimitParam("o1", 1000)).toEqual({
+      max_completion_tokens: 1000,
+    });
+    expect(getOpenAITokenLimitParam("o3-mini", 500)).toEqual({
+      max_completion_tokens: 500,
+    });
+    expect(getOpenAITokenLimitParam("o4", 2000)).toEqual({
+      max_completion_tokens: 2000,
+    });
+  });
+
+  it("gpt-4o uses legacy max_tokens", () => {
+    const result = getOpenAITokenLimitParam("gpt-4o", 1500);
+    expect(result).toEqual({ max_tokens: 1500 });
+    expect(result).not.toHaveProperty("max_completion_tokens");
+  });
+
+  it("gpt-4o-mini uses legacy max_tokens", () => {
+    const result = getOpenAITokenLimitParam("gpt-4o-mini", 1500);
+    expect(result).toEqual({ max_tokens: 1500 });
+  });
+
+  it("gpt-4-turbo uses legacy max_tokens", () => {
+    const result = getOpenAITokenLimitParam("gpt-4-turbo", 1500);
+    expect(result).toEqual({ max_tokens: 1500 });
+  });
+
+  it("unknown model uses legacy max_tokens as safe default", () => {
+    const result = getOpenAITokenLimitParam("unknown-future-model", 1500);
+    expect(result).toEqual({ max_tokens: 1500 });
+  });
+
+  it("case-insensitive model matching", () => {
+    expect(getOpenAITokenLimitParam("GPT-5.5", 1000)).toEqual({
+      max_completion_tokens: 1000,
+    });
+    expect(getOpenAITokenLimitParam("Gpt-4o", 1000)).toEqual({
+      max_tokens: 1000,
+    });
+  });
+});
+
+// ── Error handling mapping ──────────────────────────────────────────────
+
+describe("OpenAI error mapping", () => {
+  it("maps unsupported_parameter code to user-friendly message", async () => {
+    mockApiKeys.set("openai", "sk-test-key");
+    mockFetch.mockResolvedValueOnce(
+      makeErrorResponse(
+        400,
+        "Unsupported parameter: 'max_tokens' is not supported with this model.",
+        "unsupported_parameter",
+      ),
+    );
+
+    const provider = new OpenAILLMProvider("gpt-5.5");
+    await expect(
+      provider.generateCoverLetter(makeCoverLetterInput()),
+    ).rejects.toThrow(/max_completion_tokens/);
+  });
+
+  it("maps model_not_found code to user-friendly message", async () => {
+    mockApiKeys.set("openai", "sk-test-key");
+    mockFetch.mockResolvedValueOnce(
+      makeErrorResponse(404, "The model does not exist", "model_not_found"),
+    );
+
+    const provider = new OpenAILLMProvider("gpt-5.5");
+    await expect(
+      provider.generateCoverLetter(makeCoverLetterInput()),
+    ).rejects.toThrow(/Model is not available/);
+  });
+
+  it("maps insufficient_quota code to user-friendly message", async () => {
+    mockApiKeys.set("openai", "sk-test-key");
+    mockFetch.mockResolvedValueOnce(
+      makeErrorResponse(
+        429,
+        "You exceeded your current quota",
+        "insufficient_quota",
+      ),
+    );
+
+    const provider = new OpenAILLMProvider();
+    await expect(
+      provider.generateCoverLetter(makeCoverLetterInput()),
+    ).rejects.toThrow(/quota.billing/);
+  });
+
+  it("maps 403 status to permission message", async () => {
+    mockApiKeys.set("openai", "sk-test-key");
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(403, "Forbidden"));
+
+    const provider = new OpenAILLMProvider();
+    await expect(
+      provider.generateCoverLetter(makeCoverLetterInput()),
+    ).rejects.toThrow(/permission/i);
+  });
+
+  it("falls back to server error message when code is unknown", async () => {
+    mockApiKeys.set("openai", "sk-test-key");
+    mockFetch.mockResolvedValueOnce(
+      makeErrorResponse(500, "Internal server error"),
+    );
+
+    const provider = new OpenAILLMProvider();
+    await expect(
+      provider.generateCoverLetter(makeCoverLetterInput()),
+    ).rejects.toThrow(/Internal server error/);
+  });
+
+  it("GPT-5.5 request body uses max_completion_tokens", async () => {
+    mockApiKeys.set("openai", "sk-test-key");
+    mockFetch.mockResolvedValueOnce(
+      makeSuccessResponse("Generated letter for GPT-5"),
+    );
+
+    const provider = new OpenAILLMProvider("gpt-5.5");
+    await provider.generateCoverLetter(makeCoverLetterInput());
+
+    const fetchCall = mockFetch.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(fetchCall[1].body as string);
+    expect(body.max_completion_tokens).toBe(1500);
+    expect(body.max_tokens).toBeUndefined();
   });
 });

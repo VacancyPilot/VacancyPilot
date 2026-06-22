@@ -17,7 +17,10 @@ import type {
 } from "@/models/ai";
 import type { CoverLetterConstraints } from "@/models/cover-letter";
 import { getApiKey } from "@/db/api-key-bridge";
-import { parseAndValidateAnalysis, createFallbackAnalysis } from "./ai-validation";
+import {
+  parseAndValidateAnalysis,
+  createFallbackAnalysis,
+} from "./ai-validation";
 
 // ── OpenAI API types ─────────────────────────────────────────────────────
 
@@ -217,6 +220,80 @@ function buildCoverLetterUserPrompt(input: CoverLetterInput): string {
   return parts.join("\n");
 }
 
+// ── Token limit parameter compatibility ───────────────────────────────────
+
+/**
+ * Return the correct token-limit parameter name for a given OpenAI model.
+ *
+ * GPT-5, o1, o3, and o4 family models require `max_completion_tokens`
+ * instead of the legacy `max_tokens`. All other chat models keep `max_tokens`.
+ */
+export function getOpenAITokenLimitParam(
+  model: string,
+  value: number,
+): { max_completion_tokens: number } | { max_tokens: number } {
+  const normalized = model.toLowerCase();
+
+  const requiresMaxCompletionTokens =
+    normalized.startsWith("gpt-5") ||
+    normalized.startsWith("o1") ||
+    normalized.startsWith("o3") ||
+    normalized.startsWith("o4");
+
+  return requiresMaxCompletionTokens
+    ? { max_completion_tokens: value }
+    : { max_tokens: value };
+}
+
+// ── Error message mapping ─────────────────────────────────────────────────
+
+const OPENAI_ERROR_MAP: Record<string, string> = {
+  unsupported_parameter:
+    "Model/API parameter mismatch. Try another model or update request parameters.",
+  model_not_found: "Model is not available for this API key/project.",
+  insufficient_quota: "OpenAI quota/billing issue. Check your account balance.",
+  invalid_api_key: "API key is invalid or revoked. Check your key in settings.",
+  rate_limit_exceeded:
+    "Rate limit exceeded. Try again later or lower request frequency.",
+};
+
+function mapOpenAIError(
+  status: number,
+  errorBody?: OpenAIErrorResponse,
+): string {
+  const code = errorBody?.error?.code;
+  if (code && OPENAI_ERROR_MAP[code]) {
+    if (code === "unsupported_parameter") {
+      const messageLower = (errorBody?.error?.message ?? "").toLowerCase();
+      if (messageLower.includes("max_tokens")) {
+        return "OpenAI rejected the token limit parameter for this model. VacancyPilot should use max_completion_tokens for this model.";
+      }
+    }
+
+    const mapped = OPENAI_ERROR_MAP[code];
+    return `OpenAI: ${mapped}`;
+  }
+
+  if (status === 401) {
+    return "OpenAI: Invalid API key. Check your key in settings.";
+  }
+  if (status === 403) {
+    return "OpenAI: Browser permission or OpenAI project access issue.";
+  }
+  if (status === 429) {
+    return "OpenAI: Rate limit exceeded. Try again later.";
+  }
+  if (status === 402) {
+    return "OpenAI: Insufficient credits. Check your account balance.";
+  }
+
+  const serverMsg = errorBody?.error?.message;
+  if (serverMsg) {
+    return `OpenAI: ${serverMsg}`;
+  }
+  return `OpenAI API error ${status}`;
+}
+
 // ── API call helpers ─────────────────────────────────────────────────────
 
 async function callOpenAI(
@@ -224,6 +301,8 @@ async function callOpenAI(
   messages: OpenAIMessage[],
   apiKey: string,
 ): Promise<OpenAIResponse> {
+  const tokenParam = getOpenAITokenLimitParam(model, 1500);
+
   const response = await fetch(OPENAI_API_URL, {
     method: "POST",
     headers: {
@@ -234,34 +313,19 @@ async function callOpenAI(
       model,
       messages,
       temperature: 0.4,
-      max_tokens: 1500,
+      ...tokenParam,
     }),
   });
 
   if (!response.ok) {
-    let errorMessage = `OpenAI API error ${response.status}`;
+    let errorBody: OpenAIErrorResponse | undefined;
     try {
-      const errorBody = (await response.json()) as OpenAIErrorResponse;
-      if (errorBody.error?.message) {
-        errorMessage = `OpenAI: ${errorBody.error.message}`;
-      }
+      errorBody = (await response.json()) as OpenAIErrorResponse;
     } catch {
       // Response body not parseable — use status text
-      errorMessage = `OpenAI: ${response.status} ${response.statusText}`;
     }
 
-    if (response.status === 401) {
-      throw new Error("OpenAI: Invalid API key. Check your key in settings.");
-    }
-    if (response.status === 429) {
-      throw new Error("OpenAI: Rate limit exceeded. Try again later.");
-    }
-    if (response.status === 402) {
-      throw new Error(
-        "OpenAI: Insufficient credits. Check your account balance.",
-      );
-    }
-    throw new Error(errorMessage);
+    throw new Error(mapOpenAIError(response.status, errorBody));
   }
 
   return response.json() as Promise<OpenAIResponse>;
