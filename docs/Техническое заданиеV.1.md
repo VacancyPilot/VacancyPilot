@@ -1215,6 +1215,12 @@ interface AppSettings {
     language: 'ru' | 'en';
     theme: 'system' | 'light' | 'dark';
     showPageBadge: boolean;
+    searchHighlightsEnabled: boolean;
+    searchHighlightsShowViewed: boolean;
+    searchHighlightsShowSavedRejected: boolean;
+    searchHighlightsShowScore: boolean;
+    searchHighlightsShowViewCount: boolean;
+    rejectedSearchCardBehavior: 'dim' | 'hide' | 'none';
     autosaveViewedJobs: boolean;
   };
 

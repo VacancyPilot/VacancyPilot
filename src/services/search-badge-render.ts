@@ -18,6 +18,21 @@ export interface SearchBadgeState {
   hidden?: boolean;
 }
 
+interface SearchBadgeControls {
+  showViewed?: boolean;
+  showSavedRejected?: boolean;
+  showScore?: boolean;
+  showViewCount?: boolean;
+}
+
+interface SearchBadgePart {
+  className: string;
+  text: string;
+  title?: string;
+  ariaLabel?: string;
+  role?: string;
+}
+
 // ── Work mode labels ───────────────────────────────────────────────────────
 
 const WORK_MODE_LABELS: Record<string, string> = {
@@ -34,34 +49,19 @@ const WORK_MODE_CSS: Record<string, string> = {
 
 // ── Status icons ───────────────────────────────────────────────────────────
 
-const STATUS_ICONS: Record<string, string> = {
-  saved: "✓",
-  viewed: "👁",
-  letter_ready: "✉",
-  applied: "📨",
-  rejected_by_me: "✕",
-  rejected_by_company: "✗",
-  interview: "📅",
-  offer: "🏆",
-  hr_replied: "💬",
-  test_task: "📋",
-  new: "●",
-  blacklist: "🚫",
-};
-
 const STATUS_LABELS: Record<string, string> = {
-  saved: "сохр",
-  viewed: "смтр",
-  letter_ready: "письмо",
-  applied: "отклк",
-  rejected_by_me: "отклз",
-  rejected_by_company: "отказ",
-  interview: "собес",
-  offer: "офер",
-  hr_replied: "ответ",
-  test_task: "тест",
-  new: "нов",
-  blacklist: "блк",
+  saved: "VP saved",
+  viewed: "VP viewed",
+  letter_ready: "VP letter",
+  applied: "VP applied",
+  rejected_by_me: "VP rejected",
+  rejected_by_company: "VP rejected",
+  interview: "VP interview",
+  offer: "VP offer",
+  hr_replied: "VP replied",
+  test_task: "VP test",
+  new: "VP new",
+  blacklist: "VP rejected",
 };
 
 /** Full human-readable status labels for accessibility title/aria-label. */
@@ -82,10 +82,7 @@ const STATUS_LABELS_FULL: Record<string, string> = {
 
 function shouldShowStatus(
   status: string,
-  controls?: {
-    showViewed?: boolean;
-    showSavedRejected?: boolean;
-  },
+  controls?: SearchBadgeControls,
 ): boolean {
   if (status === "viewed") {
     return controls?.showViewed !== false;
@@ -118,6 +115,105 @@ function scoreClass(score: number): string {
   return "vp-sb-score--low";
 }
 
+function hasKnownState(state: SearchBadgeState | undefined): boolean {
+  return (
+    state?.status !== undefined ||
+    state?.score !== undefined ||
+    state?.viewCount !== undefined
+  );
+}
+
+function buildSearchBadgeParts(
+  card: RawSearchItemDTO,
+  state: SearchBadgeState | undefined,
+  controls?: SearchBadgeControls,
+): SearchBadgePart[] {
+  const parts: SearchBadgePart[] = [];
+
+  if (!hasKnownState(state)) {
+    parts.push({
+      className: "vp-sb-neutral",
+      text: "VP new",
+      title: "New to VacancyPilot",
+      ariaLabel: "New to VacancyPilot",
+    });
+  }
+
+  if (state?.status && shouldShowStatus(state.status, controls)) {
+    const label = STATUS_LABELS[state.status] ?? `VP ${state.status}`;
+    const fullLabel = STATUS_LABELS_FULL[state.status] ?? state.status;
+    parts.push({
+      className: "vp-sb-status",
+      text: label,
+      title: fullLabel,
+      ariaLabel: fullLabel,
+    });
+  }
+
+  if (
+    controls?.showScore !== false &&
+    state?.score !== undefined &&
+    state.score !== null
+  ) {
+    parts.push({
+      className: `vp-sb-score ${scoreClass(state.score)}`,
+      text: String(state.score),
+      role: "status",
+      ariaLabel: `Score ${state.score}`,
+    });
+  }
+
+  if (
+    controls?.showViewCount !== false &&
+    state?.viewCount !== undefined &&
+    state.viewCount !== null
+  ) {
+    parts.push({
+      className: "vp-sb-view-count",
+      text: `${state.viewCount}×`,
+      title: `Viewed ${state.viewCount} time(s)`,
+      ariaLabel: `Viewed ${state.viewCount} time(s)`,
+    });
+  }
+
+  if (card.workMode && card.workMode !== "unknown" && card.workMode !== null) {
+    const wmLabel = WORK_MODE_LABELS[card.workMode] ?? card.workMode;
+    const cls = WORK_MODE_CSS[card.workMode] ?? "";
+    parts.push({
+      className: `vp-sb-wm ${cls}`.trim(),
+      text: wmLabel,
+      ariaLabel: `Work mode: ${card.workMode}`,
+    });
+  }
+
+  return parts;
+}
+
+function createBadgeContainer(
+  card: RawSearchItemDTO,
+  state: SearchBadgeState | undefined,
+  controls: SearchBadgeControls | undefined,
+  doc: Document,
+): HTMLElement | null {
+  const parts = buildSearchBadgeParts(card, state, controls);
+  if (parts.length === 0) return null;
+
+  const container = doc.createElement("span");
+  container.className = "vp-sb-container";
+
+  for (const part of parts) {
+    const piece = doc.createElement("span");
+    piece.className = part.className;
+    piece.textContent = part.text;
+    if (part.title) piece.title = part.title;
+    if (part.ariaLabel) piece.setAttribute("aria-label", part.ariaLabel);
+    if (part.role) piece.setAttribute("role", part.role);
+    container.appendChild(piece);
+  }
+
+  return container;
+}
+
 // ── Public API ─────────────────────────────────────────────────────────────
 
 /**
@@ -127,56 +223,18 @@ function scoreClass(score: number): string {
 export function buildSearchBadgeHTML(
   card: RawSearchItemDTO,
   state: SearchBadgeState | undefined,
-  controls?: {
-    showViewed?: boolean;
-    showSavedRejected?: boolean;
-    showScore?: boolean;
-    showViewCount?: boolean;
-  },
+  controls?: SearchBadgeControls,
 ): string {
-  const parts: string[] = [];
+  const parts = buildSearchBadgeParts(card, state, controls).map((part) => {
+    const attrs = [
+      `class="${escapeHtml(part.className)}"`,
+      part.title ? `title="${escapeHtml(part.title)}"` : null,
+      part.ariaLabel ? `aria-label="${escapeHtml(part.ariaLabel)}"` : null,
+      part.role ? `role="${escapeHtml(part.role)}"` : null,
+    ].filter((attr): attr is string => attr !== null);
 
-  // Score (from local badge state)
-  if (
-    controls?.showScore !== false &&
-    state?.score !== undefined &&
-    state.score !== null
-  ) {
-    const cls = `vp-sb-score ${scoreClass(state.score)}`;
-    parts.push(
-      `<span class="${cls}" role="status" aria-label="Score ${escapeHtml(state.score)}">${escapeHtml(state.score)}</span>`,
-    );
-  }
-
-  // Status icon + short label (from local badge state)
-  if (state?.status && shouldShowStatus(state.status, controls)) {
-    const icon = STATUS_ICONS[state.status] ?? "";
-    const label = STATUS_LABELS[state.status] ?? state.status;
-    const fullLabel = STATUS_LABELS_FULL[state.status] ?? state.status;
-    parts.push(
-      `<span class="vp-sb-status" title="${escapeHtml(fullLabel)}" aria-label="${escapeHtml(fullLabel)}">${icon}${escapeHtml(label)}</span>`,
-    );
-  }
-
-  if (
-    controls?.showViewCount !== false &&
-    state?.viewCount !== undefined &&
-    state.viewCount !== null
-  ) {
-    const viewCount = escapeHtml(state.viewCount);
-    parts.push(
-      `<span class="vp-sb-view-count" title="Viewed ${viewCount} time(s)" aria-label="Viewed ${viewCount} time(s)">${viewCount}×</span>`,
-    );
-  }
-
-  // Work mode (from visible card data)
-  if (card.workMode && card.workMode !== "unknown" && card.workMode !== null) {
-    const wmLabel = WORK_MODE_LABELS[card.workMode] ?? card.workMode;
-    const cls = WORK_MODE_CSS[card.workMode] ?? "";
-    parts.push(
-      `<span class="vp-sb-wm ${escapeHtml(cls)}" aria-label="Work mode: ${escapeHtml(card.workMode)}">${escapeHtml(wmLabel)}</span>`,
-    );
-  }
+    return `<span ${attrs.join(" ")}>${escapeHtml(part.text)}</span>`;
+  });
 
   if (parts.length === 0) return "";
 
@@ -232,9 +290,19 @@ export function injectSearchBadgeStyles(doc: Document): void {
     .vp-sb-status {
       font-size: 10px;
       color: #666;
-      max-width: 70px;
+      max-width: 86px;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .vp-sb-neutral {
+      color: #6b7280;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 1px 5px;
+      font-size: 10px;
+      line-height: 14px;
     }
 
     .vp-sb-view-count {
@@ -325,20 +393,15 @@ export function injectSearchBadgeStyles(doc: Document): void {
 export function createBadgeHost(
   card: RawSearchItemDTO,
   state: SearchBadgeState | undefined,
-  controls?: {
-    showViewed?: boolean;
-    showSavedRejected?: boolean;
-    showScore?: boolean;
-    showViewCount?: boolean;
-  },
+  controls?: SearchBadgeControls,
   doc: Document = document,
 ): HTMLElement | null {
-  const html = buildSearchBadgeHTML(card, state, controls);
-  if (!html) return null;
+  const container = createBadgeContainer(card, state, controls, doc);
+  if (!container) return null;
 
   const host = doc.createElement("span");
   host.className = "vp-sb-host";
-  host.innerHTML = html;
+  host.appendChild(container);
   return host;
 }
 
@@ -354,21 +417,26 @@ export function attachBadgeToCard(
   if (!cardEl) return;
 
   // Find the card's header area — prefer dedicated header class, fall back to first h3.
-  const header =
+  const titleLink = cardEl.querySelector('a[href*="/vacancy/"], a[href*="%2Fvacancy%2F"], a[href*="%2fvacancy%2f"]');
+  const titleHeader = titleLink?.closest(
+    ".serp-item__header, .vacancy-serp-item__header, h3",
+  );
+  const target =
+    titleHeader ??
     cardEl.querySelector(".serp-item__header") ??
     cardEl.querySelector("h3") ??
     cardEl.querySelector(".vacancy-serp-item__header") ??
-    cardEl.firstElementChild;
+    cardEl;
 
-  if (!header) return;
+  if (!target) return;
 
-  const existing = header.querySelector(".vp-sb-host");
+  const existing = cardEl.querySelector(".vp-sb-host");
   if (existing) {
     existing.replaceWith(badge);
     return;
   }
 
-  header.appendChild(badge);
+  target.appendChild(badge);
 }
 
 /**
@@ -391,6 +459,18 @@ export function applySearchCardState(
 
   if (state?.dimmed) {
     cardEl.classList.add("vp-sb-card--dimmed");
+  }
+}
+
+export function clearSearchBadgeRenderState(doc: Document): void {
+  for (const host of Array.from(doc.querySelectorAll(".vp-sb-host"))) {
+    host.remove();
+  }
+
+  for (const card of Array.from(
+    doc.querySelectorAll(".vp-sb-card--dimmed, .vp-sb-card--hidden"),
+  )) {
+    card.classList.remove("vp-sb-card--dimmed", "vp-sb-card--hidden");
   }
 }
 

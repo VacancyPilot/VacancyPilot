@@ -15,7 +15,7 @@ export interface AppSettings {
     searchHighlightsShowScore?: boolean;
     searchHighlightsShowViewCount?: boolean;
     trackVisitMarks: boolean;
-    rejectedSearchCardBehavior: "dim" | "hide";
+    rejectedSearchCardBehavior: "dim" | "hide" | "none";
     autosaveViewedJobs: boolean;
     toolbarClickBehavior: "popup" | "sidePanel";
     closePopupAfterOpeningSidePanel: boolean;

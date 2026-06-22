@@ -165,6 +165,17 @@ describe("getSearchHighlightStates", () => {
     expect(states["123"]?.hidden).toBe(true);
     expect(states["123"]?.dimmed).toBeUndefined();
   });
+
+  it("leaves rejected cards unaltered when configured", async () => {
+    mockSettings.general.rejectedSearchCardBehavior = "none";
+    mockJobs.push(makeJob({ status: "rejected_by_me" }));
+
+    const states = await getSearchHighlightStates(["123"]);
+
+    expect(states["123"]?.status).toBe("rejected_by_me");
+    expect(states["123"]?.hidden).toBeUndefined();
+    expect(states["123"]?.dimmed).toBeUndefined();
+  });
 });
 
 describe("resolveSearchHighlightControls", () => {
