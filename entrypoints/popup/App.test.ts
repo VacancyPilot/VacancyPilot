@@ -67,6 +67,7 @@ import {
   buildSetSidePanelContext,
   getSidePanelButtonLabel,
   mapSidePanelOpenError,
+  openDashboard,
   openSidePanel,
 } from "./App";
 
@@ -411,6 +412,41 @@ describe("openSidePanel", () => {
     if (!result.success) {
       expect(result.error).toContain("Chrome 116+");
     }
+  });
+});
+
+describe("openDashboard", () => {
+  it("opens the dashboard as a normal options tab", async () => {
+    const getOptionsUrl = vi
+      .fn()
+      .mockReturnValue("chrome-extension://test/options.html");
+    const openTab = vi.fn().mockResolvedValue(undefined);
+
+    await openDashboard({
+      getOptionsUrl,
+      openTab,
+    });
+
+    expect(getOptionsUrl).toHaveBeenCalledTimes(1);
+    expect(openTab).toHaveBeenCalledWith(
+      "chrome-extension://test/options.html",
+    );
+  });
+
+  it("swallows dashboard-open failures after logging", async () => {
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    await expect(
+      openDashboard({
+        getOptionsUrl: () => "chrome-extension://test/options.html",
+        openTab: vi.fn().mockRejectedValue(new Error("tabs.create failed")),
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 });
 

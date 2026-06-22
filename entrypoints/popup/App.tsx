@@ -146,6 +146,20 @@ export interface PopupContainerStyle {
   boxSizing: "border-box";
 }
 
+interface DashboardOpenDeps {
+  getOptionsUrl: () => string;
+  openTab: (url: string) => Promise<void>;
+}
+
+const defaultDashboardOpenDeps: DashboardOpenDeps = {
+  getOptionsUrl(): string {
+    return chrome.runtime.getURL("options.html");
+  },
+  async openTab(url: string): Promise<void> {
+    await chrome.tabs.create({ url });
+  },
+};
+
 export function getPopupContainerStyle(): PopupContainerStyle {
   return {
     minWidth: 300,
@@ -618,7 +632,11 @@ function PopupContent(): ReactNode {
             />
           </div>
         )}
-        <ActionButton label="Dashboard" onClick={openDashboard} wide />
+        <ActionButton
+          label="Dashboard"
+          onClick={() => void openDashboard()}
+          wide
+        />
       </div>
     </div>
   );
@@ -676,8 +694,16 @@ export async function openSidePanel(
   }
 }
 
-function openDashboard(): void {
-  chrome.runtime.openOptionsPage();
+export async function openDashboard(
+  deps: DashboardOpenDeps = defaultDashboardOpenDeps,
+): Promise<void> {
+  const url = deps.getOptionsUrl();
+
+  try {
+    await deps.openTab(url);
+  } catch (error) {
+    console.error("[VacancyPilot] Failed to open dashboard tab:", error);
+  }
 }
 
 /**
