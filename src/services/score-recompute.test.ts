@@ -15,6 +15,7 @@ let mockSettings: AppSettings = {
   general: {
     defaultProfileId: undefined,
     showPageBadge: true,
+    trackVisitMarks: true,
     language: "en",
     theme: "system",
     autosaveViewedJobs: false,
@@ -62,6 +63,7 @@ function resetMocks() {
     general: {
       defaultProfileId: undefined,
       showPageBadge: true,
+      trackVisitMarks: true,
       language: "en",
       theme: "system",
       autosaveViewedJobs: false,

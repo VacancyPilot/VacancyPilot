@@ -192,6 +192,7 @@ vi.mock("@/db", () => {
     "aiCache",
     "labsActions",
     "hrTimeline",
+    "visitMarks",
     "meta",
   ];
 
@@ -227,6 +228,9 @@ vi.mock("@/db", () => {
     get hrTimeline() {
       return makeTable("hrTimeline");
     },
+    get visitMarks() {
+      return makeTable("visitMarks");
+    },
     get meta() {
       return makeTable("meta");
     },
@@ -237,6 +241,39 @@ vi.mock("@/db", () => {
     db,
   };
 });
+
+vi.mock("@/db/repositories", () => ({
+  visitMarkRepo: {
+    findBySourceId: async (sourceId: string) =>
+      ensureTable("visitMarks").find(
+        (row) =>
+          !!row &&
+          typeof row === "object" &&
+          (row as Record<string, unknown>).sourceId === sourceId,
+      ),
+    deleteBySourceId: async (sourceId: string) => {
+      const rows = ensureTable("visitMarks");
+      const kept = rows.filter((row) => {
+        if (!row || typeof row !== "object") return true;
+        return (row as Record<string, unknown>).sourceId !== sourceId;
+      });
+      const deleted = rows.length - kept.length;
+      mockTables.visitMarks = kept;
+      return deleted;
+    },
+    save: async (mark: Record<string, unknown>) => {
+      const rows = ensureTable("visitMarks");
+      const index = rows.findIndex(
+        (row) => row && typeof row === "object" && (row as Record<string, unknown>).id === mark.id,
+      );
+      if (index >= 0) {
+        rows[index] = mark;
+      } else {
+        rows.push(mark);
+      }
+    },
+  },
+}));
 
 vi.mock("./ai-cache", () => ({
   invalidateCache: async () => {
@@ -275,6 +312,7 @@ describe("exportAllJson", () => {
     expect(envelope.data).toHaveProperty("aiCache");
     expect(envelope.data).toHaveProperty("labsActions");
     expect(envelope.data).toHaveProperty("hrTimeline");
+    expect(envelope.data).toHaveProperty("visitMarks");
     expect(envelope.data).toHaveProperty("meta");
   });
 
@@ -505,16 +543,18 @@ describe("generateJobsCsv", () => {
 // ── Delete All Data Tests ─────────────────────────────────────────────────
 
 describe("deleteAllData", () => {
-  it("clears all Dexie tables including hrTimeline", async () => {
+  it("clears all Dexie tables including visitMarks", async () => {
     seedTable("jobs", [{ id: "hh_1" }]);
     seedTable("events", [{ id: "evt_1" }]);
     seedTable("profiles", [{ id: "prof_1" }]);
     seedTable("hrTimeline", [{ id: "hrt_1", applicationId: "app_1" }]);
+    seedTable("visitMarks", [{ id: "vm_1", sourceId: "123" }]);
 
     expect(mockTables.jobs).toHaveLength(1);
     expect(mockTables.events).toHaveLength(1);
     expect(mockTables.profiles).toHaveLength(1);
     expect(mockTables.hrTimeline).toHaveLength(1);
+    expect(mockTables.visitMarks).toHaveLength(1);
 
     await deleteAllData();
 
@@ -522,6 +562,7 @@ describe("deleteAllData", () => {
     expect(mockTables.events).toHaveLength(0);
     expect(mockTables.profiles).toHaveLength(0);
     expect(mockTables.hrTimeline).toHaveLength(0);
+    expect(mockTables.visitMarks).toHaveLength(0);
   });
 
   it("removes known product keys from chrome.storage.local", async () => {
@@ -555,7 +596,7 @@ describe("deleteAllData", () => {
 });
 
 describe("deleteJobData", () => {
-  it("deletes a job and related cover letters, applications, events, and hrTimeline", async () => {
+  it("deletes a job and related cover letters, applications, events, hrTimeline, and visitMarks", async () => {
     seedTable("jobs", [
       { id: "hh_1", title: "Keep me not", sourceVacancyId: "12345" },
       { id: "hh_2", title: "Keep me", sourceVacancyId: "67890" },
@@ -577,6 +618,10 @@ describe("deleteJobData", () => {
       { id: "hrt_2", applicationId: "app_1" },
       { id: "hrt_3", applicationId: "app_2" },
     ]);
+    seedTable("visitMarks", [
+      { id: "hh_vacancy_12345", sourceId: "12345" },
+      { id: "hh_vacancy_67890", sourceId: "67890" },
+    ]);
 
     const result = await deleteJobData("hh_1");
 
@@ -584,6 +629,7 @@ describe("deleteJobData", () => {
     expect(result.applicationsDeleted).toBe(1);
     expect(result.eventsDeleted).toBe(1);
     expect(result.hrTimelineDeleted).toBe(2);
+    expect(result.visitMarksDeleted).toBe(1);
     expect(mockTables.jobs).toEqual([
       { id: "hh_2", title: "Keep me", sourceVacancyId: "67890" },
     ]);
@@ -593,6 +639,9 @@ describe("deleteJobData", () => {
     // Only hrTimeline for surviving application should remain
     expect(mockTables.hrTimeline).toEqual([
       { id: "hrt_3", applicationId: "app_2" },
+    ]);
+    expect(mockTables.visitMarks).toEqual([
+      { id: "hh_vacancy_67890", sourceId: "67890" },
     ]);
   });
 
@@ -661,18 +710,20 @@ describe("getDataCounts", () => {
 
     expect(counts.jobs).toBe(0);
     expect(counts.companies).toBe(0);
-    expect(Object.keys(counts).length).toBe(11);
+    expect(Object.keys(counts).length).toBe(12);
   });
 
   it("returns correct counts", async () => {
     seedTable("jobs", [{ id: "hh_1" }, { id: "hh_2" }]);
     seedTable("events", [{ id: "evt_1" }]);
+    seedTable("visitMarks", [{ id: "vm_1", sourceId: "123" }]);
 
     const counts = await getDataCounts();
 
     expect(counts.jobs).toBe(2);
     expect(counts.events).toBe(1);
     expect(counts.companies).toBe(0);
+    expect(counts.visitMarks).toBe(1);
   });
 
   it("includes hrTimeline in counts", async () => {
@@ -686,6 +737,18 @@ describe("getDataCounts", () => {
 
     expect(counts.hrTimeline).toBe(3);
     expect(Object.keys(counts)).toContain("hrTimeline");
+  });
+
+  it("includes visitMarks in counts", async () => {
+    seedTable("visitMarks", [
+      { id: "vm_1", sourceId: "123" },
+      { id: "vm_2", sourceId: "456" },
+    ]);
+
+    const counts = await getDataCounts();
+
+    expect(counts.visitMarks).toBe(2);
+    expect(Object.keys(counts)).toContain("visitMarks");
   });
 });
 

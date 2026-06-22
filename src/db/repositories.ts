@@ -3,6 +3,7 @@ import type { Job } from "@/models/job";
 import type { Profile } from "@/models/profile";
 import type { Resume } from "@/models/resume";
 import type { CoverLetter } from "@/models/cover-letter";
+import type { VisitMark } from "@/models/visit-mark";
 
 /**
  * Thin CRUD helpers for key domain entities.
@@ -89,4 +90,29 @@ export const coverLetterRepo = {
 
   /** Delete a letter by id. */
   delete: (id: string) => db.coverLetters.delete(id as CoverLetter["id"]),
+};
+
+// ---- Visit Mark repository ----
+
+export const visitMarkRepo = {
+  list: () => db.visitMarks.toArray(),
+
+  getById: (id: string) => db.visitMarks.get(id as VisitMark["id"]),
+
+  findBySourceId: (sourceId: string) =>
+    db.visitMarks
+      .where("[source+sourceId]")
+      .equals(["hh", sourceId])
+      .first(),
+
+  save: (mark: VisitMark) => db.visitMarks.put(mark),
+
+  delete: (id: string) => db.visitMarks.delete(id as VisitMark["id"]),
+
+  deleteBySourceId: async (sourceId: string) => {
+    const existing = await visitMarkRepo.findBySourceId(sourceId);
+    if (!existing) return 0;
+    await db.visitMarks.delete(existing.id);
+    return 1;
+  },
 };

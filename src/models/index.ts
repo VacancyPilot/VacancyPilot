@@ -15,6 +15,7 @@ export type { Application } from "./application";
 export type { EventLogType, EventLog } from "./event-log";
 export type { RiskSeverity, RiskCode, RiskFlag } from "./risk";
 export type { ScoringWeights, ScoreCap, ScoreResult } from "./scoring";
+export type { VisitMark } from "./visit-mark";
 export type {
   AIAnalysis,
   AIRequestCache,

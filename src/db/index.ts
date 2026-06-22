@@ -5,6 +5,7 @@ export {
   SCHEMA_V2,
   SCHEMA_V3,
   SCHEMA_V4,
+  SCHEMA_V5,
   TABLE_NAMES,
   SCHEMA_VERSION,
 } from "./schema";
@@ -25,6 +26,7 @@ export {
   profileRepo,
   resumeRepo,
   coverLetterRepo,
+  visitMarkRepo,
 } from "./repositories";
 
 export { labsActionRepo } from "./labs-repository";

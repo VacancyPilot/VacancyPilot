@@ -4,14 +4,15 @@ import {
   SCHEMA_V2,
   SCHEMA_V3,
   SCHEMA_V4,
+  SCHEMA_V5,
   TABLE_NAMES,
   SCHEMA_VERSION,
 } from "./schema";
 import { VacancyDatabase } from "./database";
 
 describe("schema constant", () => {
-  it("has exactly 11 tables (v4)", () => {
-    expect(TABLE_NAMES).toHaveLength(11);
+  it("has exactly 12 tables (v5)", () => {
+    expect(TABLE_NAMES).toHaveLength(12);
   });
 
   it("includes all required table names", () => {
@@ -27,6 +28,7 @@ describe("schema constant", () => {
       "meta",
       "labsActions",
       "hrTimeline",
+      "visitMarks",
     ]);
   });
 
@@ -140,8 +142,8 @@ describe("schema constant", () => {
     expect(SCHEMA_V3.events).toBe(SCHEMA_V2.events);
   });
 
-  it("schema version is 4", () => {
-    expect(SCHEMA_VERSION).toBe(4);
+  it("schema version is 5", () => {
+    expect(SCHEMA_VERSION).toBe(5);
   });
   it("v4 adds hrTimeline table", () => {
     const spec = SCHEMA_V4.hrTimeline;
@@ -157,6 +159,25 @@ describe("schema constant", () => {
     expect(SCHEMA_V4.companies).toBe(SCHEMA_V3.companies);
     expect(SCHEMA_V4.labsActions).toBe(SCHEMA_V3.labsActions);
     expect(SCHEMA_V4.hrTimeline).toBeDefined();
+  });
+
+  it("v5 adds visitMarks table", () => {
+    const spec = SCHEMA_V5.visitMarks;
+    expect(spec).toContain("&id");
+    expect(spec).toContain("[source+sourceId]");
+    expect(spec).toContain("source");
+    expect(spec).toContain("sourceType");
+    expect(spec).toContain("sourceId");
+    expect(spec).toContain("firstSeenAt");
+    expect(spec).toContain("lastSeenAt");
+    expect(spec).toContain("viewCount");
+    expect(spec).toContain("updatedAt");
+  });
+
+  it("v5 inherits all v4 tables", () => {
+    expect(SCHEMA_V5.jobs).toBe(SCHEMA_V4.jobs);
+    expect(SCHEMA_V5.hrTimeline).toBe(SCHEMA_V4.hrTimeline);
+    expect(SCHEMA_V5.visitMarks).toBeDefined();
   });
 });
 
@@ -180,6 +201,7 @@ describe("VacancyDatabase", () => {
     expect(instance.aiCache).toBeDefined();
     expect(instance.labsActions).toBeDefined();
     expect(instance.hrTimeline).toBeDefined();
+    expect(instance.visitMarks).toBeDefined();
     expect(instance.meta).toBeDefined();
   });
 });

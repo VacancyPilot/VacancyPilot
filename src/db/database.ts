@@ -9,7 +9,8 @@ import type { EventLog } from "@/models/event-log";
 import type { AIRequestCache } from "@/models/ai";
 import type { LabsActionLog } from "@/models/labs-action-log";
 import type { HrTimelineEntry } from "@/models/hr-timeline";
-import { SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4 } from "./schema";
+import type { VisitMark } from "@/models/visit-mark";
+import { SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5 } from "./schema";
 
 /**
  * Dexie database wrapper for VacancyPilot.
@@ -29,6 +30,7 @@ export class VacancyDatabase extends Dexie {
   aiCache!: EntityTable<AIRequestCache, "id">;
   labsActions!: EntityTable<LabsActionLog, "id">;
   hrTimeline!: EntityTable<HrTimelineEntry, "id">;
+  visitMarks!: EntityTable<VisitMark, "id">;
   meta!: EntityTable<{ key: string; value: unknown }, "key">;
 
   constructor() {
@@ -37,6 +39,7 @@ export class VacancyDatabase extends Dexie {
     this.version(2).stores(SCHEMA_V2);
     this.version(3).stores(SCHEMA_V3);
     this.version(4).stores(SCHEMA_V4);
+    this.version(5).stores(SCHEMA_V5);
   }
 }
 

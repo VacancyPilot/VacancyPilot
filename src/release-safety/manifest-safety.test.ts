@@ -106,6 +106,7 @@ describe("manifest permission safety", () => {
       "webRequest",
       "webRequestBlocking",
       "notifications",
+      "history",
       "tabs", // not needed in MVP; activeTab covers present use case
       "scripting", // not needed in MVP; content scripts are declared statically
       "clipboardRead",

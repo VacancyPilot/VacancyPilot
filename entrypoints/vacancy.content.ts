@@ -18,6 +18,7 @@ export default defineContentScript({
 
     const adapter = new HHAdapter();
     if (adapter.matchUrl(document.location.href) === "vacancy") {
+      void recordVacancyVisit();
       void createBadge();
     }
   },
@@ -79,6 +80,49 @@ function setupRuntimeBridge(): void {
 
     return false;
   });
+}
+
+async function recordVacancyVisit(): Promise<void> {
+  try {
+    const result = await chrome.storage.local.get("app_settings_v1");
+    const settings = result["app_settings_v1"] as
+      | { general?: { trackVisitMarks?: boolean } }
+      | undefined;
+    if (settings?.general?.trackVisitMarks === false) {
+      return;
+    }
+  } catch {
+    // On read failure, record by default.
+  }
+
+  const sourceId = extractVacancyIdFromUrl();
+  if (!sourceId) return;
+
+  let dto:
+    | {
+        title: string | null;
+        companyName: string | null;
+        sourceCompanyId: string | null;
+      }
+    | null = null;
+  try {
+    dto = new HHAdapter().extractVacancy(document);
+  } catch {
+    // Keep the visit mark path alive even if extraction fails.
+  }
+
+  try {
+    await chrome.runtime.sendMessage({
+      type: "RECORD_VACANCY_VISIT",
+      sourceId,
+      sourceUrl: document.location.href,
+      title: dto?.title ?? undefined,
+      companyName: dto?.companyName ?? undefined,
+      companyId: dto?.sourceCompanyId ?? undefined,
+    });
+  } catch {
+    // Non-critical: visit marks are best-effort local state.
+  }
 }
 
 /**

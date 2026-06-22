@@ -11,6 +11,7 @@ import {
 } from "@/services/labs-control";
 import type { RawSearchItemDTO } from "@/adapters/types";
 import { upsertApplicationFromJob } from "@/services/hr-timeline-sync";
+import { recordVacancyVisit } from "@/services/visit-marks";
 import {
   ensureMigrationsBootstrapped,
   getStoredVersion,
@@ -249,6 +250,39 @@ export default defineBackground(() => {
         }
       })();
       return true; // async response
+    }
+
+    if (message.type === "RECORD_VACANCY_VISIT") {
+      const sourceId = message.sourceId as string | undefined;
+      if (!sourceId) {
+        sendResponse({ success: false, error: "Missing sourceId" });
+        return false;
+      }
+
+      void (async () => {
+        try {
+          const settings = await loadSettings();
+          if (settings.general.trackVisitMarks === false) {
+            sendResponse({ success: true, skipped: true });
+            return;
+          }
+
+          const visitMark = await recordVacancyVisit({
+            sourceId,
+            sourceUrl: message.sourceUrl as string | undefined,
+            title: message.title as string | undefined,
+            companyName: message.companyName as string | undefined,
+            companyId: message.companyId as string | null | undefined,
+          });
+          sendResponse({ success: true, visitMark });
+        } catch (err: unknown) {
+          sendResponse({
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+      })();
+      return true;
     }
 
     // Return false — no async response.

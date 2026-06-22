@@ -28,6 +28,7 @@ export {
   generateVacancyAnalysisPreview,
   generateCoverLetterPreview,
 } from "./payload-preview";
+export { recordVacancyVisit } from "./visit-marks";
 
 export {
   exportAllJson,

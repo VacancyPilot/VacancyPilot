@@ -23,6 +23,7 @@ export function defaultSettings(): AppSettings {
       language: "ru",
       theme: "system",
       showPageBadge: true,
+      trackVisitMarks: true,
       autosaveViewedJobs: true,
       toolbarClickBehavior: "popup",
       closePopupAfterOpeningSidePanel: true,

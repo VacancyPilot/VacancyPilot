@@ -26,6 +26,7 @@ function makeSettings(overrides?: Partial<AppSettings>): AppSettings {
       language: "ru",
       theme: "system",
       showPageBadge: true,
+      trackVisitMarks: true,
       autosaveViewedJobs: true,
       toolbarClickBehavior: "popup",
       closePopupAfterOpeningSidePanel: true,

@@ -1,5 +1,6 @@
 import { db, TABLE_NAMES } from "@/db";
 import type { TableName } from "@/db";
+import { visitMarkRepo } from "@/db/repositories";
 import { invalidateCache } from "./ai-cache";
 import { removeBadgeState, removeAllBadgeStates } from "./badge-state";
 import { deleteAllApiKeys } from "@/db/api-key-bridge";
@@ -22,6 +23,7 @@ export interface DeleteJobDataResult {
   applicationsDeleted: number;
   eventsDeleted: number;
   hrTimelineDeleted: number;
+  visitMarksDeleted: number;
 }
 
 export interface DeleteAiCacheAndEventLogResult {
@@ -36,7 +38,7 @@ export interface DeleteAiCacheAndEventLogResult {
  * Callers must present a confirmation flow before invoking.
  */
 export async function deleteAllData(): Promise<void> {
-  // 1. Clear all Dexie tables (TABLE_NAMES now reflects the current schema v4)
+  // 1. Clear all Dexie tables (TABLE_NAMES now reflects the current schema v5)
   await Promise.all(
     TABLE_NAMES.map((name) => db.table(name as TableName).clear()),
   );
@@ -60,6 +62,7 @@ export async function deleteAllData(): Promise<void> {
  * - related application records
  * - related event log entries
  * - HR timeline entries linked through deleted applications
+ * - the matching local visit mark for the same vacancy, if present
  */
 export async function deleteJobData(
   jobId: string,
@@ -88,6 +91,9 @@ export async function deleteJobData(
     ),
   );
   const hrTimelineDeleted = hrTimelineResults.reduce((sum, n) => sum + n, 0);
+  const visitMarksDeleted = await visitMarkRepo.deleteBySourceId(
+    job.sourceVacancyId,
+  );
 
   await db.jobs.delete(jobId);
 
@@ -99,6 +105,7 @@ export async function deleteJobData(
     applicationsDeleted,
     eventsDeleted,
     hrTimelineDeleted,
+    visitMarksDeleted,
   };
 }
 

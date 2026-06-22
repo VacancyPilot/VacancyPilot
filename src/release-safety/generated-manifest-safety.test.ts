@@ -138,6 +138,7 @@ describe("generated manifest audit", () => {
         "webRequest",
         "webRequestBlocking",
         "notifications",
+        "history",
         "tabs",
         "scripting",
         "clipboardRead",

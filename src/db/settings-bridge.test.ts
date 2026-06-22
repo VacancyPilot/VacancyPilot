@@ -71,6 +71,7 @@ describe("defaultSettings", () => {
 
     expect(settings.general.language).toBe("ru");
     expect(settings.general.theme).toBe("system");
+    expect(settings.general.trackVisitMarks).toBe(true);
     expect(settings.general.autosaveViewedJobs).toBe(true);
     expect(settings.general.toolbarClickBehavior).toBe("popup");
     expect(settings.general.closePopupAfterOpeningSidePanel).toBe(true);
@@ -132,6 +133,7 @@ describe("loadSettings", () => {
     expect(loaded.onboardingCompleted).toBe(false);
     expect(loaded.general.language).toBe("en");
     expect(loaded.general.theme).toBe("system");
+    expect(loaded.general.trackVisitMarks).toBe(true);
     expect(loaded.general.toolbarClickBehavior).toBe("popup");
     expect(loaded.general.closePopupAfterOpeningSidePanel).toBe(true);
     expect(loaded.privacy.aiEnabled).toBe(true);

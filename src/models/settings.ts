@@ -9,6 +9,7 @@ export interface AppSettings {
     language: "ru" | "en";
     theme: "system" | "light" | "dark";
     showPageBadge: boolean;
+    trackVisitMarks: boolean;
     autosaveViewedJobs: boolean;
     toolbarClickBehavior: "popup" | "sidePanel";
     closePopupAfterOpeningSidePanel: boolean;
