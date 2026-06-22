@@ -27,6 +27,8 @@ const {
       theme: "system" as const,
       showPageBadge: true,
       autosaveViewedJobs: true,
+      toolbarClickBehavior: "popup" as const,
+      closePopupAfterOpeningSidePanel: true,
     },
     privacy: {
       aiEnabled: true,

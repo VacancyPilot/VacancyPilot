@@ -16,6 +16,8 @@ import {
   getStoredVersion,
   CURRENT_VERSION,
 } from "@/db";
+import { loadSettings } from "@/db/settings-bridge";
+import { applyToolbarBehaviorFromSettings } from "@/services/toolbar-behavior";
 
 interface SidePanelContext {
   tabId: number;
@@ -34,8 +36,11 @@ async function bootBackground(): Promise<void> {
         `[VacancyPilot] migration applied: v${storedVersion} → v${CURRENT_VERSION}`,
       );
     }
+
+    const settings = await loadSettings();
+    await applyToolbarBehaviorFromSettings(settings);
   } catch (error) {
-    console.error("[VacancyPilot] migration boot failed:", error);
+    console.error("[VacancyPilot] background boot failed:", error);
   }
 }
 
@@ -57,6 +62,28 @@ export default defineBackground(() => {
         console.error("[VacancyPilot] failed to open onboarding tab:", err);
       }
     }
+
+    try {
+      const settings = await loadSettings();
+      await applyToolbarBehaviorFromSettings(settings);
+    } catch (error) {
+      console.error("[VacancyPilot] failed to apply toolbar behavior:", error);
+    }
+  });
+
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== "local" || !changes.app_settings_v1) {
+      return;
+    }
+
+    void loadSettings()
+      .then((settings) => applyToolbarBehaviorFromSettings(settings))
+      .catch((error) => {
+        console.error(
+          "[VacancyPilot] failed to refresh toolbar behavior from settings:",
+          error,
+        );
+      });
   });
 
   // ── Side panel explicit context ──

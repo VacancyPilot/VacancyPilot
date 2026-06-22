@@ -24,6 +24,8 @@ export function defaultSettings(): AppSettings {
       theme: "system",
       showPageBadge: true,
       autosaveViewedJobs: true,
+      toolbarClickBehavior: "popup",
+      closePopupAfterOpeningSidePanel: true,
     },
 
     privacy: {

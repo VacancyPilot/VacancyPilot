@@ -10,6 +10,8 @@ export interface AppSettings {
     theme: "system" | "light" | "dark";
     showPageBadge: boolean;
     autosaveViewedJobs: boolean;
+    toolbarClickBehavior: "popup" | "sidePanel";
+    closePopupAfterOpeningSidePanel: boolean;
   };
 
   privacy: {

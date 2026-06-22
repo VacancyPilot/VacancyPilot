@@ -352,17 +352,20 @@ describe("openSidePanel", () => {
     const sendContext = vi.fn();
     const getCurrentWindowId = vi.fn().mockResolvedValue(7);
     const open = vi.fn().mockResolvedValue(undefined);
+    const closePopup = vi.fn();
 
     const result = await openSidePanel(vacancyPage, {
       sendContext,
       getCurrentWindowId,
       open,
+      closePopup,
       supportsProgrammaticOpen: true,
     });
 
     expect(sendContext).toHaveBeenCalledWith(vacancyPage);
     expect(getCurrentWindowId).toHaveBeenCalledTimes(1);
     expect(open).toHaveBeenCalledWith(7);
+    expect(closePopup).not.toHaveBeenCalled();
     expect(result).toEqual({ success: true });
   });
 
@@ -371,6 +374,7 @@ describe("openSidePanel", () => {
       sendContext: vi.fn(),
       getCurrentWindowId: vi.fn().mockResolvedValue(undefined),
       open: vi.fn(),
+      closePopup: vi.fn(),
       supportsProgrammaticOpen: true,
     });
 
@@ -391,6 +395,7 @@ describe("openSidePanel", () => {
             "sidePanel.open() may only be called in response to a user gesture",
           ),
         ),
+      closePopup: vi.fn(),
       supportsProgrammaticOpen: true,
     });
 
@@ -405,6 +410,7 @@ describe("openSidePanel", () => {
       sendContext: vi.fn(),
       getCurrentWindowId: vi.fn(),
       open: vi.fn(),
+      closePopup: vi.fn(),
       supportsProgrammaticOpen: false,
     });
 
@@ -412,6 +418,44 @@ describe("openSidePanel", () => {
     if (!result.success) {
       expect(result.error).toContain("Chrome 116+");
     }
+  });
+
+  it("closes the popup only after a successful side panel open", async () => {
+    const closePopup = vi.fn();
+
+    const result = await openSidePanel(
+      vacancyPage,
+      {
+        sendContext: vi.fn(),
+        getCurrentWindowId: vi.fn().mockResolvedValue(7),
+        open: vi.fn().mockResolvedValue(undefined),
+        closePopup,
+        supportsProgrammaticOpen: true,
+      },
+      { closePopupAfterSuccess: true },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(closePopup).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not close the popup when side panel open fails", async () => {
+    const closePopup = vi.fn();
+
+    const result = await openSidePanel(
+      vacancyPage,
+      {
+        sendContext: vi.fn(),
+        getCurrentWindowId: vi.fn().mockResolvedValue(7),
+        open: vi.fn().mockRejectedValue(new Error("open failed")),
+        closePopup,
+        supportsProgrammaticOpen: true,
+      },
+      { closePopupAfterSuccess: true },
+    );
+
+    expect(result.success).toBe(false);
+    expect(closePopup).not.toHaveBeenCalled();
   });
 });
 
