@@ -133,6 +133,16 @@ describe("buildSearchBadgeHTML", () => {
     expect(html).not.toContain("vp-sb-score");
   });
 
+  it("hides score when score chips are disabled", () => {
+    const card = makeCard({ workMode: "remote" });
+    const state = makeState({ score: 85, status: "saved" });
+    const html = buildSearchBadgeHTML(card, state, { showScore: false });
+
+    expect(html).not.toContain("vp-sb-score");
+    expect(html).toContain("сохр");
+    expect(html).toContain("УД");
+  });
+
   it("shows status with icon for saved", () => {
     const card = makeCard();
     const state = makeState({ status: "saved" });
@@ -153,6 +163,36 @@ describe("buildSearchBadgeHTML", () => {
     const state = makeState({ status: "rejected_by_me" });
     const html = buildSearchBadgeHTML(card, state);
     expect(html).toContain("отклз");
+  });
+
+  it("hides viewed status when viewed chips are disabled", () => {
+    const card = makeCard({ workMode: "remote" });
+    const state = makeState({ status: "viewed" });
+    const html = buildSearchBadgeHTML(card, state, { showViewed: false });
+
+    expect(html).not.toContain("смтр");
+    expect(html).toContain("УД");
+  });
+
+  it("hides saved and rejected status when saved/rejected chips are disabled", () => {
+    const card = makeCard({ workMode: "remote" });
+    const state = makeState({ status: "rejected_by_me" });
+    const html = buildSearchBadgeHTML(card, state, {
+      showSavedRejected: false,
+    });
+
+    expect(html).not.toContain("отклз");
+    expect(html).toContain("УД");
+  });
+
+  it("escapes unknown status labels before writing HTML", () => {
+    const card = makeCard();
+    const state = makeState({ status: `"><img src=x onerror=alert(1)>` });
+    const html = buildSearchBadgeHTML(card, state);
+
+    expect(html).toContain("&quot;&gt;&lt;img");
+    expect(html).not.toContain("<img");
+    expect(html).not.toContain('title=""><');
   });
 
   it("shows combined score + status + work mode", () => {
@@ -305,6 +345,17 @@ describe("createBadgeHost", () => {
 
     expect(html).toContain("3×");
     expect(html).toContain("vp-sb-view-count");
+  });
+
+  it("hides view count when disabled", () => {
+    const card = makeCard({ workMode: "remote" });
+    const state = makeState({ viewCount: 3 });
+    const html = buildSearchBadgeHTML(card, state, {
+      showViewCount: false,
+    });
+
+    expect(html).not.toContain("vp-sb-view-count");
+    expect(html).toContain("УД");
   });
 });
 

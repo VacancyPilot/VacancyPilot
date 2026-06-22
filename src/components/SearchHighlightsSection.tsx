@@ -26,6 +26,38 @@ export function SearchHighlightsSection(): ReactNode {
   const [showViewCount, setShowViewCount] = useState(true);
   const [rejectedBehavior, setRejectedBehavior] =
     useState<RejectedSearchCardBehavior>("dim");
+  const controlItems = [
+    {
+      key: "searchHighlightsEnabled",
+      label: "Enable search highlights",
+      value: enabled,
+      hint: "Turn the highlight layer on or off without changing local data.",
+    },
+    {
+      key: "searchHighlightsShowViewed",
+      label: "Show viewed vacancies",
+      value: showViewed,
+      hint: "Render the viewed chip for cards with local visit marks.",
+    },
+    {
+      key: "searchHighlightsShowSavedRejected",
+      label: "Show saved/rejected statuses",
+      value: showSavedRejected,
+      hint: "Render saved/rejected status chips when known locally.",
+    },
+    {
+      key: "searchHighlightsShowScore",
+      label: "Show score chips",
+      value: showScore,
+      hint: "Render local score chips when a score is already available.",
+    },
+    {
+      key: "searchHighlightsShowViewCount",
+      label: "Show view count",
+      value: showViewCount,
+      hint: "Render the local count of HH vacancy opens.",
+    },
+  ] as const;
 
   const load = useCallback(async () => {
     try {
@@ -199,40 +231,7 @@ export function SearchHighlightsSection(): ReactNode {
           cards.
         </p>
 
-        {(
-          [
-          {
-            key: "searchHighlightsEnabled",
-            label: "Enable search highlights",
-            value: enabled,
-            hint: "Turn the highlight layer on or off without changing local data.",
-          },
-          {
-            key: "searchHighlightsShowViewed",
-            label: "Show viewed vacancies",
-            value: showViewed,
-            hint: "Render the viewed chip for cards with local visit marks.",
-          },
-          {
-            key: "searchHighlightsShowSavedRejected",
-            label: "Show saved/rejected statuses",
-            value: showSavedRejected,
-            hint: "Render saved/rejected status chips when known locally.",
-          },
-          {
-            key: "searchHighlightsShowScore",
-            label: "Show score chips",
-            value: showScore,
-            hint: "Render local score chips when a score is already available.",
-          },
-          {
-            key: "searchHighlightsShowViewCount",
-            label: "Show view count",
-            value: showViewCount,
-            hint: "Render the local count of HH vacancy opens.",
-          },
-          ] as const
-        ).map((item) => (
+        {controlItems.map((item) => (
           <label
             key={item.key}
             style={{

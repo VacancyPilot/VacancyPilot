@@ -217,7 +217,10 @@ export default defineBackground(() => {
           )
         : [];
 
-      void Promise.all([getSearchHighlightStates(vacancyIds), loadSettings()]).then(
+      void Promise.all([
+        getSearchHighlightStates(vacancyIds),
+        loadSettings(),
+      ]).then(
         ([states, settings]) =>
           sendResponse({
             success: true,

@@ -101,6 +101,15 @@ function shouldShowStatus(
   return true;
 }
 
+function escapeHtml(value: string | number): string {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 // ── Score color classes ───────────────────────────────────────────────────
 
 function scoreClass(score: number): string {
@@ -135,7 +144,7 @@ export function buildSearchBadgeHTML(
   ) {
     const cls = `vp-sb-score ${scoreClass(state.score)}`;
     parts.push(
-      `<span class="${cls}" role="status" aria-label="Score ${state.score}">${state.score}</span>`,
+      `<span class="${cls}" role="status" aria-label="Score ${escapeHtml(state.score)}">${escapeHtml(state.score)}</span>`,
     );
   }
 
@@ -145,7 +154,7 @@ export function buildSearchBadgeHTML(
     const label = STATUS_LABELS[state.status] ?? state.status;
     const fullLabel = STATUS_LABELS_FULL[state.status] ?? state.status;
     parts.push(
-      `<span class="vp-sb-status" title="${fullLabel}" aria-label="${fullLabel}">${icon}${label}</span>`,
+      `<span class="vp-sb-status" title="${escapeHtml(fullLabel)}" aria-label="${escapeHtml(fullLabel)}">${icon}${escapeHtml(label)}</span>`,
     );
   }
 
@@ -154,8 +163,9 @@ export function buildSearchBadgeHTML(
     state?.viewCount !== undefined &&
     state.viewCount !== null
   ) {
+    const viewCount = escapeHtml(state.viewCount);
     parts.push(
-      `<span class="vp-sb-view-count" title="Viewed ${state.viewCount} time(s)" aria-label="Viewed ${state.viewCount} time(s)">${state.viewCount}×</span>`,
+      `<span class="vp-sb-view-count" title="Viewed ${viewCount} time(s)" aria-label="Viewed ${viewCount} time(s)">${viewCount}×</span>`,
     );
   }
 
@@ -164,7 +174,7 @@ export function buildSearchBadgeHTML(
     const wmLabel = WORK_MODE_LABELS[card.workMode] ?? card.workMode;
     const cls = WORK_MODE_CSS[card.workMode] ?? "";
     parts.push(
-      `<span class="vp-sb-wm ${cls}" aria-label="Work mode: ${card.workMode}">${wmLabel}</span>`,
+      `<span class="vp-sb-wm ${escapeHtml(cls)}" aria-label="Work mode: ${escapeHtml(card.workMode)}">${escapeHtml(wmLabel)}</span>`,
     );
   }
 

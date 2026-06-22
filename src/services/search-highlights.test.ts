@@ -64,7 +64,10 @@ vi.mock("@/db/settings-bridge", () => ({
   loadSettings: async () => mockSettings,
 }));
 
-import { getSearchHighlightStates } from "./search-highlights";
+import {
+  getSearchHighlightStates,
+  resolveSearchHighlightControls,
+} from "./search-highlights";
 
 function makeJob(overrides: Partial<Job> = {}): Job {
   const now = "2026-01-01T00:00:00.000Z";
@@ -108,6 +111,11 @@ beforeEach(() => {
   mockJobs.length = 0;
   mockVisitMarks.length = 0;
   mockSettings.general.rejectedSearchCardBehavior = "dim";
+  mockSettings.general.searchHighlightsEnabled = true;
+  mockSettings.general.searchHighlightsShowViewed = true;
+  mockSettings.general.searchHighlightsShowSavedRejected = true;
+  mockSettings.general.searchHighlightsShowScore = true;
+  mockSettings.general.searchHighlightsShowViewCount = true;
 });
 
 describe("getSearchHighlightStates", () => {
@@ -118,6 +126,7 @@ describe("getSearchHighlightStates", () => {
 
     expect(Object.keys(states)).toEqual(["123"]);
     expect(states["123"]?.status).toBe("viewed");
+    expect(states["123"]?.viewCount).toBe(1);
   });
 
   it("prefers job status and score over visit marks", async () => {
@@ -155,5 +164,39 @@ describe("getSearchHighlightStates", () => {
     expect(states["123"]?.status).toBe("rejected_by_me");
     expect(states["123"]?.hidden).toBe(true);
     expect(states["123"]?.dimmed).toBeUndefined();
+  });
+});
+
+describe("resolveSearchHighlightControls", () => {
+  it("normalizes missing controls to enabled defaults", () => {
+    delete mockSettings.general.searchHighlightsEnabled;
+    delete mockSettings.general.searchHighlightsShowViewed;
+    delete mockSettings.general.searchHighlightsShowSavedRejected;
+    delete mockSettings.general.searchHighlightsShowScore;
+    delete mockSettings.general.searchHighlightsShowViewCount;
+
+    const controls = resolveSearchHighlightControls(mockSettings);
+
+    expect(controls.enabled).toBe(true);
+    expect(controls.showViewed).toBe(true);
+    expect(controls.showSavedRejected).toBe(true);
+    expect(controls.showScore).toBe(true);
+    expect(controls.showViewCount).toBe(true);
+  });
+
+  it("honors disabled controls", () => {
+    mockSettings.general.searchHighlightsEnabled = false;
+    mockSettings.general.searchHighlightsShowViewed = false;
+    mockSettings.general.searchHighlightsShowSavedRejected = false;
+    mockSettings.general.searchHighlightsShowScore = false;
+    mockSettings.general.searchHighlightsShowViewCount = false;
+
+    const controls = resolveSearchHighlightControls(mockSettings);
+
+    expect(controls.enabled).toBe(false);
+    expect(controls.showViewed).toBe(false);
+    expect(controls.showSavedRejected).toBe(false);
+    expect(controls.showScore).toBe(false);
+    expect(controls.showViewCount).toBe(false);
   });
 });
