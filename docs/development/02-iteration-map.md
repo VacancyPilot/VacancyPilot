@@ -200,9 +200,9 @@ Status values:
 
 | Iteration | Epic | Goal | Status | Commit |
 | --- | --- | --- | --- | --- |
-| ITER-076 | EPIC-37 | Add a repo-local Sonar coverage baseline and make advisory quality-signal docs explicit without guessing external Sonar identity | planned | `ci: add sonar coverage baseline` |
-| ITER-077 | EPIC-37 | Reduce HR timeline export/privacy risk by storing safer content and documenting the trust boundary precisely | planned | `fix: harden hr timeline trust surface` |
-| ITER-078 | EPIC-37 | Capture the 2026-06-22 audit closure report and manual infra handoff without reopening duplicated runtime/UI work | planned | `docs: finalize 2026-06-22 audit closure` |
+| ITER-076 | EPIC-37 | Add a repo-local Sonar coverage baseline and make advisory quality-signal docs explicit without guessing external Sonar identity | done | `ci: add sonar coverage baseline` |
+| ITER-077 | EPIC-37 | Reduce HR timeline export/privacy risk by storing safer content and documenting the trust boundary precisely | done | `fix: harden hr timeline trust surface` |
+| ITER-078 | EPIC-37 | Capture the 2026-06-22 audit closure report and manual infra handoff without reopening duplicated runtime/UI work | done | `docs: finalize 2026-06-22 audit closure` |
 
 ## Phase 5: Expansion And Release
 
