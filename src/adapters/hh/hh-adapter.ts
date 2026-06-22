@@ -362,6 +362,7 @@ export class HHAdapter implements SiteAdapter {
 
   /**
    * Extract a single HR message DTO from a message block element.
+   * Stores plain text only (textContent) — no HTML markup.
    */
   private extractSingleHrMessage(
     el: Element,
@@ -369,12 +370,9 @@ export class HHAdapter implements SiteAdapter {
     sourcePage: "applications" | "messages" | "negotiations",
     now: string,
   ): RawHrTimelineDTO | null {
-    // Extract text content
+    // Extract text content (plain text only — textContent, not innerHTML)
     const textEl = this.tryExtractHrElement(el, "messageText");
     const text = textEl?.textContent?.trim() ?? null;
-
-    // Extract HTML snippet (sanitized — just the inner structure)
-    const html = textEl?.innerHTML?.trim() ?? null;
 
     // Extract status badge
     const badge = this.tryExtractHrText(el, "statusBadge");
@@ -390,7 +388,6 @@ export class HHAdapter implements SiteAdapter {
 
     return {
       text,
-      html,
       type: classification.type,
       statusBadge: badge,
       timestampText,
@@ -402,6 +399,7 @@ export class HHAdapter implements SiteAdapter {
 
   /**
    * Extract a single HR response DTO from a response card element.
+   * Stores plain text only — no HTML markup.
    */
   private extractSingleHrResponse(
     el: Element,
@@ -412,14 +410,12 @@ export class HHAdapter implements SiteAdapter {
     // Extract status badge
     const badge = this.tryExtractHrText(el, "statusBadge");
 
-    // Extract text from the response content
+    // Extract text from the response content (plain text only)
     const textEl = this.tryExtractHrElement(el, "messageText");
     const text = textEl?.textContent?.trim() ?? null;
 
     // If no message text, try to use the response title + status as text
     const effectiveText = text ?? this.tryExtractHrText(el, "responseTitle");
-
-    const html = textEl?.innerHTML?.trim() ?? null;
 
     // Extract timestamp
     const timestampText = this.tryExtractHrText(el, "timestamp");
@@ -432,7 +428,6 @@ export class HHAdapter implements SiteAdapter {
 
     return {
       text: effectiveText,
-      html,
       type: classification.type,
       statusBadge: badge,
       timestampText,

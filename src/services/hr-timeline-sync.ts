@@ -54,7 +54,10 @@ export async function upsertApplicationFromJob(
   job: Job,
   channel: Application["channel"],
 ): Promise<Application> {
-  const applications = await db.applications.where("jobId").equals(job.id).toArray();
+  const applications = await db.applications
+    .where("jobId")
+    .equals(job.id)
+    .toArray();
   const existing = applications.sort((a, b) =>
     b.updatedAt.localeCompare(a.updatedAt),
   )[0];
@@ -124,7 +127,6 @@ export function normalizeHrTimelineEntry(
     applicationId,
     type: dto.type,
     rawText,
-    rawHtml: dto.html?.trim() || null,
     sourceUrl: dto.sourceUrl,
     sourcePage: dto.sourcePage,
     extractedAt: dto.extractedAt,
@@ -139,8 +141,12 @@ export async function persistHrTimelineForJob(
   rawEntries: RawHrTimelineDTO[],
 ): Promise<{ application: Application; savedEntries: number }> {
   const application = await upsertApplicationFromJob(job, "manual");
-  const existingEntries = await hrTimelineRepo.listByApplication(application.id);
-  const existingById = new Map(existingEntries.map((entry) => [entry.id, entry]));
+  const existingEntries = await hrTimelineRepo.listByApplication(
+    application.id,
+  );
+  const existingById = new Map(
+    existingEntries.map((entry) => [entry.id, entry]),
+  );
 
   const entriesToSave = rawEntries
     .map((dto) => normalizeHrTimelineEntry(application.id, dto))

@@ -29,11 +29,8 @@ export interface HrTimelineEntry {
   /** Classified reply type */
   type: HrReplyType;
 
-  /** Sanitized visible text content (no HH markup, no personal data beyond what's visible) */
+  /** Sanitized visible text content (plain text only, no HTML markup stored) */
   rawText: string;
-
-  /** Sanitized HTML snippet of the message block (tags stripped to safe subset) */
-  rawHtml: string | null;
 
   /** URL of the page where this entry was extracted */
   sourceUrl: string;
@@ -59,11 +56,8 @@ export interface HrTimelineEntry {
  * Fields are nullable — the parser must not crash on missing data.
  */
 export interface RawHrTimelineDTO {
-  /** Visible text of the communication block */
+  /** Visible text of the communication block (plain text only) */
   text: string | null;
-
-  /** Sanitized HTML of the communication block */
-  html: string | null;
 
   /** Classification determined from visible indicators */
   type: HrReplyType;
