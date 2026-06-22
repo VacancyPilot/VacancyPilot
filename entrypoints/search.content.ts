@@ -18,12 +18,12 @@ import { HHAdapter } from "@/adapters/hh/hh-adapter";
 import { BADGE_KEY_PREFIX, badgeStorageKey } from "@/services/badge-state";
 import type { SearchBadgeState } from "@/services/search-badge-render";
 import {
+  applySearchCardState,
   injectSearchBadgeStyles,
   createBadgeHost,
   attachBadgeToCard,
   findSearchCardElements,
   buildCardElementMap,
-  buildSearchBadgeHTML,
   appendActionButtons,
 } from "@/services/search-badge-render";
 import type { RawSearchItemDTO } from "@/adapters/types";
@@ -40,6 +40,7 @@ export default defineContentScript({
 });
 
 let searchListObserver: MutationObserver | null = null;
+let searchBadgeRenderGeneration = 0;
 
 async function startSearchBadgeSync(): Promise<void> {
   await injectSearchBadges();
@@ -63,6 +64,8 @@ async function startSearchBadgeSync(): Promise<void> {
  * Main orchestration: parse cards, load badge state, render badges.
  */
 async function injectSearchBadges(): Promise<void> {
+  const generation = ++searchBadgeRenderGeneration;
+
   // ── Respect user settings ───────────────────────────────────────────
   try {
     const result = await chrome.storage.local.get("app_settings_v1");
@@ -79,22 +82,20 @@ async function injectSearchBadges(): Promise<void> {
   const cards = adapter.extractSearchList(document);
   if (cards.length === 0) return;
 
-  // ── Batch-load badge state from chrome.storage.local ────────────────
-  const keys = cards.map((c) => badgeStorageKey(c.sourceId));
-  const badgeStates: Record<string, SearchBadgeState> = {};
+  const vacancyIds = Array.from(
+    new Set(
+      cards
+        .map((card) => card.sourceId)
+        .filter((vacancyId): vacancyId is string => vacancyId.length > 0),
+    ),
+  );
 
-  try {
-    const raw = await chrome.storage.local.get(keys);
-    for (const [key, value] of Object.entries(raw)) {
-      if (key.startsWith(BADGE_KEY_PREFIX) && value) {
-        const state = value as SearchBadgeState;
-        const vacancyId = key.slice(BADGE_KEY_PREFIX.length);
-        badgeStates[vacancyId] = state;
-      }
-    }
-  } catch {
-    // Non-critical — badges will show work-mode only.
-  }
+  // ── Batch-load highlight state from background and legacy storage ──────
+  const [highlightStates, badgeStates] = await Promise.all([
+    loadSearchHighlightStates(vacancyIds),
+    loadLegacyBadgeStates(vacancyIds),
+  ]);
+  if (generation !== searchBadgeRenderGeneration) return;
 
   // ── Map DOM elements to vacancy IDs ─────────────────────────────────
   const cardElements = findSearchCardElements(document);
@@ -105,11 +106,22 @@ async function injectSearchBadges(): Promise<void> {
 
   // ── Attach badges with quick action buttons ─────────────────────────
   for (const card of cards) {
+    if (generation !== searchBadgeRenderGeneration) return;
+
     try {
       const cardEl = cardMap.get(card.sourceId);
       if (!cardEl) continue;
 
-      const state = badgeStates[card.sourceId];
+      const state: SearchBadgeState = {
+        ...badgeStates[card.sourceId],
+        ...highlightStates[card.sourceId],
+      };
+      applySearchCardState(cardEl, state);
+
+      if (state.hidden) {
+        continue;
+      }
+
       const badge = createBadgeHost(card, state);
 
       // Always create a host for action buttons, even if badge is null.
@@ -126,13 +138,13 @@ async function injectSearchBadges(): Promise<void> {
       saveBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         e.preventDefault();
-        void handleQuickSave(card, host);
+        void handleQuickSave(card);
       });
 
       rejectBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         e.preventDefault();
-        void handleQuickReject(card, host);
+        void handleQuickReject(card);
       });
 
       attachBadgeToCard(cardEl, host);
@@ -155,7 +167,6 @@ interface QuickActionResponse {
 
 async function handleQuickSave(
   card: RawSearchItemDTO,
-  host: HTMLElement,
 ): Promise<void> {
   try {
     const response = (await chrome.runtime.sendMessage({
@@ -164,10 +175,7 @@ async function handleQuickSave(
     })) as QuickActionResponse;
 
     if (response.success) {
-      refreshBadgeHost(host, card, {
-        status: response.status ?? "saved",
-        score: response.score,
-      });
+      void injectSearchBadges();
     }
   } catch {
     // Silently ignore — quick actions are non-critical.
@@ -176,7 +184,6 @@ async function handleQuickSave(
 
 async function handleQuickReject(
   card: RawSearchItemDTO,
-  host: HTMLElement,
 ): Promise<void> {
   try {
     const response = (await chrome.runtime.sendMessage({
@@ -185,36 +192,60 @@ async function handleQuickReject(
     })) as QuickActionResponse;
 
     if (response.success) {
-      refreshBadgeHost(host, card, {
-        status: "rejected_by_me",
-        score: response.score,
-      });
+      void injectSearchBadges();
     }
   } catch {
     // Silently ignore.
   }
 }
 
-/**
- * Refresh a badge host in-place after a quick action.
- * Rebuilds the inner HTML and preserves action buttons.
- */
-function refreshBadgeHost(
-  host: HTMLElement,
-  card: RawSearchItemDTO,
-  newState: SearchBadgeState,
-): void {
-  // Preserve action buttons wrapper (last child).
-  const actionsWrapper = host.querySelector(".vp-sb-actions");
+async function loadLegacyBadgeStates(
+  vacancyIds: string[],
+): Promise<Record<string, SearchBadgeState>> {
+  const states: Record<string, SearchBadgeState> = {};
 
-  // Rebuild badge content.
-  const html = buildSearchBadgeHTML(card, newState);
-
-  // Clear and rebuild inner content.
-  host.innerHTML = html || "";
-
-  // Re-attach action buttons if they were present.
-  if (actionsWrapper) {
-    host.appendChild(actionsWrapper);
+  try {
+    const keys = vacancyIds.map((vacancyId) => badgeStorageKey(vacancyId));
+    const raw = await chrome.storage.local.get(keys);
+    for (const [key, value] of Object.entries(raw)) {
+      if (key.startsWith(BADGE_KEY_PREFIX) && value) {
+        const state = value as SearchBadgeState;
+        const vacancyId = key.slice(BADGE_KEY_PREFIX.length);
+        states[vacancyId] = state;
+      }
+    }
+  } catch {
+    // Non-critical — badges will fall back to background-derived state.
   }
+
+  return states;
+}
+
+interface SearchHighlightMessageResponse {
+  success?: boolean;
+  states?: Record<string, SearchBadgeState>;
+  error?: string;
+}
+
+async function loadSearchHighlightStates(
+  vacancyIds: string[],
+): Promise<Record<string, SearchBadgeState>> {
+  if (vacancyIds.length === 0) {
+    return {};
+  }
+
+  try {
+    const response = (await chrome.runtime.sendMessage({
+      type: "GET_SEARCH_HIGHLIGHT_STATES",
+      vacancyIds,
+    })) as SearchHighlightMessageResponse;
+
+    if (response?.success && response.states) {
+      return response.states;
+    }
+  } catch {
+    // Non-critical — badges fall back to legacy state and work mode.
+  }
+
+  return {};
 }

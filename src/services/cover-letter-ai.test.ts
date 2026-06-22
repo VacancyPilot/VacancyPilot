@@ -26,6 +26,8 @@ const {
       language: "ru" as const,
       theme: "system" as const,
       showPageBadge: true,
+      trackVisitMarks: true,
+      rejectedSearchCardBehavior: "dim" as const,
       autosaveViewedJobs: true,
       toolbarClickBehavior: "popup" as const,
       closePopupAfterOpeningSidePanel: true,

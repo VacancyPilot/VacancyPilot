@@ -80,7 +80,11 @@ vi.mock("@/db/settings-bridge", () => ({
       language: "ru",
       theme: "system",
       showPageBadge: true,
+      trackVisitMarks: true,
+      rejectedSearchCardBehavior: "dim",
       autosaveViewedJobs: true,
+      toolbarClickBehavior: "popup",
+      closePopupAfterOpeningSidePanel: true,
     },
     privacy: {
       aiEnabled: false,

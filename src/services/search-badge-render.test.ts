@@ -12,6 +12,7 @@ import {
   injectSearchBadgeStyles,
   createBadgeHost,
   attachBadgeToCard,
+  applySearchCardState,
   buildCardElementMap,
   findSearchCardElements,
   createSaveButton,
@@ -259,6 +260,8 @@ describe("injectSearchBadgeStyles", () => {
     expect(text).toContain(".vp-sb-wm--remote");
     expect(text).toContain(".vp-sb-wm--hybrid");
     expect(text).toContain(".vp-sb-wm--office");
+    expect(text).toContain(".vp-sb-card--dimmed");
+    expect(text).toContain(".vp-sb-card--hidden");
   });
 });
 
@@ -318,7 +321,7 @@ describe("attachBadgeToCard", () => {
     expect(header?.querySelector(".vp-sb-host")).toBeTruthy();
   });
 
-  it("is idempotent — does not attach duplicate", () => {
+  it("replaces existing host instead of duplicating", () => {
     const doc = makeDocument(`<!DOCTYPE html>
 <html><body>
   <div data-qa="vacancy-serp-item" class="serp-item">
@@ -342,7 +345,7 @@ describe("attachBadgeToCard", () => {
 
     const hosts = cardEl.querySelectorAll(".vp-sb-host");
     expect(hosts.length).toBe(1);
-    expect(hosts[0]!.textContent).toBe("FIRST");
+    expect(hosts[0]!.textContent).toBe("SECOND");
   });
 
   it("works with card that has no dedicated header class", () => {
@@ -375,6 +378,36 @@ describe("attachBadgeToCard", () => {
     expect(() =>
       attachBadgeToCard(null as unknown as Element, badge),
     ).not.toThrow();
+  });
+});
+
+// ── applySearchCardState ───────────────────────────────────────────────
+
+describe("applySearchCardState", () => {
+  it("dims rejected cards when requested", () => {
+    const doc = makeDocument(`<!DOCTYPE html>
+<html><body>
+  <div data-qa="vacancy-serp-item" class="serp-item">Card</div>
+</body></html>`);
+
+    const cardEl = doc.querySelector('[data-qa="vacancy-serp-item"]')!;
+    applySearchCardState(cardEl, { dimmed: true });
+
+    expect(cardEl.classList.contains("vp-sb-card--dimmed")).toBe(true);
+    expect(cardEl.classList.contains("vp-sb-card--hidden")).toBe(false);
+  });
+
+  it("hides rejected cards when requested", () => {
+    const doc = makeDocument(`<!DOCTYPE html>
+<html><body>
+  <div data-qa="vacancy-serp-item" class="serp-item">Card</div>
+</body></html>`);
+
+    const cardEl = doc.querySelector('[data-qa="vacancy-serp-item"]')!;
+    applySearchCardState(cardEl, { hidden: true });
+
+    expect(cardEl.classList.contains("vp-sb-card--hidden")).toBe(true);
+    expect(cardEl.classList.contains("vp-sb-card--dimmed")).toBe(false);
   });
 });
 

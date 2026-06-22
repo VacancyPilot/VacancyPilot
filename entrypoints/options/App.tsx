@@ -6,6 +6,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { ProfileManager } from "@/components/ProfileManager";
 import { ResumeManager } from "@/components/ResumeManager";
 import { AISettingsSection } from "@/components/AISettingsSection";
+import { SearchHighlightsSection } from "@/components/SearchHighlightsSection";
 import { AboutSection } from "@/components/AboutSection";
 import { OnboardingSection } from "@/components/OnboardingSection";
 import { PermissionsSection } from "@/components/PermissionsSection";
@@ -448,7 +449,13 @@ function SectionContent({ section }: { section: SectionId }): ReactNode {
     case "export":
       return <ExportSection />;
     case "settings":
-      return <AISettingsSection />;
+      return (
+        <>
+          <AISettingsSection />
+          <div style={{ height: 24 }} />
+          <SearchHighlightsSection />
+        </>
+      );
     case "privacy":
       return (
         <>

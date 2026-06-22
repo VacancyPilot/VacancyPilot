@@ -21,6 +21,7 @@ function makeSettings(
       theme: "system",
       showPageBadge: true,
       trackVisitMarks: true,
+      rejectedSearchCardBehavior: "dim",
       autosaveViewedJobs: true,
       toolbarClickBehavior: "popup",
       closePopupAfterOpeningSidePanel: true,

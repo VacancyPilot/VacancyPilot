@@ -24,6 +24,7 @@ export function defaultSettings(): AppSettings {
       theme: "system",
       showPageBadge: true,
       trackVisitMarks: true,
+      rejectedSearchCardBehavior: "dim",
       autosaveViewedJobs: true,
       toolbarClickBehavior: "popup",
       closePopupAfterOpeningSidePanel: true,

@@ -45,6 +45,8 @@ function makeSettings(overrides?: Record<string, unknown>): Record<string, unkno
       language: "ru",
       theme: "system",
       showPageBadge: true,
+      trackVisitMarks: true,
+      rejectedSearchCardBehavior: "dim",
       autosaveViewedJobs: true,
       toolbarClickBehavior: "popup",
       closePopupAfterOpeningSidePanel: true,

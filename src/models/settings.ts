@@ -10,6 +10,7 @@ export interface AppSettings {
     theme: "system" | "light" | "dark";
     showPageBadge: boolean;
     trackVisitMarks: boolean;
+    rejectedSearchCardBehavior: "dim" | "hide";
     autosaveViewedJobs: boolean;
     toolbarClickBehavior: "popup" | "sidePanel";
     closePopupAfterOpeningSidePanel: boolean;

@@ -13,6 +13,8 @@ import type { RawSearchItemDTO } from "@/adapters/types";
 export interface SearchBadgeState {
   score?: number;
   status?: string;
+  dimmed?: boolean;
+  hidden?: boolean;
 }
 
 // ── Work mode labels ───────────────────────────────────────────────────────
@@ -242,6 +244,14 @@ export function injectSearchBadgeStyles(doc: Document): void {
       outline: 2px solid #4a90d9;
       outline-offset: 1px;
     }
+
+    /* Search card-level presentation states */
+    .vp-sb-card--dimmed {
+      opacity: 0.55;
+    }
+    .vp-sb-card--hidden {
+      display: none !important;
+    }
   `;
   doc.head.appendChild(style);
 }
@@ -266,14 +276,14 @@ export function createBadgeHost(
 
 /**
  * Attach a badge to a search card element by inserting it into the
- * best available header slot. Idempotent — skips if a badge already exists.
+ * best available header slot. Replaces any existing host so rerenders
+ * do not leak stale badge state.
  */
 export function attachBadgeToCard(
   cardEl: Element | null,
   badge: HTMLElement,
 ): void {
   if (!cardEl) return;
-  if (cardEl.querySelector(".vp-sb-host")) return;
 
   // Find the card's header area — prefer dedicated header class, fall back to first h3.
   const header =
@@ -284,7 +294,34 @@ export function attachBadgeToCard(
 
   if (!header) return;
 
+  const existing = header.querySelector(".vp-sb-host");
+  if (existing) {
+    existing.replaceWith(badge);
+    return;
+  }
+
   header.appendChild(badge);
+}
+
+/**
+ * Apply card-level presentation state for search highlighting.
+ */
+export function applySearchCardState(
+  cardEl: Element | null,
+  state: SearchBadgeState | undefined,
+): void {
+  if (!cardEl) return;
+
+  cardEl.classList.remove("vp-sb-card--dimmed", "vp-sb-card--hidden");
+
+  if (state?.hidden) {
+    cardEl.classList.add("vp-sb-card--hidden");
+    return;
+  }
+
+  if (state?.dimmed) {
+    cardEl.classList.add("vp-sb-card--dimmed");
+  }
 }
 
 /**

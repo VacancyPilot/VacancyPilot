@@ -3,6 +3,7 @@ import {
   quickSaveSearchCard,
   quickRejectSearchCard,
 } from "@/services/search-actions";
+import { getSearchHighlightStates } from "@/services/search-highlights";
 import { jobRepo } from "@/db/repositories";
 import { createStatusChange } from "@/services/status-transitions";
 import {
@@ -203,6 +204,25 @@ export default defineBackground(() => {
           }),
       );
       return true; // async response
+    }
+
+    if (message.type === "GET_SEARCH_HIGHLIGHT_STATES") {
+      const vacancyIds = Array.isArray(message.vacancyIds)
+        ? message.vacancyIds.filter(
+            (vacancyId: unknown): vacancyId is string =>
+              typeof vacancyId === "string",
+          )
+        : [];
+
+      void getSearchHighlightStates(vacancyIds).then(
+        (states) => sendResponse({ success: true, states }),
+        (err: unknown) =>
+          sendResponse({
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+      );
+      return true;
     }
 
     // ── Guided Apply: mark job as applied ──
