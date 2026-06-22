@@ -196,6 +196,14 @@ Status values:
 | ITER-074 | EPIC-36 | Consolidate dashboard navigation, scroll ownership, and narrow-layout shell behavior | planned | `feat: consolidate dashboard shell responsiveness` |
 | ITER-075 | EPIC-36 | Finish forms, disabled-state readability, empty-state polish, and capture the final visual consistency report | planned | `docs: finalize runtime visual consistency pass` |
 
+## Phase 5.9: Audit Closure And Trust Surface Alignment
+
+| Iteration | Epic | Goal | Status | Commit |
+| --- | --- | --- | --- | --- |
+| ITER-076 | EPIC-37 | Add a repo-local Sonar coverage baseline and make advisory quality-signal docs explicit without guessing external Sonar identity | planned | `ci: add sonar coverage baseline` |
+| ITER-077 | EPIC-37 | Reduce HR timeline export/privacy risk by storing safer content and documenting the trust boundary precisely | planned | `fix: harden hr timeline trust surface` |
+| ITER-078 | EPIC-37 | Capture the 2026-06-22 audit closure report and manual infra handoff without reopening duplicated runtime/UI work | planned | `docs: finalize 2026-06-22 audit closure` |
+
 ## Phase 5: Expansion And Release
 
 | Iteration | Epic | Goal | Status | Commit |

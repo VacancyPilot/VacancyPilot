@@ -56,13 +56,10 @@ jobs:
         if: steps.check-token.outputs.has_token == 'true'
         run: pnpm install --frozen-lockfile
 
-      # ── Tests (no coverage yet) ────────────────────────────────────────
-      # TODO: add coverage step after configuring vitest coverage:
-      #   - run: pnpm test:coverage
-      #     if: steps.check-token.outputs.has_token == 'true'
-      - name: Run tests
+      # ── Tests with coverage ────────────────────────────────────────────
+      - name: Run tests with coverage
         if: steps.check-token.outputs.has_token == 'true'
-        run: pnpm test
+        run: pnpm test:coverage
 
       # ── SonarQube scan ─────────────────────────────────────────────────
       - name: SonarQube Scan

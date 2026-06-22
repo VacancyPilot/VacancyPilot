@@ -57,6 +57,7 @@ This file is the working map from the master specification to implementation epi
 | EPIC-34 | Workflow UX Refinement | 5.6 | ready |
 | EPIC-35 | Runtime Stabilization And Surface Hardening | 5.7 | ready |
 | EPIC-36 | Runtime Visual Consistency Consolidation | 5.8 | ready |
+| EPIC-37 | Audit Closure And Trust Surface Alignment | 5.9 | ready |
 
 ## Later Epics
 

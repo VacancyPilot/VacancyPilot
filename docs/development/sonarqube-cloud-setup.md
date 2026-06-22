@@ -21,8 +21,8 @@ Sonar remains advisory until:
 
 1. Go to [https://sonarcloud.io](https://sonarcloud.io) and sign in with GitHub.
 2. Click **"+"** → **Analyze new project**.
-3. Select organization: **`iurii-izman`**.
-4. Select repository: **`iurii-izman/VacancyPilot`**.
+3. Select organization: **`VacancyPilot`**.
+4. Select repository: **`VacancyPilot/VacancyPilot`**.
 5. Choose **"With GitHub Actions"** as the analysis method.
 6. Follow the wizard — it will show a `SONAR_TOKEN` value.
    - Copy the token **immediately** (you won't see it again).
@@ -44,11 +44,17 @@ The project is configured via `sonar-project.properties` at the repository root:
 
 | Property | Value | Why |
 |---|---|---|
-| `sonar.projectKey` | `iurii-izman_VacancyPilot` | Unique project ID on SonarCloud |
-| `sonar.organization` | `iurii-izman` | GitHub organization |
+| `sonar.projectKey` | `VacancyPilot_VacancyPilot` | Unique project ID on SonarCloud |
+| `sonar.organization` | `VacancyPilot` | SonarCloud organization key |
 | `sonar.sources` | `entrypoints,src` | Source directories |
 | `sonar.tests` | `src,entrypoints` | Test directories |
 | `sonar.qualitygate.wait` | *(commented out)* | Advisory mode — no blocking |
+
+Important:
+
+- the GitHub repository is `VacancyPilot/VacancyPilot`;
+- the SonarCloud organization key does **not** need to equal the GitHub org display name;
+- if Sonar scans fail after org/repository changes, re-check the exact key pair in SonarCloud UI before changing them again.
 
 ## 4. Why Advisory Mode?
 
@@ -88,40 +94,37 @@ Switch to blocking mode when **all** of these are true:
    - PRs that fail the Quality Gate are correctly blocked.
    - PRs that pass continue to merge normally.
 
-## 6. Coverage (TODO)
+## 6. Coverage
 
-Coverage is not yet configured. To add it:
+Coverage is configured locally via Vitest V8 provider. The workflow
+upload step is intentionally omitted — Sonar reads `coverage/lcov.info`
+directly from the workspace during the `sonarqube-scan-action` step.
+
+### Local usage
 
 ```bash
-pnpm add -D @vitest/coverage-v8
+pnpm test:coverage
 ```
 
-Then update `vitest.config.ts`:
+This generates `coverage/lcov.info` and prints a text summary.
+The `coverage/` directory is git-ignored.
 
-```ts
-test: {
-  include: ["**/*.test.ts", "**/*.test.tsx"],
-  coverage: {
-    provider: "v8",
-    reporter: ["lcov", "text"],
-  },
-},
-```
+### What is repo-local vs. what is external
 
-Add a script to `package.json`:
+| Layer | Where | Status |
+|---|---|---|
+| Vitest V8 coverage + LCOV | repo | configured |
+| `sonar.javascript.lcov.reportPaths` | `sonar-project.properties` | wired |
+| CI step runs `pnpm test:coverage` | `.github/workflows/sonarqube-cloud.yml` | active |
+| `sonar.projectKey` / `sonar.organization` | `sonar-project.properties` | configured for current transferred repo namespace; re-verify in SonarCloud UI if scans fail |
+| `SONAR_TOKEN` secret | GitHub repository secrets | **manual — never stored in repo** |
 
-```json
-"test:coverage": "vitest run --coverage"
-```
+Coverage wiring is now repo-local and complete. The remaining external setup
+work is:
 
-Then uncomment in `sonar-project.properties`:
-
-```properties
-sonar.javascript.lcov.reportPaths=coverage/lcov.info
-```
-
-And in `.github/workflows/sonarqube-cloud.yml`, replace the `pnpm test` step
-with the `pnpm test:coverage` TODO step.
+1. verify in SonarCloud UI if the transferred repository uses a different key pair in practice;
+2. update `sonar-project.properties` only if those values differ;
+3. keep `SONAR_TOKEN` in GitHub repository secrets, never in the repo.
 
 ## 7. Key Metrics to Watch
 
