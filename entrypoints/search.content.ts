@@ -25,6 +25,7 @@ import {
   findSearchCardElements,
   buildCardElementMap,
   appendActionButtons,
+  clearSearchBadgeRenderState,
 } from "@/services/search-badge-render";
 import type { SearchHighlightControls } from "@/services/search-highlights";
 import type { RawSearchItemDTO } from "@/adapters/types";
@@ -32,6 +33,10 @@ import {
   createRenderScheduler,
   observeDynamicSearchList,
 } from "@/services/search-page-sync";
+import {
+  createFallbackSearchCardDTO,
+  discoverSearchCardsFromLinks,
+} from "@/services/search-card-discovery";
 
 export default defineContentScript({
   matches: ["https://hh.ru/search/vacancy*", "https://*.hh.ru/search/vacancy*"],
@@ -42,6 +47,8 @@ export default defineContentScript({
 
 let searchListObserver: MutationObserver | null = null;
 let searchBadgeRenderGeneration = 0;
+
+const SEARCH_HIGHLIGHTS_DEBUG_OVERLAY_ID = "vp-search-debug-overlay";
 
 async function startSearchBadgeSync(): Promise<void> {
   await injectSearchBadges();
@@ -66,30 +73,34 @@ async function startSearchBadgeSync(): Promise<void> {
  */
 async function injectSearchBadges(): Promise<void> {
   const generation = ++searchBadgeRenderGeneration;
-
-  // ── Respect user settings ───────────────────────────────────────────
-  try {
-    const result = await chrome.storage.local.get("app_settings_v1");
-    const settings = result["app_settings_v1"] as
-      | { general?: { showPageBadge?: boolean } }
-      | undefined;
-    if (settings?.general?.showPageBadge === false) return;
-  } catch {
-    // On read failure, show badges by default.
-  }
+  const debugEnabled = isSearchHighlightsDebugEnabled();
+  let errorsCount = 0;
 
   // ── Parse visible search cards ─────────────────────────────────────
   const adapter = new HHAdapter();
-  const cards = adapter.extractSearchList(document);
-  if (cards.length === 0) return;
-
-  const vacancyIds = Array.from(
-    new Set(
-      cards
-        .map((card) => card.sourceId)
-        .filter((vacancyId): vacancyId is string => vacancyId.length > 0),
-    ),
+  const adapterCards = adapter.extractSearchList(document);
+  const discoveredCards = discoverSearchCardsFromLinks(document);
+  const cardByVacancyId = buildUnifiedSearchCardMap(
+    adapterCards,
+    discoveredCards.map((card) => createFallbackSearchCardDTO(card)),
   );
+  const vacancyIds = Array.from(cardByVacancyId.keys());
+
+  if (adapterCards.length === 0 && discoveredCards.length === 0) {
+    clearSearchBadgeRenderState(document);
+    updateSearchHighlightsDebugOverlay(debugEnabled, {
+      adapterCardsCount: 0,
+      discoveredCardsCount: 0,
+      vacancyIdsCount: 0,
+      statesCount: 0,
+      legacyStatesCount: 0,
+      attachedCount: 0,
+      hiddenCount: 0,
+      controls: null,
+      errorsCount,
+    });
+    return;
+  }
 
   // ── Batch-load highlight state from background and legacy storage ──────
   const [highlightSnapshot, badgeStates] = await Promise.all([
@@ -100,54 +111,66 @@ async function injectSearchBadges(): Promise<void> {
 
   // ── Map DOM elements to vacancy IDs ─────────────────────────────────
   const cardElements = findSearchCardElements(document);
-  const cardMap = buildCardElementMap(cardElements);
+  const legacyCardMap = buildCardElementMap(cardElements);
+  const discoveredCardMap = new Map(
+    discoveredCards.map((card) => [card.vacancyId, card.cardElement] as const),
+  );
 
-  // ── Inject styles once ─────────────────────────────────────────────
+  const controls = highlightSnapshot.controls;
+  let attachedCount = 0;
+  let hiddenCount = 0;
+
+  if (!controls.enabled) {
+    clearSearchBadgeRenderState(document);
+    updateSearchHighlightsDebugOverlay(debugEnabled, {
+      adapterCardsCount: adapterCards.length,
+      discoveredCardsCount: discoveredCards.length,
+      vacancyIdsCount: vacancyIds.length,
+      statesCount: Object.keys(highlightSnapshot.states).length,
+      legacyStatesCount: Object.keys(badgeStates).length,
+      attachedCount,
+      hiddenCount,
+      controls,
+      errorsCount,
+    });
+    return;
+  }
+
   injectSearchBadgeStyles(document);
 
   // ── Attach badges with quick action buttons ─────────────────────────
-  for (const card of cards) {
+  for (const [vacancyId, card] of cardByVacancyId) {
     if (generation !== searchBadgeRenderGeneration) return;
 
     try {
-      const cardEl = cardMap.get(card.sourceId);
+      const cardEl =
+        discoveredCardMap.get(vacancyId) ?? legacyCardMap.get(vacancyId);
       if (!cardEl) continue;
 
-      const controls = highlightSnapshot.controls;
-      const badgeControls = controls.enabled
-        ? {
-            showViewed: controls.showViewed,
-            showSavedRejected: controls.showSavedRejected,
-            showScore: controls.showScore,
-            showViewCount: controls.showViewCount,
-          }
-        : {
-            showViewed: false,
-            showSavedRejected: false,
-            showScore: false,
-            showViewCount: false,
-          };
-      const state: SearchBadgeState = {
-        ...badgeStates[card.sourceId],
-        ...highlightSnapshot.states[card.sourceId],
+      const badgeControls = {
+        showViewed: controls.showViewed,
+        showSavedRejected: controls.showSavedRejected,
+        showScore: controls.showScore,
+        showViewCount: controls.showViewCount,
       };
-      applySearchCardState(cardEl, state, controls.enabled);
+      const state: SearchBadgeState = {
+        ...badgeStates[vacancyId],
+        ...highlightSnapshot.states[vacancyId],
+      };
+      applySearchCardState(cardEl, state, true);
 
-      if (state.hidden && controls.enabled) {
+      if (state.hidden) {
+        hiddenCount += 1;
         continue;
       }
 
       const badge = createBadgeHost(card, state, badgeControls);
-
-      // Always create a host for action buttons, even if badge is null.
-      const host = badge ?? document.createElement("span");
       if (!badge) {
-        host.className = "vp-sb-host";
-        host.style.display = "inline-flex";
+        continue;
       }
 
       // Append quick action buttons.
-      const { saveBtn, rejectBtn } = appendActionButtons(host);
+      const { saveBtn, rejectBtn } = appendActionButtons(badge);
 
       // Wire click handlers — each sends a message to the background.
       saveBtn.addEventListener("click", (e) => {
@@ -162,11 +185,121 @@ async function injectSearchBadges(): Promise<void> {
         void handleQuickReject(card);
       });
 
-      attachBadgeToCard(cardEl, host);
+      attachBadgeToCard(cardEl, badge);
+      attachedCount += 1;
     } catch {
       // One malformed card must not break badges for the rest.
+      errorsCount += 1;
       continue;
     }
+  }
+
+  updateSearchHighlightsDebugOverlay(debugEnabled, {
+    adapterCardsCount: adapterCards.length,
+    discoveredCardsCount: discoveredCards.length,
+    vacancyIdsCount: vacancyIds.length,
+    statesCount: Object.keys(highlightSnapshot.states).length,
+    legacyStatesCount: Object.keys(badgeStates).length,
+    attachedCount,
+    hiddenCount,
+    controls,
+    errorsCount,
+  });
+}
+
+interface SearchHighlightsDebugStats {
+  adapterCardsCount: number;
+  discoveredCardsCount: number;
+  vacancyIdsCount: number;
+  statesCount: number;
+  legacyStatesCount: number;
+  attachedCount: number;
+  hiddenCount: number;
+  controls: SearchHighlightControls | null;
+  errorsCount: number;
+}
+
+function buildUnifiedSearchCardMap(
+  adapterCards: RawSearchItemDTO[],
+  fallbackCards: RawSearchItemDTO[],
+): Map<string, RawSearchItemDTO> {
+  const map = new Map<string, RawSearchItemDTO>();
+
+  for (const card of adapterCards) {
+    if (card.sourceId.length > 0) {
+      map.set(card.sourceId, card);
+    }
+  }
+
+  for (const card of fallbackCards) {
+    if (card.sourceId.length > 0 && !map.has(card.sourceId)) {
+      map.set(card.sourceId, card);
+    }
+  }
+
+  return map;
+}
+
+function isSearchHighlightsDebugEnabled(): boolean {
+  try {
+    return (
+      new URLSearchParams(window.location.search).has("vpDebug") ||
+      window.localStorage.getItem("vpDebugSearchHighlights") === "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function updateSearchHighlightsDebugOverlay(
+  enabled: boolean,
+  stats: SearchHighlightsDebugStats,
+): void {
+  if (!enabled) {
+    document.getElementById(SEARCH_HIGHLIGHTS_DEBUG_OVERLAY_ID)?.remove();
+    return;
+  }
+
+  console.info("[VacancyPilot][SearchHighlights] started", {
+    url: location.href,
+    adapterCardsCount: stats.adapterCardsCount,
+    discoveredCardsCount: stats.discoveredCardsCount,
+    vacancyIdsCount: stats.vacancyIdsCount,
+    statesCount: stats.statesCount,
+    legacyStatesCount: stats.legacyStatesCount,
+    attachedCount: stats.attachedCount,
+    hiddenCount: stats.hiddenCount,
+    controls: stats.controls,
+    errorsCount: stats.errorsCount,
+  });
+
+  const overlay =
+    document.getElementById(SEARCH_HIGHLIGHTS_DEBUG_OVERLAY_ID) ??
+    document.createElement("div");
+
+  overlay.id = SEARCH_HIGHLIGHTS_DEBUG_OVERLAY_ID;
+  overlay.textContent =
+    `VP Search: adapter ${stats.adapterCardsCount} · ` +
+    `discovered ${stats.discoveredCardsCount} · ` +
+    `states ${stats.statesCount + stats.legacyStatesCount} · ` +
+    `attached ${stats.attachedCount}`;
+  overlay.style.cssText = [
+    "position: fixed",
+    "right: 12px",
+    "bottom: 12px",
+    "z-index: 2147483647",
+    "padding: 6px 8px",
+    "border: 1px solid #cbd5e1",
+    "border-radius: 6px",
+    "background: rgba(255, 255, 255, 0.96)",
+    "color: #334155",
+    "font: 11px/1.3 -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+    "box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12)",
+    "pointer-events: none",
+  ].join(";");
+
+  if (!overlay.isConnected) {
+    document.body.appendChild(overlay);
   }
 }
 

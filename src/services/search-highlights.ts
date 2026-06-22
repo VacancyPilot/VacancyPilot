@@ -12,7 +12,7 @@ export interface SearchHighlightControls {
   showSavedRejected: boolean;
   showScore: boolean;
   showViewCount: boolean;
-  rejectedSearchCardBehavior: "dim" | "hide";
+  rejectedSearchCardBehavior: "dim" | "hide" | "none";
 }
 
 function uniqueVacancyIds(vacancyIds: string[]): string[] {
@@ -117,7 +117,7 @@ export async function getSearchHighlightStates(
     if (isRejectedStatus(status)) {
       if (settings.general.rejectedSearchCardBehavior === "hide") {
         state.hidden = true;
-      } else {
+      } else if (settings.general.rejectedSearchCardBehavior === "dim") {
         state.dimmed = true;
       }
     }

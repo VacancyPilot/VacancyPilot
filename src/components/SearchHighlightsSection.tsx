@@ -157,8 +157,8 @@ export function SearchHighlightsSection(): ReactNode {
       <h2 style={sectionHeading}>Search Highlights</h2>
       <p style={sectionDesc}>
         Local job data and visit marks are used to annotate HH search cards.
-        Rejected cards can be dimmed or hidden without changing any HH
-        controls.
+        Rejected cards can be dimmed, hidden, or left visually unchanged
+        without changing any HH controls.
       </p>
 
       <div style={card}>
@@ -201,6 +201,16 @@ export function SearchHighlightsSection(): ReactNode {
               disabled={saving}
             />
             <span>Hide rejected cards</span>
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="radio"
+              name="rejected-search-card-behavior"
+              checked={rejectedBehavior === "none"}
+              onChange={() => void persistRejectedBehavior("none")}
+              disabled={saving}
+            />
+            <span>Do not alter rejected cards</span>
           </label>
         </div>
 

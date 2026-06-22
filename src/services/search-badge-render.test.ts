@@ -15,6 +15,7 @@ import {
   applySearchCardState,
   buildCardElementMap,
   findSearchCardElements,
+  clearSearchBadgeRenderState,
   createSaveButton,
   createRejectButton,
   appendActionButtons,
@@ -55,16 +56,17 @@ function makeDocument(html: string): Document {
 // ── buildSearchBadgeHTML ────────────────────────────────────────────
 
 describe("buildSearchBadgeHTML", () => {
-  it("returns empty string when there is nothing to show", () => {
+  it("shows a neutral marker when there is no known local state", () => {
     const card = makeCard({ workMode: null });
     const html = buildSearchBadgeHTML(card, undefined);
-    expect(html).toBe("");
+    expect(html).toContain("VP new");
+    expect(html).toContain("vp-sb-neutral");
   });
 
-  it("returns empty string when workMode is unknown", () => {
+  it("shows a neutral marker when workMode is unknown", () => {
     const card = makeCard({ workMode: "unknown" });
     const html = buildSearchBadgeHTML(card, undefined);
-    expect(html).toBe("");
+    expect(html).toContain("VP new");
   });
 
   it("shows work mode badge for remote card", () => {
@@ -139,7 +141,7 @@ describe("buildSearchBadgeHTML", () => {
     const html = buildSearchBadgeHTML(card, state, { showScore: false });
 
     expect(html).not.toContain("vp-sb-score");
-    expect(html).toContain("сохр");
+    expect(html).toContain("VP saved");
     expect(html).toContain("УД");
   });
 
@@ -147,7 +149,7 @@ describe("buildSearchBadgeHTML", () => {
     const card = makeCard();
     const state = makeState({ status: "saved" });
     const html = buildSearchBadgeHTML(card, state);
-    expect(html).toContain("сохр");
+    expect(html).toContain("VP saved");
     expect(html).toContain('title="Saved"');
   });
 
@@ -155,14 +157,14 @@ describe("buildSearchBadgeHTML", () => {
     const card = makeCard();
     const state = makeState({ status: "applied" });
     const html = buildSearchBadgeHTML(card, state);
-    expect(html).toContain("отклк");
+    expect(html).toContain("VP applied");
   });
 
   it("shows status with icon for rejected_by_me", () => {
     const card = makeCard();
     const state = makeState({ status: "rejected_by_me" });
     const html = buildSearchBadgeHTML(card, state);
-    expect(html).toContain("отклз");
+    expect(html).toContain("VP rejected");
   });
 
   it("hides viewed status when viewed chips are disabled", () => {
@@ -170,7 +172,7 @@ describe("buildSearchBadgeHTML", () => {
     const state = makeState({ status: "viewed" });
     const html = buildSearchBadgeHTML(card, state, { showViewed: false });
 
-    expect(html).not.toContain("смтр");
+    expect(html).not.toContain("VP viewed");
     expect(html).toContain("УД");
   });
 
@@ -181,7 +183,7 @@ describe("buildSearchBadgeHTML", () => {
       showSavedRejected: false,
     });
 
-    expect(html).not.toContain("отклз");
+    expect(html).not.toContain("VP rejected");
     expect(html).toContain("УД");
   });
 
@@ -202,7 +204,7 @@ describe("buildSearchBadgeHTML", () => {
 
     expect(html).toContain("75");
     expect(html).toContain("vp-sb-score--mid");
-    expect(html).toContain("сохр");
+    expect(html).toContain("VP saved");
     expect(html).toContain("УД");
   });
 
@@ -212,7 +214,7 @@ describe("buildSearchBadgeHTML", () => {
     const html = buildSearchBadgeHTML(card, state);
 
     expect(html).not.toContain("vp-sb-score");
-    expect(html).toContain("отклк");
+    expect(html).toContain("VP applied");
     expect(html).toContain("Оф");
   });
 
@@ -308,12 +310,13 @@ describe("injectSearchBadgeStyles", () => {
 // ── createBadgeHost ─────────────────────────────────────────────────
 
 describe("createBadgeHost", () => {
-  it("returns null when there is nothing to show", () => {
+  it("returns a neutral host when there is no known local state", () => {
     const card = makeCard({ workMode: null });
     const d = new Window({ url: "https://hh.ru/search/vacancy" })
       .document as unknown as Document;
     const host = createBadgeHost(card, undefined, undefined, d);
-    expect(host).toBeNull();
+    expect(host).toBeTruthy();
+    expect(host!.textContent).toContain("VP new");
   });
 
   it("returns a span element with vp-sb-host class", () => {
@@ -334,6 +337,17 @@ describe("createBadgeHost", () => {
     const host = createBadgeHost(card, state, undefined, d);
     expect(host!.innerHTML).toContain("90");
     expect(host!.innerHTML).toContain("УД");
+  });
+
+  it("renders unknown status text without parsing it as HTML", () => {
+    const card = makeCard();
+    const state = makeState({ status: `"><img src=x onerror=alert(1)>` });
+    const d = new Window({ url: "https://hh.ru/search/vacancy" })
+      .document as unknown as Document;
+    const host = createBadgeHost(card, state, undefined, d);
+
+    expect(host?.querySelector("img")).toBeNull();
+    expect(host?.textContent).toContain(`VP "><img src=x onerror=alert(1)>`);
   });
 
   it("renders view count when available", () => {
@@ -470,6 +484,29 @@ describe("applySearchCardState", () => {
 
     expect(cardEl.classList.contains("vp-sb-card--hidden")).toBe(true);
     expect(cardEl.classList.contains("vp-sb-card--dimmed")).toBe(false);
+  });
+});
+
+describe("clearSearchBadgeRenderState", () => {
+  it("removes extension hosts and presentation classes", () => {
+    const doc = makeDocument(`<!DOCTYPE html>
+<html><body>
+  <article class="vp-sb-card--dimmed">
+    <h3>
+      <a href="/vacancy/123">Job</a>
+      <span class="vp-sb-host">VP saved</span>
+    </h3>
+  </article>
+  <article class="vp-sb-card--hidden">
+    <h3><a href="/vacancy/456">Job</a></h3>
+  </article>
+</body></html>`);
+
+    clearSearchBadgeRenderState(doc);
+
+    expect(doc.querySelectorAll(".vp-sb-host")).toHaveLength(0);
+    expect(doc.querySelectorAll(".vp-sb-card--dimmed")).toHaveLength(0);
+    expect(doc.querySelectorAll(".vp-sb-card--hidden")).toHaveLength(0);
   });
 });
 
