@@ -71,6 +71,11 @@ describe("defaultSettings", () => {
 
     expect(settings.general.language).toBe("ru");
     expect(settings.general.theme).toBe("system");
+    expect(settings.general.searchHighlightsEnabled).toBe(true);
+    expect(settings.general.searchHighlightsShowViewed).toBe(true);
+    expect(settings.general.searchHighlightsShowSavedRejected).toBe(true);
+    expect(settings.general.searchHighlightsShowScore).toBe(true);
+    expect(settings.general.searchHighlightsShowViewCount).toBe(true);
     expect(settings.general.trackVisitMarks).toBe(true);
     expect(settings.general.rejectedSearchCardBehavior).toBe("dim");
     expect(settings.general.autosaveViewedJobs).toBe(true);
@@ -134,6 +139,11 @@ describe("loadSettings", () => {
     expect(loaded.onboardingCompleted).toBe(false);
     expect(loaded.general.language).toBe("en");
     expect(loaded.general.theme).toBe("system");
+    expect(loaded.general.searchHighlightsEnabled).toBe(true);
+    expect(loaded.general.searchHighlightsShowViewed).toBe(true);
+    expect(loaded.general.searchHighlightsShowSavedRejected).toBe(true);
+    expect(loaded.general.searchHighlightsShowScore).toBe(true);
+    expect(loaded.general.searchHighlightsShowViewCount).toBe(true);
     expect(loaded.general.trackVisitMarks).toBe(true);
     expect(loaded.general.rejectedSearchCardBehavior).toBe("dim");
     expect(loaded.general.toolbarClickBehavior).toBe("popup");

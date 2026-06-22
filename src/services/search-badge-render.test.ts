@@ -272,7 +272,7 @@ describe("createBadgeHost", () => {
     const card = makeCard({ workMode: null });
     const d = new Window({ url: "https://hh.ru/search/vacancy" })
       .document as unknown as Document;
-    const host = createBadgeHost(card, undefined, d);
+    const host = createBadgeHost(card, undefined, undefined, d);
     expect(host).toBeNull();
   });
 
@@ -280,7 +280,7 @@ describe("createBadgeHost", () => {
     const card = makeCard({ workMode: "remote" });
     const d = new Window({ url: "https://hh.ru/search/vacancy" })
       .document as unknown as Document;
-    const host = createBadgeHost(card, undefined, d);
+    const host = createBadgeHost(card, undefined, undefined, d);
     expect(host).toBeTruthy();
     expect(host!.tagName.toLowerCase()).toBe("span");
     expect(host!.className).toBe("vp-sb-host");
@@ -291,9 +291,20 @@ describe("createBadgeHost", () => {
     const state = makeState({ score: 90 });
     const d = new Window({ url: "https://hh.ru/search/vacancy" })
       .document as unknown as Document;
-    const host = createBadgeHost(card, state, d);
+    const host = createBadgeHost(card, state, undefined, d);
     expect(host!.innerHTML).toContain("90");
     expect(host!.innerHTML).toContain("УД");
+  });
+
+  it("renders view count when available", () => {
+    const card = makeCard({ workMode: "remote" });
+    const state = makeState({ viewCount: 3 });
+    const html = buildSearchBadgeHTML(card, state, {
+      showViewCount: true,
+    });
+
+    expect(html).toContain("3×");
+    expect(html).toContain("vp-sb-view-count");
   });
 });
 

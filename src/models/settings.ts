@@ -9,6 +9,11 @@ export interface AppSettings {
     language: "ru" | "en";
     theme: "system" | "light" | "dark";
     showPageBadge: boolean;
+    searchHighlightsEnabled?: boolean;
+    searchHighlightsShowViewed?: boolean;
+    searchHighlightsShowSavedRejected?: boolean;
+    searchHighlightsShowScore?: boolean;
+    searchHighlightsShowViewCount?: boolean;
     trackVisitMarks: boolean;
     rejectedSearchCardBehavior: "dim" | "hide";
     autosaveViewedJobs: boolean;

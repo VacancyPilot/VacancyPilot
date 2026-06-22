@@ -3,7 +3,6 @@ import {
   quickSaveSearchCard,
   quickRejectSearchCard,
 } from "@/services/search-actions";
-import { getSearchHighlightStates } from "@/services/search-highlights";
 import { jobRepo } from "@/db/repositories";
 import { createStatusChange } from "@/services/status-transitions";
 import {
@@ -20,6 +19,10 @@ import {
 } from "@/db";
 import { loadSettings } from "@/db/settings-bridge";
 import { applyToolbarBehaviorFromSettings } from "@/services/toolbar-behavior";
+import {
+  getSearchHighlightStates,
+  resolveSearchHighlightControls,
+} from "@/services/search-highlights";
 
 interface SidePanelContext {
   tabId: number;
@@ -214,8 +217,13 @@ export default defineBackground(() => {
           )
         : [];
 
-      void getSearchHighlightStates(vacancyIds).then(
-        (states) => sendResponse({ success: true, states }),
+      void Promise.all([getSearchHighlightStates(vacancyIds), loadSettings()]).then(
+        ([states, settings]) =>
+          sendResponse({
+            success: true,
+            states,
+            controls: resolveSearchHighlightControls(settings),
+          }),
         (err: unknown) =>
           sendResponse({
             success: false,

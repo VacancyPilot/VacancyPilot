@@ -13,6 +13,7 @@ import type { RawSearchItemDTO } from "@/adapters/types";
 export interface SearchBadgeState {
   score?: number;
   status?: string;
+  viewCount?: number;
   dimmed?: boolean;
   hidden?: boolean;
 }
@@ -79,6 +80,27 @@ const STATUS_LABELS_FULL: Record<string, string> = {
   blacklist: "Blacklisted",
 };
 
+function shouldShowStatus(
+  status: string,
+  controls?: {
+    showViewed?: boolean;
+    showSavedRejected?: boolean;
+  },
+): boolean {
+  if (status === "viewed") {
+    return controls?.showViewed !== false;
+  }
+  if (
+    status === "saved" ||
+    status === "rejected_by_me" ||
+    status === "rejected_by_company" ||
+    status === "blacklist"
+  ) {
+    return controls?.showSavedRejected !== false;
+  }
+  return true;
+}
+
 // ── Score color classes ───────────────────────────────────────────────────
 
 function scoreClass(score: number): string {
@@ -96,11 +118,21 @@ function scoreClass(score: number): string {
 export function buildSearchBadgeHTML(
   card: RawSearchItemDTO,
   state: SearchBadgeState | undefined,
+  controls?: {
+    showViewed?: boolean;
+    showSavedRejected?: boolean;
+    showScore?: boolean;
+    showViewCount?: boolean;
+  },
 ): string {
   const parts: string[] = [];
 
   // Score (from local badge state)
-  if (state?.score !== undefined && state.score !== null) {
+  if (
+    controls?.showScore !== false &&
+    state?.score !== undefined &&
+    state.score !== null
+  ) {
     const cls = `vp-sb-score ${scoreClass(state.score)}`;
     parts.push(
       `<span class="${cls}" role="status" aria-label="Score ${state.score}">${state.score}</span>`,
@@ -108,12 +140,22 @@ export function buildSearchBadgeHTML(
   }
 
   // Status icon + short label (from local badge state)
-  if (state?.status) {
+  if (state?.status && shouldShowStatus(state.status, controls)) {
     const icon = STATUS_ICONS[state.status] ?? "";
     const label = STATUS_LABELS[state.status] ?? state.status;
     const fullLabel = STATUS_LABELS_FULL[state.status] ?? state.status;
     parts.push(
       `<span class="vp-sb-status" title="${fullLabel}" aria-label="${fullLabel}">${icon}${label}</span>`,
+    );
+  }
+
+  if (
+    controls?.showViewCount !== false &&
+    state?.viewCount !== undefined &&
+    state.viewCount !== null
+  ) {
+    parts.push(
+      `<span class="vp-sb-view-count" title="Viewed ${state.viewCount} time(s)" aria-label="Viewed ${state.viewCount} time(s)">${state.viewCount}×</span>`,
     );
   }
 
@@ -183,6 +225,16 @@ export function injectSearchBadgeStyles(doc: Document): void {
       max-width: 70px;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .vp-sb-view-count {
+      font-size: 9px;
+      color: #4a90d9;
+      border: 1px solid #cfe0f6;
+      background: #f4f8fd;
+      border-radius: 8px;
+      padding: 0 4px;
+      line-height: 14px;
     }
 
     /* Work mode pill */
@@ -263,9 +315,15 @@ export function injectSearchBadgeStyles(doc: Document): void {
 export function createBadgeHost(
   card: RawSearchItemDTO,
   state: SearchBadgeState | undefined,
+  controls?: {
+    showViewed?: boolean;
+    showSavedRejected?: boolean;
+    showScore?: boolean;
+    showViewCount?: boolean;
+  },
   doc: Document = document,
 ): HTMLElement | null {
-  const html = buildSearchBadgeHTML(card, state);
+  const html = buildSearchBadgeHTML(card, state, controls);
   if (!html) return null;
 
   const host = doc.createElement("span");
@@ -309,10 +367,12 @@ export function attachBadgeToCard(
 export function applySearchCardState(
   cardEl: Element | null,
   state: SearchBadgeState | undefined,
+  enabled = true,
 ): void {
   if (!cardEl) return;
 
   cardEl.classList.remove("vp-sb-card--dimmed", "vp-sb-card--hidden");
+  if (!enabled) return;
 
   if (state?.hidden) {
     cardEl.classList.add("vp-sb-card--hidden");

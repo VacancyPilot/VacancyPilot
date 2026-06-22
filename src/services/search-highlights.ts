@@ -6,6 +6,15 @@ import type { SearchBadgeState } from "./search-badge-render";
 
 export type SearchHighlightState = SearchBadgeState;
 
+export interface SearchHighlightControls {
+  enabled: boolean;
+  showViewed: boolean;
+  showSavedRejected: boolean;
+  showScore: boolean;
+  showViewCount: boolean;
+  rejectedSearchCardBehavior: "dim" | "hide";
+}
+
 function uniqueVacancyIds(vacancyIds: string[]): string[] {
   return Array.from(
     new Set(
@@ -40,6 +49,20 @@ function resolveStatus(
   }
 
   return undefined;
+}
+
+export function resolveSearchHighlightControls(
+  settings: Awaited<ReturnType<typeof loadSettings>>,
+): SearchHighlightControls {
+  return {
+    enabled: settings.general.searchHighlightsEnabled !== false,
+    showViewed: settings.general.searchHighlightsShowViewed !== false,
+    showSavedRejected:
+      settings.general.searchHighlightsShowSavedRejected !== false,
+    showScore: settings.general.searchHighlightsShowScore !== false,
+    showViewCount: settings.general.searchHighlightsShowViewCount !== false,
+    rejectedSearchCardBehavior: settings.general.rejectedSearchCardBehavior,
+  };
 }
 
 export async function getSearchHighlightStates(
@@ -86,6 +109,9 @@ export async function getSearchHighlightStates(
     }
     if (typeof score === "number") {
       state.score = score;
+    }
+    if (visitMark?.viewCount !== undefined) {
+      state.viewCount = visitMark.viewCount;
     }
 
     if (isRejectedStatus(status)) {

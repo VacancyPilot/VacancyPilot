@@ -26,6 +26,7 @@ import {
   buildCardElementMap,
   appendActionButtons,
 } from "@/services/search-badge-render";
+import type { SearchHighlightControls } from "@/services/search-highlights";
 import type { RawSearchItemDTO } from "@/adapters/types";
 import {
   createRenderScheduler,
@@ -91,8 +92,8 @@ async function injectSearchBadges(): Promise<void> {
   );
 
   // ── Batch-load highlight state from background and legacy storage ──────
-  const [highlightStates, badgeStates] = await Promise.all([
-    loadSearchHighlightStates(vacancyIds),
+  const [highlightSnapshot, badgeStates] = await Promise.all([
+    loadSearchHighlightSnapshot(vacancyIds),
     loadLegacyBadgeStates(vacancyIds),
   ]);
   if (generation !== searchBadgeRenderGeneration) return;
@@ -112,17 +113,31 @@ async function injectSearchBadges(): Promise<void> {
       const cardEl = cardMap.get(card.sourceId);
       if (!cardEl) continue;
 
+      const controls = highlightSnapshot.controls;
+      const badgeControls = controls.enabled
+        ? {
+            showViewed: controls.showViewed,
+            showSavedRejected: controls.showSavedRejected,
+            showScore: controls.showScore,
+            showViewCount: controls.showViewCount,
+          }
+        : {
+            showViewed: false,
+            showSavedRejected: false,
+            showScore: false,
+            showViewCount: false,
+          };
       const state: SearchBadgeState = {
         ...badgeStates[card.sourceId],
-        ...highlightStates[card.sourceId],
+        ...highlightSnapshot.states[card.sourceId],
       };
-      applySearchCardState(cardEl, state);
+      applySearchCardState(cardEl, state, controls.enabled);
 
-      if (state.hidden) {
+      if (state.hidden && controls.enabled) {
         continue;
       }
 
-      const badge = createBadgeHost(card, state);
+      const badge = createBadgeHost(card, state, badgeControls);
 
       // Always create a host for action buttons, even if badge is null.
       const host = badge ?? document.createElement("span");
@@ -224,14 +239,30 @@ async function loadLegacyBadgeStates(
 interface SearchHighlightMessageResponse {
   success?: boolean;
   states?: Record<string, SearchBadgeState>;
+  controls?: SearchHighlightControls;
   error?: string;
 }
 
-async function loadSearchHighlightStates(
+interface SearchHighlightSnapshot {
+  states: Record<string, SearchBadgeState>;
+  controls: SearchHighlightControls;
+}
+
+async function loadSearchHighlightSnapshot(
   vacancyIds: string[],
-): Promise<Record<string, SearchBadgeState>> {
+): Promise<SearchHighlightSnapshot> {
   if (vacancyIds.length === 0) {
-    return {};
+    return {
+      states: {},
+      controls: {
+        enabled: true,
+        showViewed: true,
+        showSavedRejected: true,
+        showScore: true,
+        showViewCount: true,
+        rejectedSearchCardBehavior: "dim",
+      },
+    };
   }
 
   try {
@@ -240,12 +271,25 @@ async function loadSearchHighlightStates(
       vacancyIds,
     })) as SearchHighlightMessageResponse;
 
-    if (response?.success && response.states) {
-      return response.states;
+    if (response?.success && response.states && response.controls) {
+      return {
+        states: response.states,
+        controls: response.controls,
+      };
     }
   } catch {
     // Non-critical — badges fall back to legacy state and work mode.
   }
 
-  return {};
+  return {
+    states: {},
+    controls: {
+      enabled: true,
+      showViewed: true,
+      showSavedRejected: true,
+      showScore: true,
+      showViewCount: true,
+      rejectedSearchCardBehavior: "dim",
+    },
+  };
 }
