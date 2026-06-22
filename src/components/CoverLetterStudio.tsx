@@ -15,9 +15,9 @@ import type {
   CoverLetterAiGenerationResult,
 } from "@/services";
 import {
-  prepareCoverLetterAiRequest,
+  previewCoverLetterPayload,
   buildCoverLetterAiCostSummary,
-  generateCoverLetterAiDraft,
+  generateCoverLetterDraft,
 } from "@/services";
 import { EmptyState } from "./EmptyState";
 import { LoadingState } from "./LoadingState";
@@ -287,7 +287,7 @@ export function CoverLetterStudio({
     setAiFeedback(null);
 
     try {
-      const prepared = await prepareCoverLetterAiRequest({
+      const prepared = await previewCoverLetterPayload({
         jobId,
         profileId,
         resumeId,
@@ -313,7 +313,7 @@ export function CoverLetterStudio({
 
     try {
       const generated: CoverLetterAiGenerationResult =
-        await generateCoverLetterAiDraft(aiPrepared, jobId);
+        await generateCoverLetterDraft(aiPrepared, jobId);
 
       setBodyText(generated.bodyText);
       setDraftSource("ai");
@@ -378,8 +378,7 @@ export function CoverLetterStudio({
           source: draftSource,
           aiProvider: draftSource === "ai" ? draftAiProvider : undefined,
           aiModel: draftSource === "ai" ? draftAiModel : undefined,
-          promptVersion:
-            draftSource === "ai" ? draftPromptVersion : undefined,
+          promptVersion: draftSource === "ai" ? draftPromptVersion : undefined,
           provenance: computeProvenance(draftSource, isFinal, userEdited),
           versions: [...base.versions, version],
           updatedAt: now,
@@ -655,8 +654,7 @@ export function CoverLetterStudio({
             style={{
               padding: "5px 12px",
               fontSize: 12,
-              cursor:
-                aiPreparing || aiGenerating ? "not-allowed" : "pointer",
+              cursor: aiPreparing || aiGenerating ? "not-allowed" : "pointer",
               border: "1px solid #7b4dff",
               borderRadius: 4,
               background: "#7b4dff",
@@ -762,7 +760,8 @@ export function CoverLetterStudio({
                 {aiPrepared.preview.estimatedTokens}
               </span>
               <span>
-                <strong>Estimated chars:</strong> {aiPrepared.preview.totalChars}
+                <strong>Estimated chars:</strong>{" "}
+                {aiPrepared.preview.totalChars}
               </span>
               <span>
                 <strong>Optional API access:</strong>{" "}

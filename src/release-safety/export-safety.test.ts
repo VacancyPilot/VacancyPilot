@@ -46,6 +46,8 @@ function makeSettings(overrides?: Record<string, unknown>): Record<string, unkno
       theme: "system",
       showPageBadge: true,
       autosaveViewedJobs: true,
+      toolbarClickBehavior: "popup",
+      closePopupAfterOpeningSidePanel: true,
     },
     privacy: {
       aiEnabled: true,

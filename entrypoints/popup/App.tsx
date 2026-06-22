@@ -68,6 +68,7 @@ interface SidePanelOpenDeps {
   getCurrentWindowId: () => Promise<number | undefined>;
   open: (windowId: number) => Promise<void>;
   sendContext: (pageInfo: PageStatusInfo) => void;
+  closePopup: () => void;
   supportsProgrammaticOpen: boolean;
 }
 
@@ -88,6 +89,9 @@ const defaultSidePanelOpenDeps: SidePanelOpenDeps = {
           err,
         );
       });
+  },
+  closePopup(): void {
+    window.close();
   },
   supportsProgrammaticOpen:
     typeof chrome !== "undefined" && Boolean(chrome.sidePanel?.open),
@@ -186,6 +190,7 @@ function PopupContent(): ReactNode {
   const [selectedProfileId, setSelectedProfileId] = useState<
     string | undefined
   >();
+  const [closePopupAfterOpen, setClosePopupAfterOpen] = useState(true);
   const [passiveStatus, setPassiveStatus] = useState<
     Partial<ApplicationStatusSync> | null | undefined
   >(undefined);
@@ -199,6 +204,9 @@ function PopupContent(): ReactNode {
           loadSettings(),
         ]);
         setProfiles(list);
+        setClosePopupAfterOpen(
+          settings.general.closePopupAfterOpeningSidePanel,
+        );
         // Preselect: job's selectedProfileId > settings default > first profile
         const defaultId =
           savedJob?.selectedProfileId ??
@@ -403,14 +411,18 @@ function PopupContent(): ReactNode {
     setIsOpeningSidePanel(true);
     setSidePanelError(null);
 
-    const result = await openSidePanel(pageInfo);
+    const result = await openSidePanel(
+      pageInfo,
+      defaultSidePanelOpenDeps,
+      { closePopupAfterSuccess: closePopupAfterOpen },
+    );
 
     if (!result.success) {
       setSidePanelError(result.error);
     }
 
     setIsOpeningSidePanel(false);
-  }, [pageInfo]);
+  }, [closePopupAfterOpen, pageInfo]);
 
   // ── Derived display values ──
 
@@ -604,6 +616,17 @@ function PopupContent(): ReactNode {
           marginTop: isVacancy ? spacing.xs : 0,
         }}
       >
+        <div
+          role="note"
+          style={{
+            fontSize: fontSizes.sm,
+            color: colors.textFaint,
+            lineHeight: 1.4,
+          }}
+        >
+          Chrome keeps extension popups anchored to the toolbar icon. Continue
+          in the Side Panel for the full workspace and to avoid popup overlap.
+        </div>
         <ActionButton
           label={getSidePanelButtonLabel(isOpeningSidePanel)}
           onClick={() => void handleOpenSidePanel()}
@@ -673,6 +696,7 @@ export function buildSetSidePanelContext(pageInfo: PageStatusInfo): {
 export async function openSidePanel(
   pageInfo: PageStatusInfo,
   deps: SidePanelOpenDeps = defaultSidePanelOpenDeps,
+  options: { closePopupAfterSuccess?: boolean } = {},
 ): Promise<SidePanelOpenResult> {
   deps.sendContext(pageInfo);
 
@@ -687,6 +711,9 @@ export async function openSidePanel(
     }
 
     await deps.open(windowId);
+    if (options.closePopupAfterSuccess) {
+      deps.closePopup();
+    }
     return { success: true };
   } catch (error) {
     console.error("[VacancyPilot] Failed to open side panel:", error);

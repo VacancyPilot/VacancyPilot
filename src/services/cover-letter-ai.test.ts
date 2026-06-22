@@ -27,6 +27,8 @@ const {
       theme: "system" as const,
       showPageBadge: true,
       autosaveViewedJobs: true,
+      toolbarClickBehavior: "popup" as const,
+      closePopupAfterOpeningSidePanel: true,
     },
     privacy: {
       aiEnabled: true,
@@ -93,9 +95,8 @@ vi.mock("./ai-cache", () => ({
 }));
 
 vi.mock("./ai-budget", async () => {
-  const actual = await vi.importActual<typeof import("./ai-budget")>(
-    "./ai-budget",
-  );
+  const actual =
+    await vi.importActual<typeof import("./ai-budget")>("./ai-budget");
   return {
     ...actual,
     checkAiBudget: vi.fn(async () => ({
@@ -110,12 +111,13 @@ vi.mock("./ai-budget", async () => {
 });
 
 import {
-  prepareCoverLetterAiRequest,
+  previewCoverLetterPayload,
   buildCoverLetterAiCostSummary,
-  generateCoverLetterAiDraft,
+  generateCoverLetterDraft,
 } from "./cover-letter-ai";
 import { checkCoverLetterCache, storeCoverLetterCache } from "./ai-cache";
 import { ensureProviderOriginAccess } from "./ai-provider-permissions";
+import { getLLMProvider } from "./ai-provider-factory";
 import { recordAiRequest } from "./ai-budget";
 
 describe("cover-letter-ai", () => {
@@ -168,7 +170,7 @@ describe("cover-letter-ai", () => {
   });
 
   it("prepares a preview-ready cover letter request", async () => {
-    const prepared = await prepareCoverLetterAiRequest({
+    const prepared = await previewCoverLetterPayload({
       jobId: "hh_1",
       profileId: "p1",
       mode: "hh_standard",
@@ -196,7 +198,7 @@ describe("cover-letter-ai", () => {
       inputHash: "hash_1",
     });
 
-    const prepared = await prepareCoverLetterAiRequest({
+    const prepared = await previewCoverLetterPayload({
       jobId: "hh_1",
       profileId: "p1",
       mode: "hh_standard",
@@ -208,7 +210,7 @@ describe("cover-letter-ai", () => {
       },
     });
 
-    const result = await generateCoverLetterAiDraft(prepared, "hh_1");
+    const result = await generateCoverLetterDraft(prepared, "hh_1");
     expect(result.fromCache).toBe(true);
     expect(result.bodyText).toBe("Cached draft");
     expect(mockProvider.generateCoverLetter).not.toHaveBeenCalled();
@@ -225,7 +227,7 @@ describe("cover-letter-ai", () => {
       inputHash: "hash_2",
     });
 
-    const prepared = await prepareCoverLetterAiRequest({
+    const prepared = await previewCoverLetterPayload({
       jobId: "hh_1",
       profileId: "p1",
       mode: "hh_standard",
@@ -237,7 +239,7 @@ describe("cover-letter-ai", () => {
       },
     });
 
-    const result = await generateCoverLetterAiDraft(prepared, "hh_1");
+    const result = await generateCoverLetterDraft(prepared, "hh_1");
     expect(result.fromCache).toBe(false);
     expect(result.bodyText).toBe("Generated letter");
     expect(ensureProviderOriginAccess).toHaveBeenCalledWith("openai");
@@ -252,7 +254,7 @@ describe("cover-letter-ai", () => {
   });
 
   it("builds a cost summary from the prepared request", async () => {
-    const prepared = await prepareCoverLetterAiRequest({
+    const prepared = await previewCoverLetterPayload({
       jobId: "hh_1",
       profileId: "p1",
       mode: "hh_standard",
@@ -268,5 +270,59 @@ describe("cover-letter-ai", () => {
     expect(summary.provider).toBe("openai");
     expect(summary.model).toBe("gpt-4o-mini");
     expect(summary.inputTokens).toBe(prepared.preview.estimatedTokens);
+  });
+
+  // ── Preview isolation ──────────────────────────────────────────────
+
+  it("Preview AI Payload does not request optional host permission", async () => {
+    await previewCoverLetterPayload({
+      jobId: "hh_1",
+      profileId: "p1",
+      mode: "hh_standard",
+      constraints: {
+        noEmoji: true,
+        noMarkdown: true,
+        noSpecialChars: false,
+        maxChars: 1000,
+      },
+    });
+
+    // Preview must never call ensureProviderOriginAccess (which can request)
+    expect(ensureProviderOriginAccess).not.toHaveBeenCalled();
+  });
+
+  it("Preview AI Payload does not call fetch/OpenAI provider", async () => {
+    await previewCoverLetterPayload({
+      jobId: "hh_1",
+      profileId: "p1",
+      mode: "hh_standard",
+      constraints: {
+        noEmoji: true,
+        noMarkdown: true,
+        noSpecialChars: false,
+        maxChars: 1000,
+      },
+    });
+
+    // Preview must never get a provider (which would be used for API calls)
+    expect(getLLMProvider).not.toHaveBeenCalled();
+    expect(mockProvider.generateCoverLetter).not.toHaveBeenCalled();
+  });
+
+  it("Preview AI Payload does not increment usage", async () => {
+    await previewCoverLetterPayload({
+      jobId: "hh_1",
+      profileId: "p1",
+      mode: "hh_standard",
+      constraints: {
+        noEmoji: true,
+        noMarkdown: true,
+        noSpecialChars: false,
+        maxChars: 1000,
+      },
+    });
+
+    // Preview must never record an AI request
+    expect(recordAiRequest).not.toHaveBeenCalled();
   });
 });

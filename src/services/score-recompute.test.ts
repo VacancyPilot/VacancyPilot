@@ -18,6 +18,8 @@ let mockSettings: AppSettings = {
     language: "en",
     theme: "system",
     autosaveViewedJobs: false,
+    toolbarClickBehavior: "popup",
+    closePopupAfterOpeningSidePanel: true,
   },
   ai: {
     provider: undefined,
@@ -63,6 +65,8 @@ function resetMocks() {
       language: "en",
       theme: "system",
       autosaveViewedJobs: false,
+      toolbarClickBehavior: "popup",
+      closePopupAfterOpeningSidePanel: true,
     },
     ai: {
       provider: undefined,

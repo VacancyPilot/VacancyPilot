@@ -63,6 +63,14 @@ describe("PermissionsSection — manifest alignment", () => {
     expect(source).toMatch(/n8n/);
     expect(source).toMatch(/opt-in/i);
   });
+
+  it("documents toolbar icon behavior and popup overlap constraints", () => {
+    expect(source).toMatch(/Toolbar Icon Behavior/);
+    expect(source).toMatch(/Popup: clicking the extension icon opens the compact popup/i);
+    expect(source).toMatch(/Side Panel: clicking the extension icon opens VacancyPilot/i);
+    expect(source).toMatch(/cannot\s+make the popup draggable/i);
+    expect(source).toMatch(/Chrome side panel side:/i);
+  });
 });
 
 describe("PermissionsSection — import", () => {

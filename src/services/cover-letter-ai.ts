@@ -15,7 +15,10 @@ import {
   getLLMProvider,
   providerLabel,
 } from "./ai-provider-factory";
-import { generateCoverLetterPreview, type PayloadPreview } from "./payload-preview";
+import {
+  generateCoverLetterPreview,
+  type PayloadPreview,
+} from "./payload-preview";
 import { recordAiRequest } from "./ai-budget";
 
 export interface CoverLetterAiRequest {
@@ -69,12 +72,15 @@ export async function prepareCoverLetterAiRequest(
 
   const provider = settings.ai.provider!;
   const model =
-    settings.ai.model?.trim() || (provider === "openai" ? "gpt-4o" : "mock-gpt-4o");
+    settings.ai.model?.trim() ||
+    (provider === "openai" ? "gpt-4o" : "mock-gpt-4o");
 
   const [job, profile, resume] = await Promise.all([
     jobRepo.getById(request.jobId),
     profileRepo.getById(request.profileId),
-    request.resumeId ? resumeRepo.getById(request.resumeId) : Promise.resolve(undefined),
+    request.resumeId
+      ? resumeRepo.getById(request.resumeId)
+      : Promise.resolve(undefined),
   ]);
 
   if (!job) {
@@ -111,6 +117,21 @@ export function buildCoverLetterAiCostSummary(
     prepared.model,
     0.5,
   );
+}
+
+/**
+ * Strictly local preview pipeline.
+ *
+ * Guarantees:
+ * - no permission request;
+ * - no provider network call;
+ * - no usage increment;
+ * - no cache write.
+ */
+export async function previewCoverLetterPayload(
+  request: CoverLetterAiRequest,
+): Promise<PreparedCoverLetterAiRequest> {
+  return prepareCoverLetterAiRequest(request);
 }
 
 export async function generateCoverLetterAiDraft(
@@ -173,4 +194,14 @@ export async function generateCoverLetterAiDraft(
     promptVersion: prepared.promptVersion,
     fromCache: false,
   };
+}
+
+/**
+ * Generation pipeline with permission + provider call.
+ */
+export async function generateCoverLetterDraft(
+  prepared: PreparedCoverLetterAiRequest,
+  jobId?: string,
+): Promise<CoverLetterAiGenerationResult> {
+  return generateCoverLetterAiDraft(prepared, jobId);
 }

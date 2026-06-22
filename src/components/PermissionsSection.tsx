@@ -1,4 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { loadSettings, saveSettings } from "@/db/settings-bridge";
+import {
+  applyToolbarClickBehavior,
+  getSidePanelLayoutSide,
+  type ToolbarClickBehavior,
+  type SidePanelLayoutSide,
+} from "@/services/toolbar-behavior";
 import {
   sectionHeading,
   sectionDesc,
@@ -51,6 +58,15 @@ export function PermissionsSection(): ReactNode {
     buildDeclaredPermissions(),
   );
   const [optionalOriginGranted, setOptionalOriginGranted] = useState(false);
+  const [toolbarClickBehavior, setToolbarClickBehavior] =
+    useState<ToolbarClickBehavior>("popup");
+  const [closePopupAfterOpeningSidePanel, setClosePopupAfterOpeningSidePanel] =
+    useState(true);
+  const [sidePanelLayoutSide, setSidePanelLayoutSide] =
+    useState<SidePanelLayoutSide | null>(null);
+  const [toolbarStatus, setToolbarStatus] = useState<string | null>(null);
+  const [toolbarError, setToolbarError] = useState<string | null>(null);
+  const [savingToolbarBehavior, setSavingToolbarBehavior] = useState(false);
 
   useEffect(() => {
     try {
@@ -72,10 +88,75 @@ export function PermissionsSection(): ReactNode {
           .then(setOptionalOriginGranted)
           .catch(() => setOptionalOriginGranted(false));
       }
+
+      void loadSettings()
+        .then((settings) => {
+          setToolbarClickBehavior(settings.general.toolbarClickBehavior);
+          setClosePopupAfterOpeningSidePanel(
+            settings.general.closePopupAfterOpeningSidePanel,
+          );
+        })
+        .catch(() => undefined);
+
+      void getSidePanelLayoutSide()
+        .then(setSidePanelLayoutSide)
+        .catch(() => setSidePanelLayoutSide(null));
     } catch {
       setPermissions(buildDeclaredPermissions());
     }
   }, []);
+
+  async function persistToolbarBehavior(
+    nextBehavior: ToolbarClickBehavior,
+  ): Promise<void> {
+    setSavingToolbarBehavior(true);
+    setToolbarError(null);
+    setToolbarStatus(null);
+
+    try {
+      const settings = await loadSettings();
+      settings.general.toolbarClickBehavior = nextBehavior;
+      await saveSettings(settings);
+      await applyToolbarClickBehavior(nextBehavior);
+      setToolbarClickBehavior(nextBehavior);
+      setToolbarStatus(
+        nextBehavior === "sidePanel"
+          ? "Toolbar click now opens VacancyPilot in Chrome's side panel."
+          : "Toolbar click now opens the compact VacancyPilot popup.",
+      );
+    } catch (error) {
+      setToolbarError(
+        error instanceof Error
+          ? error.message
+          : "Could not update toolbar click behavior.",
+      );
+    } finally {
+      setSavingToolbarBehavior(false);
+    }
+  }
+
+  async function persistClosePopupAfterOpen(nextValue: boolean): Promise<void> {
+    setToolbarError(null);
+    setToolbarStatus(null);
+
+    try {
+      const settings = await loadSettings();
+      settings.general.closePopupAfterOpeningSidePanel = nextValue;
+      await saveSettings(settings);
+      setClosePopupAfterOpeningSidePanel(nextValue);
+      setToolbarStatus(
+        nextValue
+          ? "Popup will close after Side Panel opens successfully."
+          : "Popup will stay visible after Side Panel opens.",
+      );
+    } catch (error) {
+      setToolbarError(
+        error instanceof Error
+          ? error.message
+          : "Could not update popup close behavior.",
+      );
+    }
+  }
 
   return (
     <div style={{ maxWidth: 620 }}>
@@ -168,6 +249,122 @@ export function PermissionsSection(): ReactNode {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div style={card}>
+        <h3 style={cardHeading}>Toolbar Icon Behavior</h3>
+        <p
+          style={{
+            fontSize: fontSizes.sm,
+            color: colors.textFaint,
+            margin: "0 0 8px",
+          }}
+        >
+          Popup: clicking the extension icon opens the compact popup.
+          Side Panel: clicking the extension icon opens VacancyPilot in
+          Chrome&apos;s side panel when supported.
+        </p>
+        <p
+          style={{
+            fontSize: fontSizes.sm,
+            color: colors.textSecondary,
+            margin: "0 0 12px",
+          }}
+        >
+          Chrome controls the position of extension popups. VacancyPilot cannot
+          make the popup draggable.
+        </p>
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            flexWrap: "wrap",
+            marginBottom: 12,
+          }}
+        >
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="radio"
+              name="toolbar-click-behavior"
+              checked={toolbarClickBehavior === "popup"}
+              onChange={() => void persistToolbarBehavior("popup")}
+              disabled={savingToolbarBehavior}
+            />
+            <span>Popup</span>
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="radio"
+              name="toolbar-click-behavior"
+              checked={toolbarClickBehavior === "sidePanel"}
+              onChange={() => void persistToolbarBehavior("sidePanel")}
+              disabled={savingToolbarBehavior}
+            />
+            <span>Side Panel</span>
+          </label>
+        </div>
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 12,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={closePopupAfterOpeningSidePanel}
+            onChange={(event) =>
+              void persistClosePopupAfterOpen(event.target.checked)
+            }
+          />
+          <span>Close popup after opening side panel</span>
+        </label>
+        <div
+          style={{
+            fontSize: fontSizes.sm,
+            color: colors.textSecondary,
+            marginBottom: 8,
+          }}
+        >
+          Chrome side panel side:{" "}
+          <strong>{sidePanelLayoutSide ?? "not reported by this Chrome"}</strong>
+        </div>
+        {sidePanelLayoutSide === "right" && (
+          <p
+            style={{
+              fontSize: fontSizes.sm,
+              color: colors.textFaint,
+              margin: "0 0 8px",
+            }}
+          >
+            Chrome controls the side panel position. If your browser supports
+            it, change side panel position in Chrome settings or the side panel
+            UI.
+          </p>
+        )}
+        {toolbarStatus && (
+          <p
+            style={{
+              fontSize: fontSizes.sm,
+              color: colors.textSecondary,
+              margin: 0,
+            }}
+          >
+            {toolbarStatus}
+          </p>
+        )}
+        {toolbarError && (
+          <p
+            style={{
+              fontSize: fontSizes.sm,
+              color: colors.red,
+              margin: "8px 0 0",
+            }}
+          >
+            {toolbarError}
+          </p>
+        )}
       </div>
 
       <div style={card}>
