@@ -20,6 +20,6 @@ jobs:
       # Do not add without verifying each dependency's actual license.
       - name: Dependency Review
         continue-on-error: true
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
